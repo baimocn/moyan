@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>墨衍 · 教学引擎流程图（2026-08-29）</title>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; background: #fafafa; margin: 0; padding: 24px; }
+  h1 { font-size: 20px; } h2 { font-size: 16px; margin-top: 40px; border-left: 4px solid #4a6fa5; padding-left: 8px; }
+  .cap { color: #555; font-size: 13px; margin: 4px 0 12px; }
+  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 8px; padding: 16px 20px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<h1>墨衍 · 教学引擎流程图</h1>
+<div class="cap">2026-08-29 · 配套 docs/审计-教学引擎构成与引用-2026-08-29.md 与 docs/调研-GitHub脚手架与苏格拉底项目-2026-08-29.md</div>
+
+<h2>① 主流程：一轮教学怎么转（FSM + 护栏 + 落库）</h2>
+<div class="cap">实线=主流程；虚线=护栏/旁路落库。分支由判定 decision 驱动，服务端写死转移表。</div>
+<div class="card"><pre class="mermaid">
+flowchart TD
+    A["上传资料 PDF/Word/MD"] --> B["解析引擎：Docling 主<br/>RapidOCR 兜底"]
+    B --> C["AI 校对（D8）"]
+    C --> D["切章"]
+    D --> E["start：LLM 生成知识点计划<br/>（章计划缓存，二次 0s）"]
+    E --> F["EXPLAIN 讲解<br/>SSE 流式 + 教材微点注入"]
+    F --> G["出题 QuizService<br/>选项洗牌防背字母"]
+    G --> H["学生作答"]
+    H --> I["EVALUATE 判定 JudgeService<br/>结构化校验 + score/weak_point 兜底"]
+    I --> J{"decision 分支"}
+    J -- "skip 已掌握" --> K["推进下一知识点"]
+    K --> F
+    J -- "reteach / 换讲法" --> F
+    J -- "practice 出巩固题" --> G2["巩固题（按薄弱点标签）"]
+    G2 --> H
+    K -. "计划讲完" .-> L["章末考 3-5 题"]
+    L --> M["掌握度报告"]
+    I -.-> N["薄弱点 weak_points<br/>（含程序级兜底）"]
+    N -.-> O[("FSRS 调度<br/>review_due 复习队列")]
+    I -.-> P[("strategy_logs<br/>数据驱动换讲法")]
+    I -.-> Q["输出后裁判 5 判据<br/>（防支架崩塌，采样）"]
+    F -.-> R["8 条硬规则 + 防泄漏过滤"]
+</pre></div>
+
+<h2>② 脚手架阶梯：现状 vs 建议（hint_level 程序化）</h2>
+<div class="cap">现状=升级梯只是提示词里的规则，系统不知道学生在第几级；建议=hint_level 进状态机，答对降级（fading 撤除支持），裁判按级校验是否越级泄答案。</div>
+<div class="card"><pre class="mermaid">
+flowchart LR
+    subgraph NOW["现状：提示词语义，无状态"]
+        direction LR
+        a1["答错：矛盾追问"] --> a2["两次卡住：思路第一步"]
+        a2 --> a3["索要≥3次：先思路后结论"]
+    end
+    subgraph PLAN["建议：hint_level 阶梯 + fading"]
+        direction LR
+        b0["0 诊断式提问<br/>（先测理解）"] -->|"答错 升级"| b1["1 指向性提示"]
+        b1 -->|"再错 升级"| b2["2 思路第一步"]
+        b2 -->|"再错/索要"| b3["3 先思路后结论"]
+        b1 -->|"答对 降级"| b0
+        b2 -->|"答对 降级"| b1
+        b3 -->|"答对 降级"| b2
+    end
+    NOW -.-> PLAN
+</pre></div>
+
+<h2>③ 引用关系：外部项目怎么进引擎</h2>
+<div class="cap">实线=代码级依赖；虚线=方法论借鉴（代码自研）；instructor 是唯一反向案例（引入后移除，残留死依赖）。</div>
+<div class="card"><pre class="mermaid">
+flowchart LR
+    subgraph EXT["外部项目 / 论文"]
+        FSRS["py-fsrs 官方库"]
+        DOC["Docling"]
+        ROCR["RapidOCR"]
+        SYN["synapse-skills"]
+        SOC["socrates-skill<br/>+苏格拉底调研论文"]
+        AT["AutoTutor 升级梯<br/>arXiv 2402.09216"]
+        SCOL["Scaffolding Collapse<br/>arXiv 2607.19371"]
+        EK["AITutor-EvalKit<br/>四维评分（新）"]
+        INS["instructor（已移除）"]
+    end
+    subgraph MOYAN["墨衍引擎"]
+        REPO["repo.py 记忆调度"]
+        DA["docling_adapter"]
+        OE["ocr_engine"]
+        SL[("strategy_logs")]
+        PR["prompts.py 8 硬规则"]
+        AC["actions FSM"]
+        RV["reviewer 裁判"]
+        ST["structured.py"]
+        WK[("weaknesses + FSRS 表")]
+    end
+    FSRS -->|"import"| REPO
+    REPO --> WK
+    DOC -->|"subprocess"| DA
+    ROCR -->|"import"| OE
+    SYN -.->|"思想"| SL
+    SOC -.->|"提问协议"| PR
+    AT -.->|"升级梯（半落地）"| AC
+    SCOL -.->|"5 判据"| RV
+    EK -.->|"四维评分（拟采纳）"| RV
+    INS -.->|"被替代"| ST
+</pre></div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "default" });
+</script>
+</body>
+</html>

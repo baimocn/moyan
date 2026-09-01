@@ -1,0 +1,27 @@
+"""文档模型"""
+from __future__ import annotations
+
+from sqlalchemy import JSON, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .db import Base, DateTime, _tznow
+
+
+class Document(Base):
+    """一份上传资料的解析结果索引。"""
+    __tablename__ = "documents"
+
+    doc_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    filename: Mapped[str] = mapped_column(String(255))
+    format: Mapped[str] = mapped_column(String(16), default="pdf")
+    page_count: Mapped[int] = mapped_column(Integer, default=0)
+    source: Mapped[str] = mapped_column(String(32), default="")
+    md_chars: Mapped[int] = mapped_column(Integer, default=0)
+    chapter_count: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(16), default="processing")
+    headings: Mapped[list] = mapped_column(JSON, default=list)
+    warnings: Mapped[list] = mapped_column(JSON, default=list)
+    stats: Mapped[dict] = mapped_column(JSON, default=dict)
+    manifest: Mapped[list] = mapped_column(JSON, default=list)
+    created_at = mapped_column(DateTime(timezone=True), default=_tznow)
+    updated_at = mapped_column(DateTime(timezone=True), default=_tznow, onupdate=_tznow)

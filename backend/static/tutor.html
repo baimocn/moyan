@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墨衍 · 教学控制台</title>
+<style>
+  :root { --ink:#2b2b2b; --paper:#faf6ef; --line:#e2d9c8; --accent:#7a5c3e; --good:#3a7d44; --bad:#a33c3c; --mid:#b08a2e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Microsoft YaHei",sans-serif; background:var(--paper); color:var(--ink); height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:10px; padding:10px 16px; background:#f3ecdd; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0 12px 0 0; letter-spacing:2px; }
+  select, button { font-family:inherit; font-size:13px; padding:5px 10px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  button { cursor:pointer; } button:hover { background:#efe6d2; } button:disabled { opacity:.5; cursor:default; }
+  #btnStart { background:var(--accent); color:#fff; border-color:var(--accent); }
+  main { flex:1; display:flex; overflow:hidden; }
+  aside { width:250px; border-right:1px solid var(--line); padding:12px; overflow:auto; background:#f7f1e4; font-size:12.5px; }
+  aside h3 { font-size:13px; margin:10px 0 6px; color:var(--accent); }
+  #plan li { margin:3px 0; padding:2px 6px; border-radius:3px; list-style:none; }
+  #plan li.done { color:#9a9a9a; text-decoration:line-through; }
+  #plan li.cur { background:#efe2c8; font-weight:bold; }
+  #stats td { padding:1px 6px; }
+  #chat { flex:1; overflow:auto; padding:18px 22px; display:flex; flex-direction:column; gap:12px; }
+  .msg { max-width:82%; padding:10px 14px; border-radius:8px; line-height:1.7; white-space:pre-wrap; }
+  .mate { align-self:flex-start; background:#fff; border:1px solid var(--line); }
+  .who { font-size:11px; color:var(--accent); margin-bottom:4px; letter-spacing:1px; }
+  .chip { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:10px; margin:2px 4px 2px 0; }
+  .c-good { background:#e2f0e4; color:var(--good); } .c-bad { background:#f6e0e0; color:var(--bad); }
+  .c-mid { background:#f5ecd4; color:var(--mid); } .c-grey { background:#eee; color:#777; }
+  .qcard { background:#fbf8f0; border:1px dashed var(--accent); border-radius:6px; padding:10px 12px; margin-top:8px; }
+  .opt { display:block; width:100%; text-align:left; margin:5px 0; padding:7px 10px; }
+  footer { display:flex; gap:10px; padding:12px 16px; border-top:1px solid var(--line); background:#f3ecdd; }
+  #inp { flex:1; font-family:inherit; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:6px; resize:none; height:44px; }
+  #hint { padding:6px 16px; font-size:12px; color:#8a7a5e; background:#f3ecdd; border-top:1px dashed var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1>墨衍 · 教学控制台</h1>
+  <select id="docSel"><option value="">选择教材…</option></select>
+  <select id="chapSel"><option value="">章节…</option></select>
+  <button id="btnStart">开始学习</button>
+  <button id="btnResume">续学上次</button>
+  <span id="sessInfo" style="font-size:12px;color:#8a7a5e;"></span>
+</header>
+<main>
+  <aside>
+    <h3>知识点路线图</h3><ul id="plan" style="padding:0;margin:0;"><li>— 未开始 —</li></ul>
+    <h3>学习档案</h3><table id="stats"><tr><td colspan="2">— 开始后更新 —</td></tr></table>
+    <h3>会话</h3><div id="sessMeta" style="color:#777;"></div>
+  </aside>
+  <div id="chat"><div class="msg mate"><div class="who">系统</div>选好教材和章节，点「开始学习」。同桌候着。</div></div>
+</main>
+<div id="hint">回车发送 · 选项可直接点 · 题目与选项原样来自引擎事件</div>
+<footer>
+  <textarea id="inp" placeholder="说点什么…（答题主思考，闲聊也行）" disabled></textarea>
+  <button id="btnSend" disabled>发送</button>
+</footer>
+<script>
+const $ = id => document.getElementById(id);
+const chat = $("chat");
+let SID = localStorage.getItem("moyan_sid") || "";
+let planKps = [];
+
+function addMsg(who, text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + (cls || "mate");
+  div.innerHTML = `<div class="who">${who}</div>`;
+  const span = document.createElement("span");
+  span.textContent = text;
+  div.appendChild(span);
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+  return span;
+}
+function addEl(html) {
+  const div = document.createElement("div"); div.className = "msg mate";
+  div.innerHTML = `<div class="who">同桌</div>` + html;
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+function chip(text, cls) { return `<span class="chip ${cls}">${text}</span>`; }
+function verdictChip(j) {
+  const c = j.correctness || j.correctness_level || "";
+  const map = {"correct":["答对","c-good"],"partial_correct":["部分对","c-mid"],
+               "incorrect":["答错","c-bad"],"off_topic":["答非所问","c-bad"],"unanswered":["未作答","c-grey"]};
+  const m = map[c] || [c || "—", "c-grey"];
+  return chip(m[0] + (j.score != null ? " · " + Math.round(j.score*100) + "分" : ""), m[1]) +
+         chip("下一步：" + ({reteach:"再讲", alternative_explanation:"换讲法",
+              practice_question:"出巩固题", skip:"推进"})[j.decision] || j.decision, "c-grey");
+}
+function refreshStats() {
+  if (!window.DOC) return;
+  fetch(`/api/study/${window.DOC}/stats`).then(r => r.json()).then(d => {
+    const s = d.stats || {};
+    $("stats").innerHTML = `<tr><td>薄弱点</td><td>弱 ${s.weak_points?.low||0} · 中 ${s.weak_points?.mid||0} · 强 ${s.weak_points?.high||0}</td></tr>
+      <tr><td>判定数</td><td>${s.total_judgements||0}</td></tr>
+      <tr><td>待复习</td><td>${s.review_due||0}</td></tr>
+      <tr><td>tokens</td><td>${(s.tokens?.total||0).toLocaleString()}</td></tr>`;
+  }).catch(() => {});
+}
+function renderPlan(curKp) {
+  if (!planKps.length) return;
+  $("plan").innerHTML = planKps.map((k, i) => {
+    const idx = planKps.findIndex(x => x === curKp);
+    const cls = i < idx || (idx === -1 && curKp === "__done__") ? "done" : (i === idx ? "cur" : "");
+    return `<li class="${cls}">${i+1}. ${k}</li>`;
+  }).join("");
+}
+
+fetch("/api/documents").then(r => r.json()).then(d => {
+  (d.documents || []).forEach(doc => {
+    if (doc.status !== "done") return;
+    const o = document.createElement("option");
+    o.value = doc.doc_id; o.textContent = `${doc.filename}（${doc.chapter_count}章）`;
+    $("docSel").appendChild(o);
+  });
+});
+$("docSel").onchange = () => {
+  const doc = $("docSel").value; $("chapSel").innerHTML = "<option value=''>章节…</option>";
+  if (!doc) return;
+  fetch(`/api/documents/${doc}`).then(r => r.json()).then(d => {
+    (d.document.manifest || []).forEach(c => {
+      const o = document.createElement("option");
+      o.value = c.index; o.textContent = `${c.title}（${c.char_count}字）`;
+      $("chapSel").appendChild(o);
+    });
+  });
+};
+$("btnStart").onclick = () => {
+  const doc = $("docSel").value, chap = $("chapSel").value;
+  if (!doc || chap === "") { alert("先选教材和章节"); return; }
+  $("btnStart").disabled = true;
+  fetch("/api/tutor/start", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({doc_id: doc, chapter_index: Number(chap)})})
+  .then(r => r.json()).then(d => {
+    $("btnStart").disabled = false;
+    if (!d.ok) { alert(d.detail || "开局失败"); return; }
+    SID = d.session_id; window.DOC = d.doc_id;
+    localStorage.setItem("moyan_sid", SID);
+    planKps = (d.plan || []).map(k => k.name);
+    renderPlan(planKps[0] || null);
+    $("sessInfo").textContent = `会话 ${SID} · ${d.persona_name || "同桌"}`;
+    addEl(`<div>${d.greeting || "（开场白缺失）"}</div><div style="margin-top:6px">${planKps.map((k,i)=>chip(`站${i+1} ${k}`,"c-grey")).join("")}</div>`);
+    $("inp").disabled = false; $("btnSend").disabled = false;
+    refreshStats();
+  }).catch(e => { $("btnStart").disabled = false; alert("请求失败：" + e); });
+};
+$("btnResume").onclick = () => {
+  if (!SID) { alert("localStorage 里没有上次会话"); return; }
+  window.DOC = window.DOC || $("docSel").value;
+  addMsg("系统", "（续学：直接说话即可，引擎会按档案恢复）", "mate");
+  $("inp").disabled = false; $("btnSend").disabled = false;
+};
+
+let streaming = false, curSpan = null;
+async function send() {
+  const text = $("inp").value.trim();
+  if (!text || streaming || !SID) return;
+  streaming = true; $("btnSend").disabled = true; $("inp").value = "";
+  addMsg("你", text);
+  curSpan = addMsg("同桌", "").querySelector("span");
+  try {
+    const resp = await fetch("/api/tutor/turn", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({session_id: SID, user_text: text})});
+    const reader = resp.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream:true});
+      let i;
+      while ((i = buf.indexOf("\n\n")) >= 0) {
+        const block = buf.slice(0, i); buf = buf.slice(i + 2);
+        for (const line of block.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6).trim();
+          if (payload === "[DONE]") continue;
+          let ev; try { ev = JSON.parse(payload); } catch { continue; }
+          handle(ev);
+        }
+      }
+    }
+  } catch (e) { curSpan.textContent += "\n[连接失败：" + e + "]"; }
+  streaming = false; $("btnSend").disabled = false; refreshStats();
+}
+function handle(ev) {
+  const t = ev.type;
+  if (t === "text-delta") { curSpan.textContent += ev.delta; chat.scrollTop = chat.scrollHeight; }
+  else if (t === "judge") {
+    const j = ev.judgement || {};
+    const div = document.createElement("div");
+    div.innerHTML = verdictChip(j) + ((j.review && j.review.scores) ? chip("裁判四维 " +
+      Object.values(j.review.scores).map(v => Math.round(v*10)/10).join("/"), "c-grey") : "");
+    curSpan.parentElement.appendChild(div);
+  }
+  else if (t === "meta") {
+    if (ev.state) { renderPlan(ev.kp); $("sessMeta").textContent = `状态：${ev.state} · 知识点：${ev.kp || "—"}`; }
+    if (ev.persona_name) $("sessInfo").textContent = `会话 ${SID} · ${ev.persona_name}`;
+  }
+  else if (t === "question") {
+    const q = ev.question;
+    const div = addEl(`<div class="qcard"><b>${q.stem}</b><div id="opts"></div></div>`.replace('<div id="opts"></div>', ""));
+    const box = div.querySelector(".qcard");
+    (q.options || []).forEach(o => {
+      const b = document.createElement("button");
+      b.className = "opt"; b.textContent = `${o.key}. ${o.text}`;
+      b.onclick = () => { $("inp").value = o.key; send(); };
+      box.appendChild(b);
+    });
+    if (!(q.options || []).length) box.insertAdjacentHTML("beforeend", "<i style='font-size:12px;color:#999'>（简答/填空：直接输入）</i>");
+  }
+  else if (t === "question-batch") {
+    addEl("<div class='qcard'><b>章末考</b>" + ev.questions.map(q =>
+      `<div style="margin:6px 0">${q.index+1}. ${q.stem}</div>`).join("") +
+      "<i style='font-size:12px;color:#999'>依次作答（控制台逐题回复）</i></div>");
+  }
+  else if (t === "report") {
+    const r = ev.report;
+    addEl(`<div class="qcard"><b>掌握度报告</b><div>${r.summary}</div>
+      <div style="font-size:12px;color:#777">均分 ${Math.round((r.avg_score||0)*100)} · 薄弱：${(r.weak_points||[]).join("、") || "无"}</div></div>`);
+  }
+  else if (t === "error") { curSpan.textContent += "\n[错误] " + ev.error; }
+  chat.scrollTop = chat.scrollHeight;
+}
+$("btnSend").onclick = send;
+$("inp").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+</script>
+</body>
+</html>

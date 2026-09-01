@@ -1,0 +1,11 @@
+
+> moyan-frontend@0.1.0 build:mp-weixin
+> uni build -p mp-weixin
+
+Compiler version: 5.25（vue3）
+Compiling...
+
+​The current application is not configured with Appid, and uni statistics cannot be used. For details, see https://ask.dcloud.net.cn/article/36303​
+
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist\build\mp-weixin[39m run.

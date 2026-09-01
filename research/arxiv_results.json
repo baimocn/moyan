@@ -1,0 +1,167 @@
+{
+  "\"Tutor CoPilot\"": [
+    {
+      "title": "Tutor CoPilot: A Human-AI Approach for Scaling Real-Time Expertise",
+      "id": "http://arxiv.org/abs/2410.03017v2",
+      "published": "2024-10-03",
+      "authors": "Rose E. Wang, Ana T. Ribeiro, Carly D. Robinson, Susanna Loeb, Dora Demszky",
+      "summary": "Generative AI, particularly Language Models (LMs), has the potential to transform real-world domains with societal impact, particularly where access to experts is limited. For example, in education, training novice educators with expert guidance is important for effectiveness but expensive, creating significant barriers to improving education quality at scale. This challenge disproportionately har"
+    }
+  ],
+  "all:\"large language models\" AND all:tutoring AND all:effectiveness": [
+    {
+      "title": "Using Large Language Models to Provide Explanatory Feedback to Human Tutors",
+      "id": "http://arxiv.org/abs/2306.15498v1",
+      "published": "2023-06-27",
+      "authors": "Jionghao Lin, Danielle R. Thomas, Feifei Han, Shivang Gupta, Wei Tan, Ngoc Dang Nguyen",
+      "summary": "Research demonstrates learners engaging in the process of producing explanations to support their reasoning, can have a positive impact on learning. However, providing learners real-time explanatory feedback often presents challenges related to classification accuracy, particularly in domain-specific environments, containing situationally complex and nuanced responses. We present two approaches fo"
+    },
+    {
+      "title": "Empowering Private Tutoring by Chaining Large Language Models",
+      "id": "http://arxiv.org/abs/2309.08112v2",
+      "published": "2023-09-15",
+      "authors": "Yulin Chen, Ning Ding, Hai-Tao Zheng, Zhiyuan Liu, Maosong Sun, Bowen Zhou",
+      "summary": "Artificial intelligence has been applied in various aspects of online education to facilitate teaching and learning. However, few approaches has been made toward a complete AI-powered tutoring system. In this work, we explore the development of a full-fledged intelligent tutoring system powered by state-of-the-art large language models (LLMs), covering automatic course planning and adjusting, tail"
+    },
+    {
+      "title": "Toward Automated Qualitative Analysis: Leveraging Large Language Models for Tutoring Dialogue Evaluation",
+      "id": "http://arxiv.org/abs/2504.13882v1",
+      "published": "2025-04-03",
+      "authors": "Megan Gu, Chloe Qianhui Zhao, Claire Liu, Nikhil Patel, Jahnvi Shah, Jionghao Lin",
+      "summary": "Our study introduces an automated system leveraging large language models (LLMs) to assess the effectiveness of five key tutoring strategies: 1. giving effective praise, 2. reacting to errors, 3. determining what students know, 4. helping students manage inequity, and 5. responding to negative self-talk. Using a public dataset from the Teacher-Student Chatroom Corpus, our system classifies each tu"
+    },
+    {
+      "title": "Can Large Language Models Match Tutoring System Adaptivity? A Benchmarking Study",
+      "id": "http://arxiv.org/abs/2504.05570v1",
+      "published": "2025-04-07",
+      "authors": "Conrad Borchers, Tianze Shou",
+      "summary": "Large Language Models (LLMs) hold promise as dynamic instructional aids. Yet, it remains unclear whether LLMs can replicate the adaptivity of intelligent tutoring systems (ITS)--where student knowledge and pedagogical strategies are explicitly modeled. We propose a prompt variation framework to assess LLM-generated instructional moves' adaptivity and pedagogical soundness across 75 real-world tuto"
+    },
+    {
+      "title": "PATS: Personality-Aware Teaching Strategies with Large Language Model Tutors",
+      "id": "http://arxiv.org/abs/2601.08402v1",
+      "published": "2026-01-13",
+      "authors": "Donya Rooein, Sankalan Pal Chowdhury, Mariia Eremeeva, Yuan Qin, Debora Nozza, Mrinmaya Sachan",
+      "summary": "Recent advances in large language models (LLMs) demonstrate their potential as educational tutors. However, different tutoring strategies benefit different student personalities, and mismatches can be counterproductive to student outcomes. Despite this, current LLM tutoring systems do not take into account student personality traits. To address this problem, we first construct a taxonomy that link"
+    },
+    {
+      "title": "Is your multimodal large language model a good science tutor?",
+      "id": "http://arxiv.org/abs/2505.06418v1",
+      "published": "2025-05-09",
+      "authors": "Ming Liu, Liwen Wang, Wensheng Zhang",
+      "summary": "Multimodal large language models (MLLMs) demonstrate impressive performance on scientific reasoning tasks (e.g., ScienceQA). However, most existing benchmarks focus narrowly on the accuracy of the final answer while ignoring other metrics. In particular, when applying MLLMs to educational contexts, the goal is not only correctness but also the ability to teach. In this paper, we propose a framewor"
+    }
+  ],
+  "all:\"socratic\" AND all:LLM AND all:education": [
+    {
+      "title": "Enhancing Critical Thinking in Education by means of a Socratic Chatbot",
+      "id": "http://arxiv.org/abs/2409.05511v1",
+      "published": "2024-09-09",
+      "authors": "Lucile Favero, Juan Antonio Pérez-Ortiz, Tanja Käser, Nuria Oliver",
+      "summary": "While large language models (LLMs) are increasingly playing a pivotal role in education by providing instantaneous, adaptive responses, their potential to promote critical thinking remains understudied. In this paper, we fill such a gap and present an innovative educational chatbot designed to foster critical thinking through Socratic questioning. Unlike traditional intelligent tutoring systems, i"
+    },
+    {
+      "title": "IntelliChain: An Integrated Framework for Enhanced Socratic Method Dialogue with LLMs and Knowledge Graphs",
+      "id": "http://arxiv.org/abs/2502.00010v1",
+      "published": "2025-01-07",
+      "authors": "Changyong Qi, Linzhao Jia, Yuang Wei, Yuan-Hao Jiang, Xiaoqing Gu",
+      "summary": "With the continuous advancement of educational technology, the demand for Large Language Models (LLMs) as intelligent educational agents in providing personalized learning experiences is rapidly increasing. This study aims to explore how to optimize the design and collaboration of a multi-agent system tailored for Socratic teaching through the integration of LLMs and knowledge graphs in a chain-of"
+    },
+    {
+      "title": "Beyond Direct Answering: Aligning Educational LLMs as Socratic Guides via Heuristic Reinforcement Learning",
+      "id": "http://arxiv.org/abs/2607.22996v1",
+      "published": "2026-07-25",
+      "authors": "Xiaokun Wang, Siyu Song, Wentao Liu, Xiaodong Zou",
+      "summary": "Large language models (LLMs) deployed in educational settings often behave as direct answerers: they disclose target concepts in the opening turn instead of guiding students through progressive inquiry, as Socratic pedagogy prescribes. We present HeuristicEdu, a two-phase pipeline that aligns Qwen2.5-7B toward Socratic tutoring via supervised warm-up and Group Relative Policy Optimization (GRPO). "
+    },
+    {
+      "title": "Sakshm AI: Advancing AI-Assisted Coding Education for Engineering Students in India Through Socratic Tutoring and Comprehensive Feedback",
+      "id": "http://arxiv.org/abs/2503.12479v1",
+      "published": "2025-03-16",
+      "authors": "Raj Gupta, Harshita Goyal, Dhruv Kumar, Apurv Mehra, Sanchit Sharma, Kashish Mittal",
+      "summary": "The advent of Large Language Models (LLMs) is reshaping education, particularly in programming, by enhancing problem-solving, enabling personalized feedback, and supporting adaptive learning. Existing AI tools for programming education struggle with key challenges, including the lack of Socratic guidance, direct code generation, limited context retention, minimal adaptive feedback, and the need fo"
+    },
+    {
+      "title": "Exploring Conversational Design Choices in LLMs for Pedagogical Purposes: Socratic and Narrative Approaches for Improving Instructor's Teaching Practice",
+      "id": "http://arxiv.org/abs/2509.12107v1",
+      "published": "2025-09-15",
+      "authors": "Si Chen, Isabel R. Molnar, Peiyu Li, Adam Acunin, Ting Hua, Alex Ambrose",
+      "summary": "Large language models (LLMs) typically generate direct answers, yet they are increasingly used as learning tools. Studying instructors' usage is critical, given their role in teaching and guiding AI adoption in education. We designed and evaluated TeaPT, an LLM for pedagogical purposes that supports instructors' professional development through two conversational approaches: a Socratic approach th"
+    },
+    {
+      "title": "Generative AI in Education: From Foundational Insights to the Socratic Playground for Learning",
+      "id": "http://arxiv.org/abs/2501.06682v1",
+      "published": "2025-01-12",
+      "authors": "Xiangen Hu, Sheng Xu, Richard Tong, Art Graesser",
+      "summary": "This paper explores the synergy between human cognition and Large Language Models (LLMs), highlighting how generative AI can drive personalized learning at scale. We discuss parallels between LLMs and human cognition, emphasizing both the promise and new perspectives on integrating AI systems into education. After examining challenges in aligning technology with pedagogy, we review AutoTutor-one o"
+    }
+  ],
+  "all:\"AI tutor\" AND all:\"randomized\"": [
+    {
+      "title": "AI tutoring can safely and effectively support students: An exploratory RCT in UK classrooms",
+      "id": "http://arxiv.org/abs/2512.23633v1",
+      "published": "2025-12-29",
+      "authors": " LearnLM Team,  Eedi,  :, Albert Wang, Aliya Rysbek, Andrea Huber",
+      "summary": "One-to-one tutoring is widely considered the gold standard for personalized education, yet it remains prohibitively expensive to scale. To evaluate whether generative AI might help expand access to this resource, we conducted an exploratory randomized controlled trial (RCT) with $N = 165$ students across five UK secondary schools. We integrated LearnLM -- a generative AI model fine-tuned for pedag"
+    },
+    {
+      "title": "From Intuition to Understanding: Using AI Peers to Overcome Physics Misconceptions",
+      "id": "http://arxiv.org/abs/2504.00408v1",
+      "published": "2025-04-01",
+      "authors": "Ruben Weijers, Denton Wu, Hannah Betts, Tamara Jacod, Yuxiang Guan, Vidya Sujaya",
+      "summary": "Generative AI has the potential to transform personalization and accessibility of education. However, it raises serious concerns about accuracy and helping students become independent critical thinkers. In this study, we designed a helpful AI \"Peer\" to help students correct fundamental physics misconceptions related to Newtonian mechanic concepts. In contrast to approaches that seek near-perfect a"
+    },
+    {
+      "title": "Effective Personalized AI Tutors via LLM-Guided Reinforcement Learning",
+      "id": "http://arxiv.org/abs/2608.16907v1",
+      "published": "2026-07-10",
+      "authors": "Angel Tsai-Hsuan Chung, Botong Zhang, Ling-Chieh Kung, Hamsa Bastani, Osbert Bastani",
+      "summary": "Generative AI (GenAI) is rapidly reshaping education by unlocking the potential for personalized tutoring. Yet, emerging platforms largely focus on GenAI chatbot tutors that reactively answer student questions. We hypothesize that the efficacy of GenAI chatbot tutors can be substantially improved by proactively guiding student learning. To test this, we design a novel tutoring platform that tightl"
+    }
+  ],
+  "all:\"TutorLM\"": [],
+  "all:\"intelligent tutoring\" AND all:\"language models\"": [
+    {
+      "title": "Contextualizing Problems to Student Interests at Scale in Intelligent Tutoring System Using Large Language Models",
+      "id": "http://arxiv.org/abs/2306.00190v1",
+      "published": "2023-05-31",
+      "authors": "Gautam Yadav, Ying-Jui Tseng, Xiaolin Ni",
+      "summary": "Contextualizing problems to align with student interests can significantly improve learning outcomes. However, this task often presents scalability challenges due to resource and time constraints. Recent advancements in Large Language Models (LLMs) like GPT-4 offer potential solutions to these issues. This study explores the ability of GPT-4 in the contextualization of problems within CTAT, an int"
+    },
+    {
+      "title": "Leveraging Large Language Model and Story-Based Gamification in Intelligent Tutoring System to Scaffold Introductory Programming Courses: A Design-Based Research Study",
+      "id": "http://arxiv.org/abs/2302.12834v1",
+      "published": "2023-02-25",
+      "authors": "Chen Cao",
+      "summary": "Programming skills are rapidly becoming essential for many educational paths and career opportunities. Yet, for many international students, the traditional approach to teaching introductory programming courses can be a significant challenge due to the complexities of the language, the lack of prior programming knowledge, and the language and cultural barriers. This study explores how large langua"
+    },
+    {
+      "title": "Data-Driven Hints in Intelligent Tutoring Systems",
+      "id": "http://arxiv.org/abs/2603.07311v1",
+      "published": "2026-03-07",
+      "authors": "Sutapa Dey Tithi, Kimia Fazeli, Dmitri Droujkov, Tahreem Yasir, Xiaoyi Tian, Tiffany Barnes",
+      "summary": "This chapter explores the evolution of data-driven hint generation for intelligent tutoring systems (ITS). The Hint Factory and Interaction Networks have enabled the generation of next-step hints, waypoints, and strategic subgoals from historical student data. Data-driven techniques have also enabled systems to find the right time to provide hints. We explore further potential data-driven adaptati"
+    },
+    {
+      "title": "Examining the Influence of Varied Levels of Domain Knowledge Base Inclusion in GPT-based Intelligent Tutors",
+      "id": "http://arxiv.org/abs/2309.12367v2",
+      "published": "2023-09-16",
+      "authors": "Blake Castleman, Mehmet Kerem Turkcan",
+      "summary": "Recent advancements in large language models (LLMs) have facilitated the development of chatbots with sophisticated conversational capabilities. However, LLMs exhibit frequent inaccurate responses to queries, hindering applications in educational settings. In this paper, we investigate the effectiveness of integrating a knowledge base (KB) with LLM intelligent tutors to increase response reliabili"
+    },
+    {
+      "title": "Personality-aware Student Simulation for Conversational Intelligent Tutoring Systems",
+      "id": "http://arxiv.org/abs/2404.06762v2",
+      "published": "2024-04-10",
+      "authors": "Zhengyuan Liu, Stella Xin Yin, Geyu Lin, Nancy F. Chen",
+      "summary": "Intelligent Tutoring Systems (ITSs) can provide personalized and self-paced learning experience. The emergence of large language models (LLMs) further enables better human-machine interaction, and facilitates the development of conversational ITSs in various disciplines such as math and language learning. In dialogic teaching, recognizing and adapting to individual characteristics can significantl"
+    },
+    {
+      "title": "Generative AI and Its Impact on Personalized Intelligent Tutoring Systems",
+      "id": "http://arxiv.org/abs/2410.10650v1",
+      "published": "2024-10-14",
+      "authors": "Subhankar Maity, Aniket Deroy",
+      "summary": "Generative Artificial Intelligence (AI) is revolutionizing educational technology by enabling highly personalized and adaptive learning environments within Intelligent Tutoring Systems (ITS). This report delves into the integration of Generative AI, particularly large language models (LLMs) like GPT-4, into ITS to enhance personalized education through dynamic content generation, real-time feedbac"
+    }
+  ]
+}

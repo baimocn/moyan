@@ -1,0 +1,205 @@
+{
+  "total_count": 2,
+  "incomplete_results": false,
+  "items": [
+    {
+      "url": "https://api.github.com/repos/fastapi/fastapi/issues/3766",
+      "repository_url": "https://api.github.com/repos/fastapi/fastapi",
+      "labels_url": "https://api.github.com/repos/fastapi/fastapi/issues/3766/labels{/name}",
+      "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/3766/comments",
+      "events_url": "https://api.github.com/repos/fastapi/fastapi/issues/3766/events",
+      "html_url": "https://github.com/fastapi/fastapi/issues/3766",
+      "id": 978931815,
+      "node_id": "MDU6SXNzdWU5Nzg5MzE4MTU=",
+      "number": 3766,
+      "title": "How can I cancel the request handler gracefully when a client disconnects?",
+      "user": {
+        "login": "RedRoserade",
+        "id": 1012794,
+        "node_id": "MDQ6VXNlcjEwMTI3OTQ=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1012794?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/RedRoserade",
+        "html_url": "https://github.com/RedRoserade",
+        "followers_url": "https://api.github.com/users/RedRoserade/followers",
+        "following_url": "https://api.github.com/users/RedRoserade/following{/other_user}",
+        "gists_url": "https://api.github.com/users/RedRoserade/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/RedRoserade/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/RedRoserade/subscriptions",
+        "organizations_url": "https://api.github.com/users/RedRoserade/orgs",
+        "repos_url": "https://api.github.com/users/RedRoserade/repos",
+        "events_url": "https://api.github.com/users/RedRoserade/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/RedRoserade/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "labels": [
+        {
+          "id": 1154536363,
+          "node_id": "MDU6TGFiZWwxMTU0NTM2MzYz",
+          "url": "https://api.github.com/repos/fastapi/fastapi/labels/question",
+          "name": "question",
+          "color": "d876e3",
+          "default": true,
+          "description": "Question or problem"
+        },
+        {
+          "id": 5194404667,
+          "node_id": "LA_kwDOCZduT88AAAABNZxTOw",
+          "url": "https://api.github.com/repos/fastapi/fastapi/labels/question-migrate",
+          "name": "question-migrate",
+          "color": "ededed",
+          "default": false,
+          "description": null
+        }
+      ],
+      "state": "closed",
+      "locked": true,
+      "assignees": [
+
+      ],
+      "milestone": null,
+      "comments": 3,
+      "created_at": "2021-08-25T09:36:53Z",
+      "updated_at": "2023-02-28T16:37:42Z",
+      "closed_at": "2023-02-28T16:37:42Z",
+      "assignee": null,
+      "author_association": "NONE",
+      "issue_field_values": [
+
+      ],
+      "type": null,
+      "active_lock_reason": null,
+      "sub_issues_summary": {
+        "total": 0,
+        "completed": 0,
+        "percent_completed": 0
+      },
+      "issue_dependencies_summary": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      },
+      "body": "### First Check\n\n- [X] I added a very descriptive title to this issue.\n- [X] I used the GitHub search to find a similar issue and didn't find it.\n- [X] I searched the FastAPI documentation, with the integrated search.\n- [X] I already searched in Google \"How to X in FastAPI\" and didn't find any information.\n- [X] I already read and followed all the tutorial in the docs and didn't find an answer.\n- [X] I already checked if it is not related to FastAPI but to [Pydantic](https://github.com/samuelcolvin/pydantic).\n- [X] I already checked if it is not related to FastAPI but to [Swagger UI](https://github.com/swagger-api/swagger-ui).\n- [X] I already checked if it is not related to FastAPI but to [ReDoc](https://github.com/Redocly/redoc).\n\n### Commit to Help\n\n- [X] I commit to help with one of those options 👆\n\n### Example Code\n\n```python\nimport asyncio\r\nfrom fastapi import FastAPI, Request\r\nimport uvicorn\r\n\r\napp = FastAPI()\r\n\r\n\r\n@app.get(\"/\")\r\nasync def hello(request: Request):\r\n\r\n    try:\r\n        print(\"sleep\")\r\n\r\n        # I would expect this sleep to raise `asyncio.CancelledError`\r\n        # when I close the tab on the browser,\r\n        # which will, in turn, close the socket.\r\n        await asyncio.sleep(100)\r\n\r\n        print(\"done\")\r\n    except asyncio.CancelledError:\r\n        print(\"cancelled\")\r\n        raise\r\n\r\n    return \"Hello, world\"\r\n\r\n\r\nuvicorn.run(app, port=5051)\n```\n\n\n### Description\n\nReproduction steps:\r\n\r\n- Run the app\r\n- Go to http://localhost:5051\r\n- Wait a few (2-5) seconds\r\n- Close the tab\r\n\r\nI would expect the `except` handler to run, therefore printing `cancelled`. However, this is not the case. The handler will only be called when I use `Ctrl+C` to stop the app.\n\n### Operating System\n\nLinux\n\n### Operating System Details\n\n_No response_\n\n### FastAPI Version\n\n0.68.1\n\n### Python Version\n\nPython 3.9.6\n\n### Additional Context\n\nThis question arises because we have some APIs, written with aiohttp, which can do some long-running compute. When the client times out, the coroutine of the handler gets cancelled. The following snippet, for aiohttp, which should be equivalent, does what I expect, and prints \"cancelled\" when the tab on the browser is closed.\r\n\r\n```python\r\nimport asyncio\r\nfrom aiohttp import web\r\n\r\nasync def hello(request):\r\n    try:    \r\n        print(\"sleep\")\r\n        # Simulate long-running work...\r\n        await asyncio.sleep(100)\r\n        print(\"done\")\r\n    except asyncio.CancelledError:\r\n        print(\"cancelled\")\r\n        raise\r\n\r\n    return web.Response(text=\"Hello, world\")\r\n\r\n\r\napp = web.Application()\r\napp.add_routes([web.get('/', hello)])\r\n\r\nweb.run_app(app, port=5050)\r\n```\r\n\r\nFurthermore, I see that the Starlette `Request` class has a method, `async def is_disconnected() -> bool`, which can be used for this.\r\n\r\nIndeed, if I modify the minimal example to do something like this:\r\n\r\n```python\r\nimport asyncio\r\nfrom fastapi import FastAPI, Request\r\nimport uvicorn\r\n\r\napp = FastAPI()\r\n\r\n\r\n@app.get(\"/\")\r\nasync def hello(request: Request):\r\n\r\n    try:\r\n        print(\"sleep\")\r\n\r\n        while not await request.is_disconnected():\r\n            print(\"Still connected\")\r\n            await asyncio.sleep(1)\r\n\r\n        print(\"done\")\r\n    except asyncio.CancelledError:\r\n        print(\"cancelled\")\r\n        raise\r\n\r\n    return \"Hello, world\"\r\n\r\n\r\nuvicorn.run(app, port=5051)\r\n```\r\n\r\nThen indeed, I can catch the disconnect, and stop any potentially long-running work. It is a workaround, though.\r\n\r\nSo, the question is: Is there a configuration switch, or something equivalent, which would enable this behaviour? Are there drawbacks I am missing regarding such an approach?",
+      "reactions": {
+        "url": "https://api.github.com/repos/fastapi/fastapi/issues/3766/reactions",
+        "total_count": 2,
+        "+1": 2,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/fastapi/fastapi/issues/3766/timeline",
+      "performed_via_github_app": null,
+      "state_reason": "completed",
+      "pinned_comment": null,
+      "score": 1.0
+    },
+    {
+      "url": "https://api.github.com/repos/fastapi/fastapi/issues/2574",
+      "repository_url": "https://api.github.com/repos/fastapi/fastapi",
+      "labels_url": "https://api.github.com/repos/fastapi/fastapi/issues/2574/labels{/name}",
+      "comments_url": "https://api.github.com/repos/fastapi/fastapi/issues/2574/comments",
+      "events_url": "https://api.github.com/repos/fastapi/fastapi/issues/2574/events",
+      "html_url": "https://github.com/fastapi/fastapi/issues/2574",
+      "id": 775134371,
+      "node_id": "MDU6SXNzdWU3NzUxMzQzNzE=",
+      "number": 2574,
+      "title": "How to use async starlette.request functions in a synchronous endpoint",
+      "user": {
+        "login": "kbakk",
+        "id": 24817039,
+        "node_id": "MDQ6VXNlcjI0ODE3MDM5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/24817039?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/kbakk",
+        "html_url": "https://github.com/kbakk",
+        "followers_url": "https://api.github.com/users/kbakk/followers",
+        "following_url": "https://api.github.com/users/kbakk/following{/other_user}",
+        "gists_url": "https://api.github.com/users/kbakk/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/kbakk/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/kbakk/subscriptions",
+        "organizations_url": "https://api.github.com/users/kbakk/orgs",
+        "repos_url": "https://api.github.com/users/kbakk/repos",
+        "events_url": "https://api.github.com/users/kbakk/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/kbakk/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "labels": [
+        {
+          "id": 1154536363,
+          "node_id": "MDU6TGFiZWwxMTU0NTM2MzYz",
+          "url": "https://api.github.com/repos/fastapi/fastapi/labels/question",
+          "name": "question",
+          "color": "d876e3",
+          "default": true,
+          "description": "Question or problem"
+        },
+        {
+          "id": 5194404667,
+          "node_id": "LA_kwDOCZduT88AAAABNZxTOw",
+          "url": "https://api.github.com/repos/fastapi/fastapi/labels/question-migrate",
+          "name": "question-migrate",
+          "color": "ededed",
+          "default": false,
+          "description": null
+        }
+      ],
+      "state": "closed",
+      "locked": true,
+      "assignees": [
+
+      ],
+      "milestone": null,
+      "comments": 12,
+      "created_at": "2020-12-28T00:20:40Z",
+      "updated_at": "2023-02-27T23:32:17Z",
+      "closed_at": "2023-02-27T23:32:17Z",
+      "assignee": null,
+      "author_association": "NONE",
+      "issue_field_values": [
+
+      ],
+      "type": null,
+      "active_lock_reason": null,
+      "sub_issues_summary": {
+        "total": 0,
+        "completed": 0,
+        "percent_completed": 0
+      },
+      "issue_dependencies_summary": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      },
+      "body": "<details><summary>First check\r\n</summary>\r\n\r\n* [x] I added a very descriptive title to this issue.\r\n* [x] I used the GitHub search to find a similar issue and didn't find it.\r\n* [x] I searched the FastAPI documentation, with the integrated search.\r\n* [x] I already searched in Google \"How to X in FastAPI\" and didn't find any information.\r\n* [x] I already read and followed all the tutorial in the docs and didn't find an answer.\r\n* [x] I already checked if it is not related to FastAPI but to [Pydantic](https://github.com/samuelcolvin/pydantic).\r\n* [x] I already checked if it is not related to FastAPI but to [Swagger UI](https://github.com/swagger-api/swagger-ui).\r\n* [x] I already checked if it is not related to FastAPI but to [ReDoc](https://github.com/Redocly/redoc).\r\n* [x] After submitting this, I commit to one of:\r\n    * Read open issues with questions until I find 2 issues where I can help someone and add a comment to help there.\r\n    * I already hit the \"watch\" button in this repository to receive notifications and I commit to help at least 2 people that ask questions in the future.\r\n    * Implement a Pull Request for a confirmed bug.\r\n\r\n</details>\r\n\r\n### Example\r\n\r\nHere's a self-contained, [minimal, reproducible, example](https://stackoverflow.com/help/minimal-reproducible-example) with my use case:\r\n\r\n<!-- Replace the code below with your own self-contained, minimal, reproducible, example, if I (or someone) can copy it, run it, and see it right away, there's a much higher chance I (or someone) will be able to help you -->\r\n\r\n```Python\r\nfrom fastapi import FastAPI\r\nfrom starlette.requests import Request\r\nimport uvicorn\r\n\r\napp = FastAPI()\r\n\r\n@app.post(\"/reports/\", response_model=None)\r\ndef submit_report(request: Request):\r\n    # access to reproduce issue\r\n    body = request.body()\r\n\r\n    ## workaround:\r\n    # import asyncio\r\n    # body = asyncio.run(request.body())\r\n\r\n    # ... do stuff with body ...\r\n\r\nuvicorn.run(app, host=\"0.0.0.0\", port=8000)\r\n\r\n# output:\r\n# INFO:     Started server process [97531]\r\n# INFO:     Waiting for application startup.\r\n# INFO:     Application startup complete.\r\n# INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)\r\n# __main__:5: RuntimeWarning: coroutine 'Request.body' was never awaited\r\n# RuntimeWarning: Enable tracemalloc to get the object allocation traceback\r\n# INFO:     127.0.0.1:54472 - \"POST /reports/ HTTP/1.1\" 200 OK\r\n```\r\n\r\n### Description\r\n\r\nI need to access the raw request body for processing, so I'm using `starlette.request.Request` as suggested [in the docs](https://fastapi.tiangolo.com/advanced/using-request-directly/) (and [in #2460](https://github.com/tiangolo/fastapi/issues/2460#issuecomment-740166677)).\r\n\r\nRun above in one terminal, and this in another `curl -XPOST localhost:8000/reports/`.\r\n\r\nAs seen seen above (uvicorn log output), getting `RuntimeWarning: coroutine 'Request.body' was never awaited`. This is because the body method is async ([ref.](https://github.com/encode/starlette/blob/bfa61ad92b63b6929e485f2189fd299f94189b09/starlette/requests.py#L217)).\r\n\r\n**Is `asyncio.run(request.body())` the best (only) workaround here, if I don't want my route to be async?**\r\n\r\n### Environment\r\n\r\n* OS: MacOS Catalina 10.15.7\r\n* FastAPI Version: 0.63.0\r\n* Python version: Python 3.7.6",
+      "reactions": {
+        "url": "https://api.github.com/repos/fastapi/fastapi/issues/2574/reactions",
+        "total_count": 6,
+        "+1": 6,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/fastapi/fastapi/issues/2574/timeline",
+      "performed_via_github_app": null,
+      "state_reason": "completed",
+      "pinned_comment": null,
+      "score": 1.0
+    }
+  ],
+  "search_type": "lexical"
+}

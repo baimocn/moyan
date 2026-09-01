@@ -1,0 +1,266 @@
+{
+	"type": "gh",
+	"name": "anthropics/prompt-eng-interactive-tutorial",
+	"version": "master",
+	"default": null,
+	"files": [
+		{
+			"name": "/.gitignore",
+			"hash": "yq/LdcqfClW2etmCMruOpGQYh18b8d7v80FYep0okz0=",
+			"size": 11
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/00_Tutorial_How-To.ipynb",
+			"hash": "3TQKGLQB8aXpjOWXU0hyoj/9tCReAAxTozbxikRUbtU=",
+			"size": 5357
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/01_Basic_Prompt_Structure.ipynb",
+			"hash": "m2l++iIu+GlIdmZWYeflqz/YWCmxWZBx6sRogbBTOOI=",
+			"size": 15841
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/02_Being_Clear_and_Direct.ipynb",
+			"hash": "Jz7EPXCREO3iim3Kqiayxg6CS5cS7KH/LIS7VyjfnDg=",
+			"size": 10967
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/03_Assigning_Roles_Role_Prompting.ipynb",
+			"hash": "l/rbFlTeOi8IHgdT1p9Mw57VXmjLHYV9HzWFP2OrxfM=",
+			"size": 10895
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/04_Separating_Data_and_Instructions.ipynb",
+			"hash": "n8n75GLPrhS9iARUAspRRwk/9dm9rDNix4qUEgm/r90=",
+			"size": 22296
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/05_Formatting_Output_and_Speaking_for_Claude.ipynb",
+			"hash": "xz9du1uyRiAd35fB/NdBMZ/D9BIYKQLz66yG8VZIzvI=",
+			"size": 18752
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/06_Precognition_Thinking_Step_by_Step.ipynb",
+			"hash": "Q8+HZftHjVj0vRUMdCfq6Cz6hPPYezCS+nySgGO8hvQ=",
+			"size": 18208
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/07_Using_Examples _Few-Shot_Prompting.ipynb",
+			"hash": "WaxbUPm+OZtqK5LqCEjXxmpAhpcNwmfcBMAAcMJgzag=",
+			"size": 18501
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/08_Avoiding_Hallucinations.ipynb",
+			"hash": "ScInUISHZ++mXdURiSi2p6KalfWJdNPG+mFuBRazl+k=",
+			"size": 178102
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/09_Complex_Prompts_from_Scratch.ipynb",
+			"hash": "2Wa47fRwfja+mEicNNa2NNUQqe0cGtVRvU6hI0g+TjM=",
+			"size": 81825
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/10_1_Appendix_Chaining_Prompts.ipynb",
+			"hash": "IPD9jdJcZOKE1Xdrtdm7wZ36M+kvphDtBUwA6HWmxJ4=",
+			"size": 21140
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/10_2_Appendix_Tool_Use.ipynb",
+			"hash": "xC+nz8ZQ5OnhgjrFNc2GZDrpn4AJpdqeeMHzttE1kOg=",
+			"size": 27704
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/10_3_Appendix_Empirical_Performance_Evaluations.ipynb",
+			"hash": "CdqO2L8BneHdrroiASymJ2LPuDwVbygfRhvFQSv1wqU=",
+			"size": 14397
+		},
+		{
+			"name": "/AmazonBedrock/anthropic/10_4_Appendix_Search_and_Retrieval.ipynb",
+			"hash": "JFkXKHeaK2ccz+tYcNhEb29IWaZQAwvNewMFXs5V1dI=",
+			"size": 1413
+		},
+		{
+			"name": "/AmazonBedrock/boto3/00_Tutorial_How-To.ipynb",
+			"hash": "8u2F2LRDG0kYTaYM5539cMMgp+fUVGThqJMFiidV1Eg=",
+			"size": 5814
+		},
+		{
+			"name": "/AmazonBedrock/boto3/01_Basic_Prompt_Structure.ipynb",
+			"hash": "86EbpYtN37LnD8XVDQpjvocaG13S2Y0W+u0zVcIXY08=",
+			"size": 16428
+		},
+		{
+			"name": "/AmazonBedrock/boto3/02_Being_Clear_and_Direct.ipynb",
+			"hash": "rRsxYUrnaMU9UdC5V9cjMZO8ebYwFKGeAWBbD0okkSg=",
+			"size": 11236
+		},
+		{
+			"name": "/AmazonBedrock/boto3/03_Assigning_Roles_Role_Prompting.ipynb",
+			"hash": "KVzRjWni3lEvQu6m4zVBIL7+GSe919wefXpLlkx6r7U=",
+			"size": 11164
+		},
+		{
+			"name": "/AmazonBedrock/boto3/04_Separating_Data_and_Instructions.ipynb",
+			"hash": "gXgllYnDlWWo4suxnYM6N6fnZlZ0eosjf9uYbwNFwgw=",
+			"size": 22565
+		},
+		{
+			"name": "/AmazonBedrock/boto3/05_Formatting_Output_and_Speaking_for_Claude.ipynb",
+			"hash": "4Z5ddFNT+pCR8MmsbCZPwf4wgHbngHI4OZljZXLXPX8=",
+			"size": 18947
+		},
+		{
+			"name": "/AmazonBedrock/boto3/06_Precognition_Thinking_Step_by_Step.ipynb",
+			"hash": "zMn9g/R0Wwanu03wh6Gq/9pLGbdkjFaHsKyhZvNFEa0=",
+			"size": 18527
+		},
+		{
+			"name": "/AmazonBedrock/boto3/07_Using_Examples_Few-Shot_Prompting.ipynb",
+			"hash": "6PG0yIRBy2vINsmevAH9uZM36H4xFvNBrsMUJSrpxL8=",
+			"size": 18820
+		},
+		{
+			"name": "/AmazonBedrock/boto3/08_Avoiding_Hallucinations.ipynb",
+			"hash": "HxS9jEGVNcXtwP802dB5Fkc76z5LJj7WZK000p+t5BA=",
+			"size": 178421
+		},
+		{
+			"name": "/AmazonBedrock/boto3/09_Complex_Prompts_from_Scratch.ipynb",
+			"hash": "koKY5Z3rGkN+xhIqxF+gyusR332DaWd96PxRCvH83Dk=",
+			"size": 82144
+		},
+		{
+			"name": "/AmazonBedrock/boto3/10_1_Appendix_Chaining_Prompts.ipynb",
+			"hash": "J8auaQaoxNtGS1xeepET5uGJ7fuKE1WKfuq2Tv15COM=",
+			"size": 21448
+		},
+		{
+			"name": "/AmazonBedrock/boto3/10_2_Appendix_Tool_Use.ipynb",
+			"hash": "arqjzU3O8GY/D7Hhv3ltpyBDMJURvYcjE9sxbhchEmY=",
+			"size": 27632
+		},
+		{
+			"name": "/AmazonBedrock/boto3/10_3_Appendix_Empirical_Performance_Eval.ipynb",
+			"hash": "LQVGVEd32vFUEwqKIxML7LPEPICJV1+qRatP0DrZjdw=",
+			"size": 14392
+		},
+		{
+			"name": "/AmazonBedrock/boto3/10_4_Appendix_Search_and_Retrieval.ipynb",
+			"hash": "Qkgo6MXBR8shCvehjjvnp197kn/cg/tPEAz5v1KIxhw=",
+			"size": 1413
+		},
+		{
+			"name": "/AmazonBedrock/cloudformation/workshop-v1-final-cfn.yml",
+			"hash": "a2tISL2KP4PlEA4RqUUtlUWNeshDZldbMm7iO3CJViw=",
+			"size": 2056
+		},
+		{
+			"name": "/AmazonBedrock/CONTRIBUTING.md",
+			"hash": "mT52Obk+pE2WvpgTtj9b6toN6y1Gd9LpHqlrxR4VtEs=",
+			"size": 3160
+		},
+		{
+			"name": "/AmazonBedrock/LICENSE",
+			"hash": "fLdQcTJS79HVeIN7qHhbYTGRCZBvDBC4etq3z0ut/EI=",
+			"size": 947
+		},
+		{
+			"name": "/AmazonBedrock/README.md",
+			"hash": "acKRnux/8VEjvWWaJEhmkcZvsifT21FXEh7Viek7Q9U=",
+			"size": 2587
+		},
+		{
+			"name": "/AmazonBedrock/requirements.txt",
+			"hash": "K8Zy7Isgq5mPnSdEsxNAHny7U5WI/T8oWRFiXVoxTAY=",
+			"size": 86
+		},
+		{
+			"name": "/AmazonBedrock/utils/__init__.py",
+			"hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+			"size": 0
+		},
+		{
+			"name": "/AmazonBedrock/utils/hints.py",
+			"hash": "3UkkcaDC55372/JcwI2I9tn6QQSB3iRZnaQUIdl3syg=",
+			"size": 12743
+		},
+		{
+			"name": "/Anthropic 1P/00_Tutorial_How-To.ipynb",
+			"hash": "DA8WeELv2DHqILK+Ozav10mor1GGf1Pnkw6KkpX7evk=",
+			"size": 4804
+		},
+		{
+			"name": "/Anthropic 1P/01_Basic_Prompt_Structure.ipynb",
+			"hash": "1sA1uGk+sgdGnnwNtX9hJVbWPEqZvZSxvbijGe3OUDE=",
+			"size": 14814
+		},
+		{
+			"name": "/Anthropic 1P/02_Being_Clear_and_Direct.ipynb",
+			"hash": "Y9f38FZBdA53R2KJ78VqUWvYzzPPnVgFySxQ+7rt7rA=",
+			"size": 11017
+		},
+		{
+			"name": "/Anthropic 1P/03_Assigning_Roles_Role_Prompting.ipynb",
+			"hash": "JjOEWTO7iLuNTebHzXoe21um3xzdujFyUwelbTWGTkE=",
+			"size": 10764
+		},
+		{
+			"name": "/Anthropic 1P/04_Separating_Data_and_Instructions.ipynb",
+			"hash": "eSQXajUd/kKi0lcikP0GpdoN/Beb6KvSMhihTpkyHs0=",
+			"size": 22227
+		},
+		{
+			"name": "/Anthropic 1P/05_Formatting_Output_and_Speaking_for_Claude.ipynb",
+			"hash": "foN2BT3I64Zc3zeKYyfCJfuCWxpKH5zjM8VNbI57PwQ=",
+			"size": 18649
+		},
+		{
+			"name": "/Anthropic 1P/06_Precognition_Thinking_Step_by_Step.ipynb",
+			"hash": "2Len5YrfXsOxpM9if08NQu6zESMHOQDa6wTOEw9JEhw=",
+			"size": 18021
+		},
+		{
+			"name": "/Anthropic 1P/07_Using_Examples_Few-Shot_Prompting.ipynb",
+			"hash": "Mcccsb3Iw+sz+3EzRgZruRDnxF37juyh1ur317T0R+I=",
+			"size": 18407
+		},
+		{
+			"name": "/Anthropic 1P/08_Avoiding_Hallucinations.ipynb",
+			"hash": "Zo7idU0X8mKLAekmKKVhC+KDinxU05yT2RCQJ5VFNnQ=",
+			"size": 178004
+		},
+		{
+			"name": "/Anthropic 1P/09_Complex_Prompts_from_Scratch.ipynb",
+			"hash": "WF0pXaTeZo/5MPrLrlrO2T2A2qjlrP0UjaHB5Unam1I=",
+			"size": 81735
+		},
+		{
+			"name": "/Anthropic 1P/10.1_Appendix_Chaining Prompts.ipynb",
+			"hash": "4Rc/V2dz1OrLWOzHFxk1wkYXchGLf3lUp7QJ7Jat4Qc=",
+			"size": 21261
+		},
+		{
+			"name": "/Anthropic 1P/10.2_Appendix_Tool Use.ipynb",
+			"hash": "Y+RvAHYYQHfVMFVtRDjdWwVs9cVq0XrtrrmAqopffVU=",
+			"size": 27073
+		},
+		{
+			"name": "/Anthropic 1P/10.3_Appendix_Search & Retrieval.ipynb",
+			"hash": "JFkXKHeaK2ccz+tYcNhEb29IWaZQAwvNewMFXs5V1dI=",
+			"size": 1413
+		},
+		{
+			"name": "/Anthropic 1P/hints.py",
+			"hash": "3UkkcaDC55372/JcwI2I9tn6QQSB3iRZnaQUIdl3syg=",
+			"size": 12743
+		},
+		{
+			"name": "/README.md",
+			"hash": "iQkuVhBvJgsRqneeSM1jiMBha1UWphFht278rcPkz+0=",
+			"size": 2689
+		}
+	],
+	"links": {
+		"stats": "https://data.jsdelivr.com/v1/stats/packages/gh/anthropics/prompt-eng-interactive-tutorial@master"
+	}
+}

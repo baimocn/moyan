@@ -1,0 +1,21 @@
+# 墨衍 · 服务器模式依赖
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+python-multipart>=0.0.9
+
+# AI 引擎（判定/出题/校对 instructor 结构化输出；OpenAI 兼容协议）
+openai>=2.0
+instructor>=1.15
+pydantic>=2.10
+pydantic-settings>=2.5
+
+# 记忆系统：FSRS 间隔重复调度（官方 py-fsrs；D4 修订：FSRS-4.5 -> 官方现行模型）
+fsrs>=6.3
+
+# 解析/OCR
+pymupdf>=1.24
+rapidocr_onnxruntime>=0.2
+onnxruntime>=1.17
+pillow

@@ -1,0 +1,98 @@
+{
+  "EduChat education LLM": [
+    {
+      "full_name": "ECNU-ICALK/EduChat",
+      "stars": 966,
+      "description": "An open-source educational chat model from ICALK, East China Normal University. 开源中英教育对话大模型。(通用基座模型，GPU部署，数据清理) 致敬: LLaMA, MOSS, BELLE, Ziya, vLLM",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2025-07-18T13:22:39Z",
+      "html_url": "https://github.com/ECNU-ICALK/EduChat"
+    },
+    {
+      "full_name": "laurawpaaby/EduChatEval",
+      "stars": 1,
+      "description": "A structured pipeline and Python package for deploying and evaluating interactive LLM tutor systems in educational settings.",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2025-06-01T11:18:44Z",
+      "html_url": "https://github.com/laurawpaaby/EduChatEval"
+    }
+  ],
+  "tutorglm OR TutorLM tutor": [
+    {
+      "full_name": "anthropics/prompt-eng-interactive-tutorial",
+      "stars": 37800,
+      "description": "Anthropic's Interactive Prompt Engineering Tutorial",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2026-03-01T17:07:40Z",
+      "html_url": "https://github.com/anthropics/prompt-eng-interactive-tutorial"
+    },
+    {
+      "full_name": "HKUDS/DeepTutor",
+      "stars": 37635,
+      "description": "DeepTutor: Lifelong Personalized Tutoring. https://deeptutor.info/.",
+      "language": "Python",
+      "pushed_at": "2026-08-25T18:41:02Z",
+      "html_url": "https://github.com/HKUDS/DeepTutor"
+    },
+    {
+      "full_name": "eugenp/tutorials",
+      "stars": 37326,
+      "description": "Getting Started with Spring Boot 3: ",
+      "language": "Java",
+      "pushed_at": "2026-08-24T16:22:53Z",
+      "html_url": "https://github.com/eugenp/tutorials"
+    },
+    {
+      "full_name": "yunjey/pytorch-tutorial",
+      "stars": 32464,
+      "description": "PyTorch Tutorial for Deep Learning Researchers",
+      "language": "Python",
+      "pushed_at": "2023-08-15T10:17:50Z",
+      "html_url": "https://github.com/yunjey/pytorch-tutorial"
+    },
+    {
+      "full_name": "cfenollosa/os-tutorial",
+      "stars": 30675,
+      "description": "How to create an OS from scratch",
+      "language": "C",
+      "pushed_at": "2026-02-04T09:33:56Z",
+      "html_url": "https://github.com/cfenollosa/os-tutorial"
+    },
+    {
+      "full_name": "JushBJJ/Mr.-Ranedeer-AI-Tutor",
+      "stars": 29597,
+      "description": "A GPT-4 AI Tutor Prompt for customizable personalized learning experiences.",
+      "language": null,
+      "pushed_at": "2025-09-30T08:08:00Z",
+      "html_url": "https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor"
+    },
+    {
+      "full_name": "changkun/modern-cpp-tutorial",
+      "stars": 25771,
+      "description": "📚 Modern C++ Tutorial: C++11 to C++26 On the Fly | https://changkun.de/modern-cpp/",
+      "language": "C++",
+      "pushed_at": "2026-06-21T10:12:26Z",
+      "html_url": "https://github.com/changkun/modern-cpp-tutorial"
+    },
+    {
+      "full_name": "judasn/IntelliJ-IDEA-Tutorial",
+      "stars": 22070,
+      "description": "IntelliJ IDEA 简体中文专题教程",
+      "language": null,
+      "pushed_at": "2025-09-12T07:27:14Z",
+      "html_url": "https://github.com/judasn/IntelliJ-IDEA-Tutorial"
+    }
+  ],
+  "Khanmigo OR khan academy LLM tutor": [
+    {
+      "full_name": "Toby-IDev/LLM-Academy-SmartTutor",
+      "stars": 6,
+      "description": "An AI-powered smart tutor that helps you strengthen and consolidate your knowledge. (Supports models compatible with the OpenAI protocol）一个可以帮助你巩固知识的 AI 智能导师（目前",
+      "language": "JavaScript",
+      "pushed_at": "2026-04-07T07:38:47Z",
+      "html_url": "https://github.com/Toby-IDev/LLM-Academy-SmartTutor"
+    }
+  ],
+  "教育大模型 智能 教学": [],
+  "socratic math tutor": []
+}

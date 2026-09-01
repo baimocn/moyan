@@ -1,0 +1,89 @@
+"""墨衍 · 集中配置（pydantic-settings）
+
+分层：App（服务）/ Db（数据库）/ AI（引擎）
+来源：环境变量 + 本地 .env（可选），类型校验。
+兼容：config.py 保留旧名字代理 settings（避免全项目大改）。
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"   # 绝对路径：启动目录无关，避免"以为配了 key 实际没配"
+
+
+class AppSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MOYAN_", env_file=str(ENV_FILE), extra="ignore")
+
+    host: str = "127.0.0.1"
+    port: int = 5001
+    max_upload_mb: int = 200
+    ocr_dpi: int = 150
+    ocr_engine: str = "rapid"          # rapid | win（备用）
+    ocr_workers: int = 4
+    ocr_intra_threads: int = 2
+    parser_engine: str = "docling"     # docling（主引擎，需 .docling-venv）| legacy（RapidOCR/文本层快路径）
+    teaching_reviewer: str = "sample"  # 输出后裁判：off | sample（默认） | on
+    ai_mock: bool = False              # 显式开启 mock 演示（无 key 且未开时拒绝 AI 服务）
+    cors_origins: str = ""             # 跨源白名单（逗号分隔，如 https://moyan.example）；空=仅同源
+    debug: bool = False
+
+
+class DbSettings(BaseSettings):
+    """数据库；部署时用 MOYAN_DB_URL 指 PostgreSQL。"""
+    model_config = SettingsConfigDict(env_prefix="MOYAN_", env_file=str(ENV_FILE), extra="ignore")
+
+    db_url: str = f"sqlite:///{(PROJECT_ROOT / 'data' / 'moyan_dev.db').as_posix()}"
+
+
+class AiSettings(BaseSettings):
+    """AI 引擎（OpenAI 兼容协议）。
+
+    main=教学对话（顶级模型）；fallback=兜底（DeepSeek 等）；浮动=总结/出题等粗活。
+    """
+    model_config = SettingsConfigDict(env_prefix="MOYAN_AI_", env_file=str(ENV_FILE), extra="ignore")
+
+    main_base_url: str = ""
+    main_key: str = ""
+    main_model: str = ""
+    fallback_base_url: str = ""
+    fallback_key: str = ""
+    fallback_model: str = ""
+    cheap_base_url: str = ""           # 缺省回退到 fallback
+    cheap_key: str = ""
+    cheap_model: str = ""
+
+    @property
+    def has_main(self) -> bool:
+        return bool(self.main_base_url and self.main_key and self.main_model)
+
+    @property
+    def engine_ready(self) -> bool:
+        return self.has_main
+
+    def engines(self):
+        """返回 [(name, base_url, key, model), ...] 按优先级。"""
+        out = []
+        if self.has_main:
+            out.append(("main", self.main_base_url, self.main_key, self.main_model))
+        fb = self.fallback_base_url or self.cheap_base_url
+        fk = self.fallback_key or self.cheap_key
+        fm = self.fallback_model or self.cheap_model
+        if fb and fk and fm:
+            out.append(("fallback", fb, fk, fm))
+        return out
+
+    def cheap(self):
+        """粗活引擎（出题/总结），优先 cheap，缺省 fallback。"""
+        b = self.cheap_base_url or self.fallback_base_url
+        k = self.cheap_key or self.fallback_key
+        m = self.cheap_model or self.fallback_model
+        return (b, k, m) if (b and k and m) else None
+
+
+app_settings = AppSettings()
+db_settings = DbSettings()
+ai_settings = AiSettings()

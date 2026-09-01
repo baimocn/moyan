@@ -1,0 +1,18 @@
+{
+  "name": "_constants.py",
+  "path": "src/openai/_constants.py",
+  "sha": "19d2d6b020128c5a4a41d208e753a54b85b444ca",
+  "size": 414,
+  "url": "https://api.github.com/repos/openai/openai-python/contents/src/openai/_constants.py?ref=main",
+  "html_url": "https://github.com/openai/openai-python/blob/main/src/openai/_constants.py",
+  "git_url": "https://api.github.com/repos/openai/openai-python/git/blobs/19d2d6b020128c5a4a41d208e753a54b85b444ca",
+  "download_url": "https://raw.githubusercontent.com/openai/openai-python/main/src/openai/_constants.py",
+  "type": "file",
+  "content": "aW1wb3J0IGh0dHB4MgoKUkFXX1JFU1BPTlNFX0hFQURFUiA9ICJYLVN0YWlu\nbGVzcy1SYXctUmVzcG9uc2UiCk9WRVJSSURFX0NBU1RfVE9fSEVBREVSID0g\nIl9fX19zdGFpbmxlc3Nfb3ZlcnJpZGVfY2FzdF90byIKCiMgZGVmYXVsdCB0\naW1lb3V0IGlzIDEwIG1pbnV0ZXMKREVGQVVMVF9USU1FT1VUID0gaHR0cHgy\nLlRpbWVvdXQodGltZW91dD02MDAsIGNvbm5lY3Q9NS4wKQpERUZBVUxUX01B\nWF9SRVRSSUVTID0gMgpERUZBVUxUX0NPTk5FQ1RJT05fTElNSVRTID0gaHR0\ncHgyLkxpbWl0cyhtYXhfY29ubmVjdGlvbnM9MTAwMCwgbWF4X2tlZXBhbGl2\nZV9jb25uZWN0aW9ucz0xMDApCgpJTklUSUFMX1JFVFJZX0RFTEFZID0gMC41\nCk1BWF9SRVRSWV9ERUxBWSA9IDguMApNQVhfUkVUUllfQUZURVJfREVMQVkg\nPSAyICogNjAK\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/openai/openai-python/contents/src/openai/_constants.py?ref=main",
+    "git": "https://api.github.com/repos/openai/openai-python/git/blobs/19d2d6b020128c5a4a41d208e753a54b85b444ca",
+    "html": "https://github.com/openai/openai-python/blob/main/src/openai/_constants.py"
+  }
+}

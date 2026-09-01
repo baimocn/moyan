@@ -1,0 +1,1196 @@
+{
+  "socratic tutor": [
+    {
+      "full_name": "ktaletsk/learn-codebase",
+      "stars": 51,
+      "description": "The anti-vibe-coding skill. A Socratic tutor that teaches you codebases through questioning and active recall.",
+      "language": null,
+      "pushed_at": "2026-06-15T22:19:15Z",
+      "html_url": "https://github.com/ktaletsk/learn-codebase",
+      "topics": [
+        "active-recall",
+        "agent-skill",
+        "claude-skill",
+        "code-comprehension",
+        "developer-tools",
+        "education",
+        "learning",
+        "onboarding"
+      ]
+    },
+    {
+      "full_name": "sanjarbek404/Socratic-Math-Tutor",
+      "stars": 37,
+      "description": "",
+      "language": "TypeScript",
+      "pushed_at": "2026-04-15T06:00:24Z",
+      "html_url": "https://github.com/sanjarbek404/Socratic-Math-Tutor",
+      "topics": []
+    },
+    {
+      "full_name": "idoforgod/Vibe-learning-AgenticWorkflow",
+      "stars": 24,
+      "description": "Socratic AI Tutor Builder — 21-step agentic workflow for personalized education system",
+      "language": "Python",
+      "pushed_at": "2026-03-01T03:11:04Z",
+      "html_url": "https://github.com/idoforgod/Vibe-learning-AgenticWorkflow",
+      "topics": []
+    },
+    {
+      "full_name": "lmonkt/ostep-socratic-tutor",
+      "stars": 23,
+      "description": "基于苏格拉底式教学法的《操作系统导论》(OSTEP) AI 助学系统。提供核心 Prompts (main 分支) 及 包含自动化转换脚本与完整配置的参考实现 (demo-full 分支)。",
+      "language": null,
+      "pushed_at": "2026-03-11T18:17:29Z",
+      "html_url": "https://github.com/lmonkt/ostep-socratic-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "llSourcell/mathvoice",
+      "stars": 17,
+      "description": "MathVoice — Voice-first AI math tutor with Socratic engine, built with Next.js and Claude",
+      "language": "TypeScript",
+      "pushed_at": "2026-02-27T11:40:18Z",
+      "html_url": "https://github.com/llSourcell/mathvoice",
+      "topics": []
+    },
+    {
+      "full_name": "WangyiNTU/nanobot-study",
+      "stars": 17,
+      "description": "Master AI Agent Assistant in 3 Days. A guided study plan using nanobot (~3k lines of Python) and your own AI Socratic Tutor. Learn Architecture, Skills, and Dep",
+      "language": null,
+      "pushed_at": "2026-02-07T15:01:40Z",
+      "html_url": "https://github.com/WangyiNTU/nanobot-study",
+      "topics": [
+        "ai-agent",
+        "cursor-rules",
+        "education",
+        "llm-agent",
+        "python",
+        "socratic-method"
+      ]
+    },
+    {
+      "full_name": "deniz-miro/claude-learn-skill",
+      "stars": 16,
+      "description": "Socratic coding tutor for vibe coders — a Claude Code skill that teaches programming through dialogue, not lectures",
+      "language": null,
+      "pushed_at": "2026-05-15T21:55:09Z",
+      "html_url": "https://github.com/deniz-miro/claude-learn-skill",
+      "topics": []
+    },
+    {
+      "full_name": "gpoesia/socratic-tutor",
+      "stars": 13,
+      "description": "Math tutor based on question asking",
+      "language": "Python",
+      "pushed_at": "2023-01-26T01:07:14Z",
+      "html_url": "https://github.com/gpoesia/socratic-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "Zhitao-He/ClinTutor-R1",
+      "stars": 12,
+      "description": "(ICML'26 Spotlight) ClinTutor-R1: Advancing Scalable and Robust One-to-Many Alignment in Clinical Socratic Education",
+      "language": "Python",
+      "pushed_at": "2026-05-02T14:08:03Z",
+      "html_url": "https://github.com/Zhitao-He/ClinTutor-R1",
+      "topics": []
+    },
+    {
+      "full_name": "Windy3f3f3f3f/socratic-math-tutor",
+      "stars": 11,
+      "description": "SOCRATES: 基于工具增强与视觉感知智能体的数学教学系统",
+      "language": "Python",
+      "pushed_at": "2025-12-28T14:25:52Z",
+      "html_url": "https://github.com/Windy3f3f3f3f/socratic-math-tutor",
+      "topics": []
+    }
+  ],
+  "AI tutor chatbot LLM": [
+    {
+      "full_name": "towardsai/ai-tutor-app",
+      "stars": 26,
+      "description": "Agentic RAG tutor for applied AI, LLMs, RAG, and Python: a LangGraph agent (FastAPI + Next.js) grounded in a curated course and library corpus.",
+      "language": "Python",
+      "pushed_at": "2026-08-25T23:20:42Z",
+      "html_url": "https://github.com/towardsai/ai-tutor-app",
+      "topics": [
+        "agentic-rag",
+        "ai-tutor",
+        "chatbot",
+        "chromadb",
+        "cohere",
+        "education",
+        "fastapi",
+        "langchain"
+      ]
+    },
+    {
+      "full_name": "Hassanmahmood4/edu-chatbot",
+      "stars": 20,
+      "description": "AI-powered educational chatbot with local LLM inference, semantic search, and knowledge retrieval for student Q&A and tutoring applications.",
+      "language": "Python",
+      "pushed_at": "2026-03-03T15:06:21Z",
+      "html_url": "https://github.com/Hassanmahmood4/edu-chatbot",
+      "topics": []
+    },
+    {
+      "full_name": "YoussefMoHlemyAlpha/ChatBot-to-Write-Python-Code-RAG-Application-LLM-LLaMA-2-",
+      "stars": 6,
+      "description": "AI Python Tutor (Local RAG) is a Streamlit-based coding assistant powered by local Retrieval-Augmented Generation (RAG).",
+      "language": "Python",
+      "pushed_at": "2025-08-23T11:41:05Z",
+      "html_url": "https://github.com/YoussefMoHlemyAlpha/ChatBot-to-Write-Python-Code-RAG-Application-LLM-LLaMA-2-",
+      "topics": []
+    },
+    {
+      "full_name": "MedX1736/QuizGPT",
+      "stars": 5,
+      "description": "QuizGPT is an interactive AI tutor that engages students with adaptive questions based on school materials, creating a fun chat experience.",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2023-07-03T16:32:51Z",
+      "html_url": "https://github.com/MedX1736/QuizGPT",
+      "topics": [
+        "chatbot",
+        "chatgpt-api",
+        "llm",
+        "streamlit-webapp"
+      ]
+    },
+    {
+      "full_name": "Zeeshanahmad4/QuantumPhysicsBot-A-Discord-Bot-for-High-School-Physics",
+      "stars": 4,
+      "description": "🌌 QuantumPhysicsBot: An AI-powered Discord bot that tutors high school students in physics with a conversational touch. 📘🤖",
+      "language": "Python",
+      "pushed_at": "2023-09-04T13:27:39Z",
+      "html_url": "https://github.com/Zeeshanahmad4/QuantumPhysicsBot-A-Discord-Bot-for-High-School-Physics",
+      "topics": [
+        "ai",
+        "chatbot",
+        "discord-bot",
+        "education",
+        "gpt-4",
+        "image-interpretation",
+        "llm",
+        "quantumphysicsbot"
+      ]
+    },
+    {
+      "full_name": "slfagrouche/TUTOR",
+      "stars": 3,
+      "description": "TOTUR is an AI-powered educational assistant designed to help users with audio transcription, PDF text extraction, and question answering. It leverages advanced",
+      "language": "Python",
+      "pushed_at": "2025-01-05T12:42:18Z",
+      "html_url": "https://github.com/slfagrouche/TUTOR",
+      "topics": [
+        "chatbot",
+        "education",
+        "generative-ai",
+        "huggingface-transformers",
+        "langchain",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "girijesh-ai/langgraph-ai-assistant-tutorial",
+      "stars": 3,
+      "description": "Complete tutorial for building AI assistants with LangGraph - from basic chatbots to production-ready agents with tools, memory, and streaming",
+      "language": "Python",
+      "pushed_at": "2026-01-15T16:39:13Z",
+      "html_url": "https://github.com/girijesh-ai/langgraph-ai-assistant-tutorial",
+      "topics": [
+        "ai-agents",
+        "fastapi",
+        "langgraph",
+        "llm",
+        "python",
+        "react-patterns",
+        "tutorials"
+      ]
+    },
+    {
+      "full_name": "ahmadsanafarooq/Langchain",
+      "stars": 3,
+      "description": "Built real-world LLM apps using LangChain, including an AI Code Tutor, CV Assistant, and smart chatbots powered by RAG and agentic workflows. Hands-on projects ",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2025-06-02T20:04:54Z",
+      "html_url": "https://github.com/ahmadsanafarooq/Langchain",
+      "topics": [
+        "agents",
+        "chains",
+        "chat-models",
+        "prompt-templates",
+        "rag",
+        "rag-chatbot"
+      ]
+    },
+    {
+      "full_name": "jousudo/chatic",
+      "stars": 3,
+      "description": "Self-hosted, privacy-first multilingual language tutor that lives in WhatsApp. Go single binary, multi-LLM with failover (Gemini/OpenAI/Claude/Ollama), encrypte",
+      "language": "Go",
+      "pushed_at": "2026-07-23T21:41:06Z",
+      "html_url": "https://github.com/jousudo/chatic",
+      "topics": [
+        "ai",
+        "chatbot",
+        "claude",
+        "education",
+        "gamification",
+        "gemini",
+        "go",
+        "golang"
+      ]
+    },
+    {
+      "full_name": "Aaradhy-singh/local-llm-academic-tutor",
+      "stars": 2,
+      "description": "Local AI chatbot using Ollama + Phi3 + Gradio",
+      "language": "Python",
+      "pushed_at": "2026-02-28T17:37:02Z",
+      "html_url": "https://github.com/Aaradhy-singh/local-llm-academic-tutor",
+      "topics": []
+    }
+  ],
+  "LLM tutor education": [
+    {
+      "full_name": "JushBJJ/Mr.-Ranedeer-AI-Tutor",
+      "stars": 29597,
+      "description": "A GPT-4 AI Tutor Prompt for customizable personalized learning experiences.",
+      "language": null,
+      "pushed_at": "2025-09-30T08:08:00Z",
+      "html_url": "https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor",
+      "topics": [
+        "ai",
+        "education",
+        "gpt-4",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "HugeCatLab/ChatTutor",
+      "stars": 1308,
+      "description": "👨‍🏫 ChatTutor: Visual and Interactive AI Tutor",
+      "language": "Vue",
+      "pushed_at": "2026-01-09T00:36:45Z",
+      "html_url": "https://github.com/HugeCatLab/ChatTutor",
+      "topics": [
+        "ai",
+        "ai-education",
+        "education",
+        "llm",
+        "stem"
+      ]
+    },
+    {
+      "full_name": "Li-Evan/Bloom",
+      "stars": 244,
+      "description": "Hire a private AI tutor for anything — it reads how you actually learn and teaches the next lesson just for you. Bloom's 2-Sigma research as a Claude Code skill",
+      "language": "Python",
+      "pushed_at": "2026-06-23T14:08:21Z",
+      "html_url": "https://github.com/Li-Evan/Bloom",
+      "topics": [
+        "adaptive-learning",
+        "agent-skills",
+        "ai-agent",
+        "ai-tutor",
+        "bloom-2-sigma",
+        "chinese",
+        "claude-code",
+        "claude-skill"
+      ]
+    },
+    {
+      "full_name": "Open-TutorAi/open-tutor-ai-CE",
+      "stars": 97,
+      "description": "An open-source project designed to provide an educational and collaborative AI-powered platform",
+      "language": "JavaScript",
+      "pushed_at": "2026-06-26T20:20:55Z",
+      "html_url": "https://github.com/Open-TutorAi/open-tutor-ai-CE",
+      "topics": [
+        "ai",
+        "avatar",
+        "education",
+        "educational-project",
+        "elearning",
+        "immersive",
+        "llm",
+        "ollama"
+      ]
+    },
+    {
+      "full_name": "zijinz456/OpenTutor",
+      "stars": 86,
+      "description": "The first block-based adaptive learning workspace that runs locally. Upload any material → get AI-generated notes, quizzes, flashcards, and an adaptive tutor. O",
+      "language": "Python",
+      "pushed_at": "2026-08-25T23:20:00Z",
+      "html_url": "https://github.com/zijinz456/OpenTutor",
+      "topics": [
+        "adaptive-learning",
+        "ai",
+        "ai-tutor",
+        "edtech",
+        "education",
+        "fastapi",
+        "knowledge-graph",
+        "learning"
+      ]
+    },
+    {
+      "full_name": "GeminiLight/gen-mentor",
+      "stars": 83,
+      "description": "[WWW '25 Oral - GenMentor] Official code of our paper \"LLM-powered Multi-agent Framework for Goal-oriented Learning in Intelligent Tutoring System\", accepted by",
+      "language": "Python",
+      "pushed_at": "2026-08-27T07:09:46Z",
+      "html_url": "https://github.com/GeminiLight/gen-mentor",
+      "topics": [
+        "education",
+        "goal-learning",
+        "intelligent-tutoring-system",
+        "llm",
+        "llm-agent"
+      ]
+    },
+    {
+      "full_name": "ahmedEid1/lumen",
+      "stars": 82,
+      "description": "Lumen — learner-owned AI education platform. Tell the AI what you want to learn: it builds you a private course in ~a minute, tutors you with course-scoped RAG ",
+      "language": "Python",
+      "pushed_at": "2026-06-07T15:53:25Z",
+      "html_url": "https://github.com/ahmedEid1/lumen",
+      "topics": [
+        "agentic-ai",
+        "ai-tutor",
+        "byok",
+        "celery",
+        "docker",
+        "e-learning",
+        "evals",
+        "fastapi"
+      ]
+    },
+    {
+      "full_name": "towardsai/ai-tutor-app",
+      "stars": 26,
+      "description": "Agentic RAG tutor for applied AI, LLMs, RAG, and Python: a LangGraph agent (FastAPI + Next.js) grounded in a curated course and library corpus.",
+      "language": "Python",
+      "pushed_at": "2026-08-25T23:20:42Z",
+      "html_url": "https://github.com/towardsai/ai-tutor-app",
+      "topics": [
+        "agentic-rag",
+        "ai-tutor",
+        "chatbot",
+        "chromadb",
+        "cohere",
+        "education",
+        "fastapi",
+        "langchain"
+      ]
+    },
+    {
+      "full_name": "jwliao1209/TWLLM-Tutor",
+      "stars": 21,
+      "description": "📘 Taiwan-LLM Tutor: Large Language Models for Taiwanese Secondary Education",
+      "language": "Python",
+      "pushed_at": "2025-03-18T01:38:15Z",
+      "html_url": "https://github.com/jwliao1209/TWLLM-Tutor",
+      "topics": [
+        "bert",
+        "fine-tuning",
+        "llama",
+        "llm",
+        "lora"
+      ]
+    },
+    {
+      "full_name": "koukekoukej-glitch/feynman-tutor",
+      "stars": 20,
+      "description": "AI teaching Skill based on the Feynman Technique — makes YOU teach the AI to expose gaps in your understanding. Works with Claude Code, Cursor, Windsurf, and an",
+      "language": "Python",
+      "pushed_at": "2026-05-18T06:05:24Z",
+      "html_url": "https://github.com/koukekoukej-glitch/feynman-tutor",
+      "topics": [
+        "ai-agent",
+        "ai-tutor",
+        "claude",
+        "claude-code",
+        "education",
+        "feynman-technique",
+        "learning",
+        "llm"
+      ]
+    }
+  ],
+  "intelligent tutoring system": [
+    {
+      "full_name": "CAHLR/OATutor",
+      "stars": 245,
+      "description": "Open Source Intelligent Tutoring System w/ BKT (ReactJS and Firebase)",
+      "language": "JavaScript",
+      "pushed_at": "2026-08-26T17:33:00Z",
+      "html_url": "https://github.com/CAHLR/OATutor",
+      "topics": []
+    },
+    {
+      "full_name": "GeminiLight/gen-mentor",
+      "stars": 83,
+      "description": "[WWW '25 Oral - GenMentor] Official code of our paper \"LLM-powered Multi-agent Framework for Goal-oriented Learning in Intelligent Tutoring System\", accepted by",
+      "language": "Python",
+      "pushed_at": "2026-08-27T07:09:46Z",
+      "html_url": "https://github.com/GeminiLight/gen-mentor",
+      "topics": [
+        "education",
+        "goal-learning",
+        "intelligent-tutoring-system",
+        "llm",
+        "llm-agent"
+      ]
+    },
+    {
+      "full_name": "ideas-edu/ideas",
+      "stars": 28,
+      "description": "Feedback services for intelligent tutoring systems",
+      "language": "Haskell",
+      "pushed_at": "2026-07-23T20:55:51Z",
+      "html_url": "https://github.com/ideas-edu/ideas",
+      "topics": []
+    },
+    {
+      "full_name": "jyi/ITSP",
+      "stars": 27,
+      "description": "Artifacts of FSE-2017 paper on an Intelligent Tutoring System for Programming",
+      "language": "C",
+      "pushed_at": "2019-05-21T09:24:35Z",
+      "html_url": "https://github.com/jyi/ITSP",
+      "topics": []
+    },
+    {
+      "full_name": "ArnaudGuiovanna/tutor-mcp",
+      "stars": 19,
+      "description": "An open-source MCP server that turns any LLM into an Intelligent Tutoring System. 50 years of cognitive science, MIT licensed.",
+      "language": "Go",
+      "pushed_at": "2026-08-17T05:40:30Z",
+      "html_url": "https://github.com/ArnaudGuiovanna/tutor-mcp",
+      "topics": [
+        "adaptive-learning",
+        "ai-tutor",
+        "bkt",
+        "claude",
+        "digital-learning",
+        "intelligent-tutoring-system",
+        "llm",
+        "mcp-server"
+      ]
+    },
+    {
+      "full_name": "lisa-1010/smart-tutor",
+      "stars": 15,
+      "description": "Research project on deep reinforcement learning methods for intelligent tutoring systems",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2017-10-21T17:37:35Z",
+      "html_url": "https://github.com/lisa-1010/smart-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "JanWielemaker/rits",
+      "stars": 14,
+      "description": "Rule-based Intelligent Tutoring System",
+      "language": "Prolog",
+      "pushed_at": "2015-03-28T14:04:13Z",
+      "html_url": "https://github.com/JanWielemaker/rits",
+      "topics": []
+    },
+    {
+      "full_name": "yrahul3910/student-modeling-project",
+      "stars": 14,
+      "description": "An Intelligent Tutoring System (ITS) using various algorithms from literature.",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2023-01-07T03:52:22Z",
+      "html_url": "https://github.com/yrahul3910/student-modeling-project",
+      "topics": []
+    },
+    {
+      "full_name": "wassgha/CalcTutor",
+      "stars": 13,
+      "description": "Intelligent Tutor System for Calculus classes (includes Javascript virtual math keyboard and random function/derivative/integral generator)",
+      "language": "JavaScript",
+      "pushed_at": "2016-12-18T01:53:25Z",
+      "html_url": "https://github.com/wassgha/CalcTutor",
+      "topics": []
+    },
+    {
+      "full_name": "koofree/research-aied",
+      "stars": 12,
+      "description": "Support for the researches on AI Education (AIED), AI Tutor, Adaptive Learning, Intelligent Tutoring System",
+      "language": null,
+      "pushed_at": "2019-08-08T05:54:22Z",
+      "html_url": "https://github.com/koofree/research-aied",
+      "topics": [
+        "adaptive-learning",
+        "ai",
+        "ai-education",
+        "datasets",
+        "education",
+        "papers",
+        "research",
+        "study"
+      ]
+    }
+  ],
+  "socratic questioning LLM": [
+    {
+      "full_name": "webworn/openfoam-mcp-server",
+      "stars": 115,
+      "description": "LLM-powered OpenFOAM MCP server for intelligent CFD education with Socratic questioning and expert error resolution",
+      "language": "C++",
+      "pushed_at": "2026-01-18T12:04:28Z",
+      "html_url": "https://github.com/webworn/openfoam-mcp-server",
+      "topics": [
+        "in",
+        "llm",
+        "llm-in-analysis",
+        "mcp",
+        "mcp-openfoam",
+        "mcp-server",
+        "openfoam",
+        "openfoam-mcp"
+      ]
+    },
+    {
+      "full_name": "w0uldy0udaestar/socratic",
+      "stars": 1,
+      "description": "The Socratic method for CLI AI agents — a hook-enforced gate that clarifies intent by questioning, takes one-click approval, then executes exactly that",
+      "language": null,
+      "pushed_at": "2026-08-12T02:14:49Z",
+      "html_url": "https://github.com/w0uldy0udaestar/socratic",
+      "topics": [
+        "ai-agents",
+        "claude-code",
+        "developer-tools",
+        "hooks",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "aarchi-2004/Socratic-tutor",
+      "stars": 1,
+      "description": "An adaptive, full-stack AI tutoring engine that uses a custom QLoRA-aligned LLM and Socratic questioning to guide students to answers without giving them away. ",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2026-06-19T12:53:22Z",
+      "html_url": "https://github.com/aarchi-2004/Socratic-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "Arghadeep78/interv-ai",
+      "stars": 1,
+      "description": "AI-powered real-time technical interview platform built with FastAPI, LangGraph, Groq LLMs, FAISS, Redis, and React. Conducts adaptive, context-aware interviews",
+      "language": "Python",
+      "pushed_at": "2026-07-04T19:56:24Z",
+      "html_url": "https://github.com/Arghadeep78/interv-ai",
+      "topics": []
+    },
+    {
+      "full_name": "aneek22112007-tech/SocraticRL",
+      "stars": 0,
+      "description": "RL environment where an LLM agent learns to teach through Socratic questioning, guiding a simulated student from misconception to understanding using only quest",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2026-05-01T13:07:55Z",
+      "html_url": "https://github.com/aneek22112007-tech/SocraticRL",
+      "topics": []
+    },
+    {
+      "full_name": "jwalsh/socratic-ai.el",
+      "stars": 0,
+      "description": "Emacs package to examine buffer contents through Socratic questioning using Ollama",
+      "language": "Emacs Lisp",
+      "pushed_at": "2026-01-29T23:55:44Z",
+      "html_url": "https://github.com/jwalsh/socratic-ai.el",
+      "topics": [
+        "ai",
+        "elisp",
+        "emacs",
+        "emacs-lisp",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "Dylan-Archibald/ai-socratic-tutor",
+      "stars": 0,
+      "description": "An intelligent tutor that teaches through Socratic questioning using LLMs and knowledge graph",
+      "language": null,
+      "pushed_at": "2025-12-08T23:52:15Z",
+      "html_url": "https://github.com/Dylan-Archibald/ai-socratic-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "adnan32/chatbot",
+      "stars": 0,
+      "description": "An interactive chatbot that tests a student’s understanding of a given text using Socratic questioning. Powered by a local LLM (run via Ollama ) and built with ",
+      "language": "Python",
+      "pushed_at": "2025-10-08T21:14:52Z",
+      "html_url": "https://github.com/adnan32/chatbot",
+      "topics": []
+    }
+  ],
+  "educational LLM assistant": [
+    {
+      "full_name": "SagarBiswas-MultiHAT/PythonicHackathon-CLI",
+      "stars": 29,
+      "description": "Sagar is a Python-based command-line virtual assistant for CSE students and cybersecurity learners. It supports single-line and multi-line commands to open trus",
+      "language": "Python",
+      "pushed_at": "2026-02-13T20:43:38Z",
+      "html_url": "https://github.com/SagarBiswas-MultiHAT/PythonicHackathon-CLI",
+      "topics": [
+        "ai",
+        "automation",
+        "cli",
+        "command-line",
+        "cse",
+        "cybersecurity",
+        "developer-tools",
+        "educational"
+      ]
+    },
+    {
+      "full_name": "AdityaBhatt3010/Universal-Offline-AI-Chatbot",
+      "stars": 21,
+      "description": "Universal Offline AI Chatbot is a lightweight, extensible local assistant that answers questions based on your own PDFs — legal, technical, scientific, educatio",
+      "language": "Python",
+      "pushed_at": "2025-08-06T12:32:00Z",
+      "html_url": "https://github.com/AdityaBhatt3010/Universal-Offline-AI-Chatbot",
+      "topics": []
+    },
+    {
+      "full_name": "TechAtNYU/ClassroomLM",
+      "stars": 13,
+      "description": "ClassroomLM allows educational institutions to create specialized AI assistants for their classrooms.",
+      "language": "TypeScript",
+      "pushed_at": "2025-06-15T15:31:02Z",
+      "html_url": "https://github.com/TechAtNYU/ClassroomLM",
+      "topics": [
+        "ai-search",
+        "chatbot",
+        "chatgpt",
+        "classroom",
+        "deep-learning",
+        "deepseek",
+        "edtech",
+        "education"
+      ]
+    },
+    {
+      "full_name": "Hawary00/AI-Tutor",
+      "stars": 8,
+      "description": "AI-Tutor is a modular educational assistant that leverages advanced LLMs and agentic AI workflows to help students learn science and technology. It integrates L",
+      "language": "Python",
+      "pushed_at": "2025-11-12T13:38:32Z",
+      "html_url": "https://github.com/Hawary00/AI-Tutor",
+      "topics": [
+        "agantic",
+        "agentic-ai",
+        "ai",
+        "ai-chatbot",
+        "education",
+        "faiss",
+        "gemini",
+        "gradio"
+      ]
+    },
+    {
+      "full_name": "Aviral-P/RAG-based-AI-Teaching-Assistant",
+      "stars": 6,
+      "description": "A Retrieval-Augmented Generation (RAG) based AI Teaching Assistant that delivers accurate, context-aware answers from custom educational resources using LLMs, e",
+      "language": "Python",
+      "pushed_at": "2026-06-18T08:18:24Z",
+      "html_url": "https://github.com/Aviral-P/RAG-based-AI-Teaching-Assistant",
+      "topics": []
+    },
+    {
+      "full_name": "hugobatista/unicode-injection",
+      "stars": 6,
+      "description": "Proof of concept demonstrating Unicode injection vulnerabilities using invisible characters to manipulate Large Language Models (LLMs) and AI assistants (e.g., ",
+      "language": null,
+      "pushed_at": "2026-01-27T14:58:54Z",
+      "html_url": "https://github.com/hugobatista/unicode-injection",
+      "topics": [
+        "aisecurity",
+        "claude",
+        "gemini",
+        "infosec",
+        "prompt-engineering",
+        "promptinjection",
+        "unicode"
+      ]
+    },
+    {
+      "full_name": "GRACENGARI/TAMBUA-WOMENINTECH-CHATBOT",
+      "stars": 5,
+      "description": "AI-powered conversational assistant designed to provide reliable, easy-to-understand information about endometriosis. Built using LangChain, LLMs, and optional ",
+      "language": "Python",
+      "pushed_at": "2025-11-27T13:38:15Z",
+      "html_url": "https://github.com/GRACENGARI/TAMBUA-WOMENINTECH-CHATBOT",
+      "topics": []
+    },
+    {
+      "full_name": "hi-paris/teaching-research-assistant",
+      "stars": 4,
+      "description": "Intelligent teaching & research assistant combining course materials analysis with web research capabilities for comprehensive educational support.",
+      "language": "JavaScript",
+      "pushed_at": "2025-11-03T15:17:06Z",
+      "html_url": "https://github.com/hi-paris/teaching-research-assistant",
+      "topics": [
+        "agents",
+        "education",
+        "llm",
+        "research"
+      ]
+    },
+    {
+      "full_name": "samrathreddy/Tutor-multi-ai-agent",
+      "stars": 4,
+      "description": "Tutor Agent is an AI-powered educational assistant that leverages a multi-agent along with multi turn architecture to provide specialized tutoring in mathematic",
+      "language": "Python",
+      "pushed_at": "2025-05-24T21:09:59Z",
+      "html_url": "https://github.com/samrathreddy/Tutor-multi-ai-agent",
+      "topics": [
+        "agents",
+        "ai",
+        "backend-service",
+        "flask",
+        "llm",
+        "mongodb",
+        "multi-agent-system",
+        "multi-turn"
+      ]
+    },
+    {
+      "full_name": "MastodonTutorAI/v1",
+      "stars": 3,
+      "description": "Educational AI Assistant designed for Students and Professors",
+      "language": "Python",
+      "pushed_at": "2024-12-13T19:53:45Z",
+      "html_url": "https://github.com/MastodonTutorAI/v1",
+      "topics": [
+        "assistant",
+        "chromadb",
+        "llm",
+        "mongodb",
+        "python",
+        "rag",
+        "streamlit"
+      ]
+    }
+  ],
+  "TutorLM tutoring": [],
+  "tutoring LLM learning": [
+    {
+      "full_name": "JushBJJ/Mr.-Ranedeer-AI-Tutor",
+      "stars": 29597,
+      "description": "A GPT-4 AI Tutor Prompt for customizable personalized learning experiences.",
+      "language": null,
+      "pushed_at": "2025-09-30T08:08:00Z",
+      "html_url": "https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor",
+      "topics": [
+        "ai",
+        "education",
+        "gpt-4",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "Li-Evan/Bloom",
+      "stars": 244,
+      "description": "Hire a private AI tutor for anything — it reads how you actually learn and teaches the next lesson just for you. Bloom's 2-Sigma research as a Claude Code skill",
+      "language": "Python",
+      "pushed_at": "2026-06-23T14:08:21Z",
+      "html_url": "https://github.com/Li-Evan/Bloom",
+      "topics": [
+        "adaptive-learning",
+        "agent-skills",
+        "ai-agent",
+        "ai-tutor",
+        "bloom-2-sigma",
+        "chinese",
+        "claude-code",
+        "claude-skill"
+      ]
+    },
+    {
+      "full_name": "zijinz456/OpenTutor",
+      "stars": 86,
+      "description": "The first block-based adaptive learning workspace that runs locally. Upload any material → get AI-generated notes, quizzes, flashcards, and an adaptive tutor. O",
+      "language": "Python",
+      "pushed_at": "2026-08-25T23:20:00Z",
+      "html_url": "https://github.com/zijinz456/OpenTutor",
+      "topics": [
+        "adaptive-learning",
+        "ai",
+        "ai-tutor",
+        "edtech",
+        "education",
+        "fastapi",
+        "knowledge-graph",
+        "learning"
+      ]
+    },
+    {
+      "full_name": "GeminiLight/gen-mentor",
+      "stars": 83,
+      "description": "[WWW '25 Oral - GenMentor] Official code of our paper \"LLM-powered Multi-agent Framework for Goal-oriented Learning in Intelligent Tutoring System\", accepted by",
+      "language": "Python",
+      "pushed_at": "2026-08-27T07:09:46Z",
+      "html_url": "https://github.com/GeminiLight/gen-mentor",
+      "topics": [
+        "education",
+        "goal-learning",
+        "intelligent-tutoring-system",
+        "llm",
+        "llm-agent"
+      ]
+    },
+    {
+      "full_name": "artcc/freelingo",
+      "stars": 83,
+      "description": "Open-source, self-hosted AI language learning platform with local or cloud LLMs, CEFR study plans, an AI tutor, voice conversations, flashcards, and spaced repe",
+      "language": "JavaScript",
+      "pushed_at": "2026-08-26T06:35:08Z",
+      "html_url": "https://github.com/artcc/freelingo",
+      "topics": [
+        "ai-tutor",
+        "cefr",
+        "docker-compose",
+        "edtech",
+        "fastapi",
+        "flashcards",
+        "language-learning",
+        "listening-practice"
+      ]
+    },
+    {
+      "full_name": "Archibaldys/llm-language-learning",
+      "stars": 54,
+      "description": "Master spoken English for global tech careers. Learn how to leverage 24/7 AI tutors for real-time practice, daily standups, and developer interviews.",
+      "language": null,
+      "pushed_at": "2026-08-08T07:08:59Z",
+      "html_url": "https://github.com/Archibaldys/llm-language-learning",
+      "topics": [
+        "ai-tutor",
+        "career-development",
+        "english-learning",
+        "interview-preparation",
+        "lingchat",
+        "llm",
+        "remote-work",
+        "speaking-practice"
+      ]
+    },
+    {
+      "full_name": "rizukirr/no-vibe",
+      "stars": 36,
+      "description": "Turn your AI assistant into a tutor. It plans, shows code, reviews, adapts to how you learn and helps you complete your real project on your own",
+      "language": "Shell",
+      "pushed_at": "2026-06-12T15:10:29Z",
+      "html_url": "https://github.com/rizukirr/no-vibe",
+      "topics": [
+        "ai-agents",
+        "claude-code",
+        "codex",
+        "learning",
+        "llm",
+        "mentor",
+        "opencode",
+        "plugin"
+      ]
+    },
+    {
+      "full_name": "vertesia/large-language-tutor",
+      "stars": 26,
+      "description": "(Large) Language Tutor is an experimental LLM-powered language learning system",
+      "language": "JavaScript",
+      "pushed_at": "2024-10-15T09:16:56Z",
+      "html_url": "https://github.com/vertesia/large-language-tutor",
+      "topics": []
+    },
+    {
+      "full_name": "umass-ml4ed/tutorbot-dpo",
+      "stars": 14,
+      "description": "Code for the paper \"Training LLM-based Tutors to Improve Student Learning Outcomes in Dialogues\", published at AIED 2025.",
+      "language": "Python",
+      "pushed_at": "2025-08-22T03:52:03Z",
+      "html_url": "https://github.com/umass-ml4ed/tutorbot-dpo",
+      "topics": []
+    },
+    {
+      "full_name": "ANFAIA/SkillNet",
+      "stars": 7,
+      "description": "Turns an organization's internal docs into a living learning system: AI agents generate courses, tutor learners, and adapt content on the fly.",
+      "language": "Python",
+      "pushed_at": "2026-08-27T06:07:58Z",
+      "html_url": "https://github.com/ANFAIA/SkillNet",
+      "topics": [
+        "adaptive-learning",
+        "agentic",
+        "ai-agents",
+        "course-generation",
+        "edtech",
+        "fastapi",
+        "gen-ui",
+        "generative-ui"
+      ]
+    }
+  ],
+  "AI teacher chatgpt education": [
+    {
+      "full_name": "darrylschaefer/teacher-ai",
+      "stars": 16,
+      "description": "Educational voice conversation partner using Chat-GPT, Whisper, and AWS Polly.",
+      "language": "JavaScript",
+      "pushed_at": "2023-05-13T20:05:44Z",
+      "html_url": "https://github.com/darrylschaefer/teacher-ai",
+      "topics": [
+        "ai",
+        "chat",
+        "chatgpt",
+        "conversational-ai",
+        "education",
+        "voice"
+      ]
+    },
+    {
+      "full_name": "Henryle-hd/cbe-ai",
+      "stars": 3,
+      "description": "This project aims to develop a web application that utilizes the ChatGPT API to provide an interactive and informative platform for students, teachers, and pote",
+      "language": "TypeScript",
+      "pushed_at": "2024-06-21T16:45:50Z",
+      "html_url": "https://github.com/Henryle-hd/cbe-ai",
+      "topics": []
+    },
+    {
+      "full_name": "passion-steven28/cbe-ai",
+      "stars": 1,
+      "description": "This project aims to develop a web application that utilizes the ChatGPT API to provide an interactive and informative platform for students, teachers, and pote",
+      "language": "TypeScript",
+      "pushed_at": "2024-06-30T20:44:42Z",
+      "html_url": "https://github.com/passion-steven28/cbe-ai",
+      "topics": []
+    },
+    {
+      "full_name": "garvbhanot665-afk/Education-Ai-Agent-",
+      "stars": 0,
+      "description": "An n8n workflow template for an AI Education Agent similar to ChatGPT.  It can answer educational queries and call integrated tools.  Public and reusable for st",
+      "language": null,
+      "pushed_at": "2026-01-05T10:26:12Z",
+      "html_url": "https://github.com/garvbhanot665-afk/Education-Ai-Agent-",
+      "topics": []
+    },
+    {
+      "full_name": "Ada3verse/malhaedream",
+      "stars": 0,
+      "description": "교사를 위한 AI 프롬프트 생성 웹 서비스 — 키워드만 입력하면 ChatGPT·Claude·Gemini용 프롬프트를 자동 생성",
+      "language": "JavaScript",
+      "pushed_at": "2026-07-18T07:46:10Z",
+      "html_url": "https://github.com/Ada3verse/malhaedream",
+      "topics": [
+        "education",
+        "firebase",
+        "prompt-generator",
+        "react",
+        "tailwindcss",
+        "teacher",
+        "vite"
+      ]
+    },
+    {
+      "full_name": "goneil78-coder/LessonLab",
+      "stars": 0,
+      "description": "AI-assisted lesson planning kit for teachers using ChatGPT, Claude, Copilot (ChatGPT mode), or Gemini. 10 pasteable prompts, 7 pedagogical catalogs, SESSION.md ",
+      "language": null,
+      "pushed_at": "2026-04-20T03:53:59Z",
+      "html_url": "https://github.com/goneil78-coder/LessonLab",
+      "topics": [
+        "ai",
+        "education",
+        "ib-curriculum",
+        "lesson-planning",
+        "prompts",
+        "teaching"
+      ]
+    },
+    {
+      "full_name": "GuyBernstein/Game-Image-LessonPlan-AIGeneration",
+      "stars": 0,
+      "description": "A web application for special education teachers to store and manage teaching resources including painting pages, games and lesson plans. content is made by AI ",
+      "language": "HTML",
+      "pushed_at": "2024-11-06T08:21:33Z",
+      "html_url": "https://github.com/GuyBernstein/Game-Image-LessonPlan-AIGeneration",
+      "topics": []
+    },
+    {
+      "full_name": "RagaKopparapu/Edu-Bridge",
+      "stars": 0,
+      "description": "ChatGPT said:  EduBridge is a modern learning platform that connects students with teachers and provides free educational resources. It also features an AI assi",
+      "language": "JavaScript",
+      "pushed_at": "2025-10-26T09:54:04Z",
+      "html_url": "https://github.com/RagaKopparapu/Edu-Bridge",
+      "topics": []
+    },
+    {
+      "full_name": "poetrkpema/RK-Pema-Prompts-Library",
+      "stars": 0,
+      "description": "Here's a concise repository description under 350 characters:  RK Pema Prompt Library is a curated collection of high-quality AI prompts for teachers, students,",
+      "language": null,
+      "pushed_at": "2026-07-02T17:56:18Z",
+      "html_url": "https://github.com/poetrkpema/RK-Pema-Prompts-Library",
+      "topics": []
+    }
+  ],
+  "math tutor LLM": [
+    {
+      "full_name": "Khan/tutoring-accuracy-dataset",
+      "stars": 57,
+      "description": "This repository hosts the paper “LLM Based Math Tutoring: Challenges and Dataset”, along with the accompanying dataset. It explores the performance and challeng",
+      "language": null,
+      "pushed_at": "2024-08-29T20:20:22Z",
+      "html_url": "https://github.com/Khan/tutoring-accuracy-dataset",
+      "topics": []
+    },
+    {
+      "full_name": "eth-lre/mathtutorbench",
+      "stars": 43,
+      "description": "Benchmark for Measuring Open-ended Pedagogical Capabilities of LLM Tutors, EMNLP 2025 Oral",
+      "language": "Python",
+      "pushed_at": "2026-08-11T08:52:35Z",
+      "html_url": "https://github.com/eth-lre/mathtutorbench",
+      "topics": [
+        "evaluation",
+        "evaluation-framework",
+        "language-model",
+        "llm",
+        "teaching",
+        "tutoring"
+      ]
+    },
+    {
+      "full_name": "zexiJia/Ascend-Flow",
+      "stars": 5,
+      "description": "Ascend Flow (智流) is a multi-agent, adaptive learning system where specialized LLM tutors collaboratively plan, teach, generate scaffolded practice, and regulate",
+      "language": "Python",
+      "pushed_at": "2026-03-16T06:22:21Z",
+      "html_url": "https://github.com/zexiJia/Ascend-Flow",
+      "topics": []
+    },
+    {
+      "full_name": "khayyam-math/khayyam-math",
+      "stars": 3,
+      "description": "Voice-narrated math figures from one-line prompts. Live tutor at khayyammath.com. Paper: https://doi.org/10.5281/zenodo.20367146    Videos Samples:  https://you",
+      "language": "Python",
+      "pushed_at": "2026-08-14T10:46:56Z",
+      "html_url": "https://github.com/khayyam-math/khayyam-math",
+      "topics": [
+        "ai",
+        "ai-in-edtech",
+        "ai-in-education",
+        "aws-cdk",
+        "fastapi",
+        "intelligent-tutoring-system",
+        "llm",
+        "lora"
+      ]
+    },
+    {
+      "full_name": "maxpetrusenko/ai-math-tutor",
+      "stars": 2,
+      "description": "Open source realtime voice tutor stack with pluggable STT, LLM, TTS, and avatars.",
+      "language": "TypeScript",
+      "pushed_at": "2026-08-26T10:36:16Z",
+      "html_url": "https://github.com/maxpetrusenko/ai-math-tutor",
+      "topics": [
+        "ai-tutor",
+        "avatar",
+        "education",
+        "math",
+        "open-source",
+        "realtime",
+        "speech-to-text",
+        "text-to-speech"
+      ]
+    },
+    {
+      "full_name": "freesoft/MathCrew",
+      "stars": 2,
+      "description": "AI-powered adaptive math tutor for kids (Grade 1-6) — CrewAI multi-agent pipeline with Gemini + Ollama",
+      "language": "Python",
+      "pushed_at": "2026-02-27T22:25:34Z",
+      "html_url": "https://github.com/freesoft/MathCrew",
+      "topics": [
+        "adaptive-learning",
+        "ai-tutor",
+        "crewai",
+        "education",
+        "gamification",
+        "gemini",
+        "k-6",
+        "llm"
+      ]
+    },
+    {
+      "full_name": "Siesher/MITS",
+      "stars": 2,
+      "description": "🔮 Math Intelligent Tutoring System — Socratic multi-agent STEM tutor with RL-trained Qwen3.5-9B",
+      "language": "Python",
+      "pushed_at": "2026-07-09T13:37:08Z",
+      "html_url": "https://github.com/Siesher/MITS",
+      "topics": [
+        "education",
+        "fastapi",
+        "llm",
+        "multi-agent",
+        "nextjs",
+        "nlp",
+        "python",
+        "qwen"
+      ]
+    },
+    {
+      "full_name": "Parshuram02/Axiom-math-ai",
+      "stars": 1,
+      "description": "Axiom Math AI is a full-stack, pedagogical tutoring engine designed to guide students through complex mathematics",
+      "language": "JavaScript",
+      "pushed_at": "2026-04-29T06:37:16Z",
+      "html_url": "https://github.com/Parshuram02/Axiom-math-ai",
+      "topics": [
+        "ai",
+        "bot",
+        "llm",
+        "math",
+        "tutor"
+      ]
+    },
+    {
+      "full_name": "yashmahe2020/math-tutor-research",
+      "stars": 1,
+      "description": "Research on Large Language Model capabilities in mathematics tutoring and step-by-step reasoning.",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2026-02-19T02:03:14Z",
+      "html_url": "https://github.com/yashmahe2020/math-tutor-research",
+      "topics": [
+        "artificial-intelligence",
+        "education",
+        "jupyter-notebook",
+        "llm",
+        "math-ai",
+        "research"
+      ]
+    },
+    {
+      "full_name": "mdaniq45/AI-Math-Tutor",
+      "stars": 1,
+      "description": "AI Math Tutor is an interactive web-based application that helps users solve mathematical problems using Hugging Face models and Python-based computation. The a",
+      "language": "Python",
+      "pushed_at": "2025-02-04T13:44:43Z",
+      "html_url": "https://github.com/mdaniq45/AI-Math-Tutor",
+      "topics": []
+    }
+  ]
+}

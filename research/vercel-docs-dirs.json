@@ -1,0 +1,194 @@
+[
+  {
+    "name": "00-introduction",
+    "path": "content/docs/00-introduction",
+    "sha": "dd11500db20409c30ab55a110f2e5e780d311cc1",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/00-introduction?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/00-introduction",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/dd11500db20409c30ab55a110f2e5e780d311cc1",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/00-introduction?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/dd11500db20409c30ab55a110f2e5e780d311cc1",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/00-introduction"
+    }
+  },
+  {
+    "name": "02-foundations",
+    "path": "content/docs/02-foundations",
+    "sha": "a7715c7aa83601413d694f87b70516cead752fe9",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/02-foundations?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/02-foundations",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/a7715c7aa83601413d694f87b70516cead752fe9",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/02-foundations?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/a7715c7aa83601413d694f87b70516cead752fe9",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/02-foundations"
+    }
+  },
+  {
+    "name": "02-getting-started",
+    "path": "content/docs/02-getting-started",
+    "sha": "02ed4fd8d566d10d13803bdfcb39eca9b924c2cc",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/02-getting-started?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/02-getting-started",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/02ed4fd8d566d10d13803bdfcb39eca9b924c2cc",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/02-getting-started?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/02ed4fd8d566d10d13803bdfcb39eca9b924c2cc",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/02-getting-started"
+    }
+  },
+  {
+    "name": "03-agents",
+    "path": "content/docs/03-agents",
+    "sha": "f0e54b0a48c6748bdb251ef834ee9764279cf398",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-agents?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/03-agents",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/f0e54b0a48c6748bdb251ef834ee9764279cf398",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-agents?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/f0e54b0a48c6748bdb251ef834ee9764279cf398",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/03-agents"
+    }
+  },
+  {
+    "name": "03-ai-sdk-core",
+    "path": "content/docs/03-ai-sdk-core",
+    "sha": "2d492727428f22244d6bc96a8f294ee94f227521",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-ai-sdk-core?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/03-ai-sdk-core",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/2d492727428f22244d6bc96a8f294ee94f227521",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-ai-sdk-core?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/2d492727428f22244d6bc96a8f294ee94f227521",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/03-ai-sdk-core"
+    }
+  },
+  {
+    "name": "03-ai-sdk-harnesses",
+    "path": "content/docs/03-ai-sdk-harnesses",
+    "sha": "7612774874d0efea190ca72d608e570b29c9867f",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-ai-sdk-harnesses?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/03-ai-sdk-harnesses",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/7612774874d0efea190ca72d608e570b29c9867f",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/03-ai-sdk-harnesses?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/7612774874d0efea190ca72d608e570b29c9867f",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/03-ai-sdk-harnesses"
+    }
+  },
+  {
+    "name": "04-ai-sdk-ui",
+    "path": "content/docs/04-ai-sdk-ui",
+    "sha": "3c89f3c8a9d088c934e3c2b9f54d9b46ce78a5d7",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/04-ai-sdk-ui",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/3c89f3c8a9d088c934e3c2b9f54d9b46ce78a5d7",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/3c89f3c8a9d088c934e3c2b9f54d9b46ce78a5d7",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/04-ai-sdk-ui"
+    }
+  },
+  {
+    "name": "05-ai-sdk-rsc",
+    "path": "content/docs/05-ai-sdk-rsc",
+    "sha": "79d5c352183ccbf7ea334cbfc46f872c18eaaa78",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/05-ai-sdk-rsc?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/05-ai-sdk-rsc",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/79d5c352183ccbf7ea334cbfc46f872c18eaaa78",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/05-ai-sdk-rsc?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/79d5c352183ccbf7ea334cbfc46f872c18eaaa78",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/05-ai-sdk-rsc"
+    }
+  },
+  {
+    "name": "06-advanced",
+    "path": "content/docs/06-advanced",
+    "sha": "827c179349ff81aaf9652607f38d3e0ba7ad7d34",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/06-advanced?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/06-advanced",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/827c179349ff81aaf9652607f38d3e0ba7ad7d34",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/06-advanced?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/827c179349ff81aaf9652607f38d3e0ba7ad7d34",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/06-advanced"
+    }
+  },
+  {
+    "name": "07-reference",
+    "path": "content/docs/07-reference",
+    "sha": "57961ab05c7c4daccba9016acbc623149c47a391",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/07-reference?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/07-reference",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/57961ab05c7c4daccba9016acbc623149c47a391",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/07-reference?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/57961ab05c7c4daccba9016acbc623149c47a391",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/07-reference"
+    }
+  },
+  {
+    "name": "08-migration-guides",
+    "path": "content/docs/08-migration-guides",
+    "sha": "822b090e470f85c870351cd820343b214aea86ec",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/08-migration-guides?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/08-migration-guides",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/822b090e470f85c870351cd820343b214aea86ec",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/08-migration-guides?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/822b090e470f85c870351cd820343b214aea86ec",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/08-migration-guides"
+    }
+  },
+  {
+    "name": "09-troubleshooting",
+    "path": "content/docs/09-troubleshooting",
+    "sha": "fdddd2efaaabb6cfd02d11f99cf198d48e4a4fa8",
+    "size": 0,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/09-troubleshooting?ref=main",
+    "html_url": "https://github.com/vercel/ai/tree/main/content/docs/09-troubleshooting",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/trees/fdddd2efaaabb6cfd02d11f99cf198d48e4a4fa8",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/09-troubleshooting?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/trees/fdddd2efaaabb6cfd02d11f99cf198d48e4a4fa8",
+      "html": "https://github.com/vercel/ai/tree/main/content/docs/09-troubleshooting"
+    }
+  }
+]

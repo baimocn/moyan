@@ -1,0 +1,26 @@
+{
+  "name": "墨衍",
+  "appid": "",
+  "description": "墨衍 · AI 导师",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "vueVersion": "3",
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "墨衍 · AI 导师",
+    "devServer": {
+      "port": 5173,
+      "proxy": {
+        "/api": { "target": "http://127.0.0.1:5001", "changeOrigin": true }
+      }
+    }
+  }
+}

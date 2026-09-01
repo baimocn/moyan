@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墨衍 · 解析地基调试台</title>
+<style>
+  :root {
+    --ink: #1f2a37; --muted: #6b7280; --line: #e5e7eb;
+    --accent: #2563eb; --bg: #f8fafc; --card: #ffffff;
+    --ok: #16a34a; --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #fff; padding: 22px 32px;
+  }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+  header p { margin: 6px 0 0; opacity: .8; font-size: 13px; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 20px 60px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+  }
+  #drop {
+    border: 2px dashed #94a3b8; border-radius: 12px; padding: 36px;
+    text-align: center; cursor: pointer; transition: all .15s;
+    background: #f1f5f9;
+  }
+  #drop.drag { border-color: var(--accent); background: #eff6ff; }
+  #drop .big { font-size: 18px; font-weight: 600; }
+  #drop .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  #file-sel { display: none; }
+  .status { margin-top: 14px; font-size: 14px; min-height: 22px; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: #dc2626; }
+  .status.warn { color: var(--warn); }
+  .warnings { margin-top: 8px; font-size: 13px; color: var(--warn); }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .badge {
+    background: #eef2ff; color: #3730a3; border-radius: 999px;
+    padding: 4px 12px; font-size: 13px;
+  }
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  .toc { max-height: 70vh; overflow: auto; padding-right: 6px; }
+  .toc-item {
+    padding: 7px 10px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; border-left: 3px solid transparent;
+  }
+  .toc-item:hover { background: #f1f5f9; }
+  .toc-item.active { background: #eff6ff; border-left-color: var(--accent); }
+  .toc-item .idx { color: var(--muted); font-size: 12px; margin-right: 6px; }
+  .toc-item .cnt { float: right; color: var(--muted); font-size: 12px; }
+  .chapter-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .chapter-head h2 { margin: 0; font-size: 18px; }
+  .sub-toc { font-size: 12px; color: var(--muted); margin-left: 22px; }
+  pre.md-body {
+    background: #0f172a; color: #e2e8f0; border-radius: 10px;
+    padding: 16px; overflow: auto; font-size: 13px; line-height: 1.7;
+    white-space: pre-wrap; word-break: break-word; max-height: 70vh;
+  }
+  .md-rendered h1,h2,h3 { margin: .6em 0 .3em; }
+  .md-rendered code {
+    background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-size: 13px;
+  }
+  .md-rendered pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow: auto; }
+  .md-rendered li { margin: .15em 0; }
+  .hint { color: var(--muted); font-size: 13px; }
+  .tab-bar { display: flex; gap: 10px; margin-bottom: 12px; }
+  .tab {
+    border: 1px solid var(--line); background: #fff; padding: 6px 14px;
+    border-radius: 999px; font-size: 13px; cursor: pointer;
+  }
+  .tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  button.primary {
+    background: var(--accent); color: #fff; border: 0; padding: 8px 22px;
+    border-radius: 8px; font-size: 14px; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; }
+  #doc-list { font-size: 13px; }
+  #doc-list li { cursor: pointer; padding: 4px 0; }
+  #doc-list li:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>墨衍 · 解析地基调试台</h1>
+  <p>上传 PDF → 转 Markdown → 分章节（本地骨架第 1 阶段）</p>
+</header>
+<main>
+  <div class="card">
+    <div id="drop">
+      <div class="big">把 PDF 拖到这里，或点击选择文件</div>
+      <div class="sub">扫描件自动走本地 OCR（RapidOCR，免费快速）；大文件（100MB+）稍等片刻</div>
+      <input type="file" id="file-sel" accept=".pdf">
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card" id="meta-card" style="display:none">
+    <div id="doc-title" style="font-weight:600; font-size:16px"></div>
+    <div class="doc-meta" id="doc-meta"></div>
+    <div class="warnings" id="doc-warnings"></div>
+  </div>
+
+  <div class="layout" style="display:none" id="workspace">
+    <div class="card toc-card">
+      <div style="font-weight:600; margin-bottom:10px">章节目录</div>
+      <div class="toc" id="toc"></div>
+      <div style="margin-top:14px; border-top:1px solid var(--line); padding-top:10px">
+        <div style="font-weight:600; margin-bottom:6px">历史文档</div>
+        <ul id="doc-list" style="margin:0; padding-left:18px"></ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chapter-head">
+        <h2 id="ch-title">—</h2>
+        <span class="badge" id="ch-char">0 字</span>
+      </div>
+      <div class="sub-toc" id="ch-toc"></div>
+      <div class="tab-bar">
+        <span class="tab active" data-view="rendered">渲染预览</span>
+        <span class="tab" data-view="raw">Markdown 原文</span>
+      </div>
+      <div class="md-rendered" id="view"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const drop = document.getElementById('drop');
+const fileSel = document.getElementById('file-sel');
+const statusEl = document.getElementById('status');
+const metaCard = document.getElementById('meta-card');
+const workspace = document.getElementById('workspace');
+
+let chapters = [];
+let currentIdx = 0;
+let viewMode = 'rendered';
+
+drop.addEventListener('click', () => fileSel.click());
+fileSel.addEventListener('change', () => { if (fileSel.files[0]) upload(fileSel.files[0]); });
+['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', ev => {
+  const f = ev.dataTransfer.files[0];
+  if (f) upload(f);
+});
+
+function setStatus(msg, cls) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+function fmtSize(n) {
+  if (n >= 10000) return (n / 10000).toFixed(1) + ' 万';
+  return n.toLocaleString();
+}
+
+async function upload(file) {
+  setStatus('正在上传并解析：' + file.name + ' …');
+  metaCard.style.display = 'none';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const resp = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!data.ok) { setStatus('失败：' + (data.error || '未知错误'), 'err'); return; }
+    setStatus('解析完成 ✓', 'ok');
+    await loadDocuments();
+    renderDocument(data);
+  } catch (e) {
+    setStatus('请求失败：' + e.message, 'err');
+  }
+  fileSel.value = '';
+}
+
+function renderDocument(data) {
+  const d = data.document;
+  chapters = data.chapters;
+  chapters.forEach(c => c.doc_id = d.doc_id);
+  currentIdx = 0;
+  document.getElementById('doc-title').textContent = '📄 ' + d.filename;
+  const meta = document.getElementById('doc-meta');
+  meta.innerHTML = '';
+  [
+    ['页数', d.page_count + ' 页'],
+    ['Markdown', fmtSize(d.md_chars_clean) + ' 字'],
+    ['章节', d.chapter_count + ' 章'],
+    ['识别标题', (d.headings || []).length + ' 个'],
+    ['格式', d.format.toUpperCase()],
+  ].forEach(([k, v]) => {
+    const b = document.createElement('span');
+    b.className = 'badge';
+    b.textContent = k + '：' + v;
+    meta.appendChild(b);
+  });
+  const warns = document.getElementById('doc-warnings');
+  warns.textContent = (d.warnings || []).join('；');
+  metaCard.style.display = 'block';
+  workspace.style.display = 'grid';
+  renderToc();
+  renderChapter();
+}
+
+function renderToc() {
+  const toc = document.getElementById('toc');
+  toc.innerHTML = '';
+  chapters.forEach((ch, i) => {
+    const div = document.createElement('div');
+    div.className = 'toc-item';
+    div.dataset.idx = i;
+    const idx = document.createElement('span');
+    idx.className = 'idx';
+    idx.textContent = String(i + 1).padStart(2, '0');
+    const cnt = document.createElement('span');
+    cnt.className = 'cnt';
+    cnt.textContent = fmtSize(ch.char_count) + ' 字';
+    div.append(idx, document.createTextNode(ch.title), cnt);
+    div.addEventListener('click', () => { currentIdx = i; renderToc(); renderChapter(); });
+    if (i === currentIdx) div.classList.add('active');
+    toc.appendChild(div);
+  });
+}
+
+function renderChapter() {
+  const ch = chapters[currentIdx];
+  document.getElementById('ch-title').textContent = ch.title;
+  document.getElementById('ch-char').textContent = ch.char_count.toLocaleString() + ' 字';
+  const sub = document.getElementById('ch-toc');
+  sub.textContent = (ch.toc || []).map(t => '▸ ' + t.title).join('  ');
+  renderView();
+}
+
+async function renderView() {
+  const view = document.getElementById('view');
+  const ch = chapters[currentIdx];
+  if (!ch.md) {
+    const resp = await fetch(`/api/documents/${ch.doc_id}/chapters/${ch.index}`);
+    const data = await resp.json();
+    if (data.ok) ch.md = data.chapter.markdown;
+  }
+  view.className = viewMode === 'rendered' ? 'md-rendered' : '';
+  if (viewMode === 'rendered') {
+    view.innerHTML = renderMd(ch.md || '');
+  } else {
+    view.innerHTML = '<pre class="md-body"></pre>';
+    view.querySelector('pre').textContent = ch.md || '';
+  }
+}
+
+// 轻量 Markdown 渲染（仅调试用；正式界面后续做）
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function renderMd(md) {
+  const lines = md.split('\n');
+  let html = '', inCode = false, listOpen = false;
+  const closeList = () => { if (listOpen) { html += '</ul>'; listOpen = false; } };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (line.startsWith('```')) {
+      if (inCode) { html += '</code></pre>'; inCode = false; }
+      else { closeList(); html += '<pre><code>'; inCode = true; }
+      continue;
+    }
+    if (inCode) { html += escapeHtml(line) + '\n'; continue; }
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) { closeList(); const lv = h[1].length; html += `<h${lv}>${escapeHtml(h[2])}</h${lv}>`; continue; }
+    if (/^\s*[-*]\s+/.test(line)) {
+      if (!listOpen) { html += '<ul>'; listOpen = true; }
+      html += '<li>' + escapeHtml(line.replace(/^\s*[-*]\s+/, '')) + '</li>';
+      continue;
+    }
+    if (line.trim() === '') { closeList(); continue; }
+    closeList();
+    html += '<p>' + escapeHtml(line)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>') + '</p>';
+  }
+  closeList();
+  return html;
+}
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  viewMode = t.dataset.view;
+  renderView();
+}));
+
+async function loadDocuments() {
+  const resp = await fetch('/api/documents');
+  const data = await resp.json();
+  const list = document.getElementById('doc-list');
+  list.innerHTML = '';
+  (data.documents || []).slice().reverse().forEach(d => {
+    const li = document.createElement('li');
+    li.textContent = `${d.filename}（${d.chapter_count} 章）`;
+    li.title = d.doc_id;
+    list.appendChild(li);
+  });
+}
+loadDocuments();
+</script>
+</body>
+</html>

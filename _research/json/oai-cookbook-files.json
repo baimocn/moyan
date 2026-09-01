@@ -1,0 +1,10 @@
+{
+	"type": "gh",
+	"name": "openai/openai-cookbook",
+	"version": "main",
+	"status": 403,
+	"message": "Package size exceeded the configured limit of 50 MB.",
+	"links": {
+		"stats": "https://data.jsdelivr.com/v1/stats/packages/gh/openai/openai-cookbook@main"
+	}
+}

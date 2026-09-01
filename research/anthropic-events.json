@@ -1,0 +1,18 @@
+{
+  "name": "raw_message_stream_event.py",
+  "path": "src/anthropic/types/raw_message_stream_event.py",
+  "sha": "728fbe88a0d0224b803bd497fc4b2c3b7fb4eec4",
+  "size": 912,
+  "url": "https://api.github.com/repos/anthropics/anthropic-sdk-python/contents/src/anthropic/types/raw_message_stream_event.py?ref=main",
+  "html_url": "https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/raw_message_stream_event.py",
+  "git_url": "https://api.github.com/repos/anthropics/anthropic-sdk-python/git/blobs/728fbe88a0d0224b803bd497fc4b2c3b7fb4eec4",
+  "download_url": "https://raw.githubusercontent.com/anthropics/anthropic-sdk-python/main/src/anthropic/types/raw_message_stream_event.py",
+  "type": "file",
+  "content": "IyBGaWxlIGdlbmVyYXRlZCBmcm9tIG91ciBPcGVuQVBJIHNwZWMgYnkgU3Rh\naW5sZXNzLiBTZWUgQ09OVFJJQlVUSU5HLm1kIGZvciBkZXRhaWxzLgoKZnJv\nbSB0eXBpbmcgaW1wb3J0IFVuaW9uCmZyb20gdHlwaW5nX2V4dGVuc2lvbnMg\naW1wb3J0IEFubm90YXRlZCwgVHlwZUFsaWFzCgpmcm9tIC4uX3V0aWxzIGlt\ncG9ydCBQcm9wZXJ0eUluZm8KZnJvbSAucmF3X21lc3NhZ2Vfc3RvcF9ldmVu\ndCBpbXBvcnQgUmF3TWVzc2FnZVN0b3BFdmVudApmcm9tIC5yYXdfbWVzc2Fn\nZV9kZWx0YV9ldmVudCBpbXBvcnQgUmF3TWVzc2FnZURlbHRhRXZlbnQKZnJv\nbSAucmF3X21lc3NhZ2Vfc3RhcnRfZXZlbnQgaW1wb3J0IFJhd01lc3NhZ2VT\ndGFydEV2ZW50CmZyb20gLnJhd19jb250ZW50X2Jsb2NrX3N0b3BfZXZlbnQg\naW1wb3J0IFJhd0NvbnRlbnRCbG9ja1N0b3BFdmVudApmcm9tIC5yYXdfY29u\ndGVudF9ibG9ja19kZWx0YV9ldmVudCBpbXBvcnQgUmF3Q29udGVudEJsb2Nr\nRGVsdGFFdmVudApmcm9tIC5yYXdfY29udGVudF9ibG9ja19zdGFydF9ldmVu\ndCBpbXBvcnQgUmF3Q29udGVudEJsb2NrU3RhcnRFdmVudAoKX19hbGxfXyA9\nIFsiUmF3TWVzc2FnZVN0cmVhbUV2ZW50Il0KClJhd01lc3NhZ2VTdHJlYW1F\ndmVudDogVHlwZUFsaWFzID0gQW5ub3RhdGVkWwogICAgVW5pb25bCiAgICAg\nICAgUmF3TWVzc2FnZVN0YXJ0RXZlbnQsCiAgICAgICAgUmF3TWVzc2FnZURl\nbHRhRXZlbnQsCiAgICAgICAgUmF3TWVzc2FnZVN0b3BFdmVudCwKICAgICAg\nICBSYXdDb250ZW50QmxvY2tTdGFydEV2ZW50LAogICAgICAgIFJhd0NvbnRl\nbnRCbG9ja0RlbHRhRXZlbnQsCiAgICAgICAgUmF3Q29udGVudEJsb2NrU3Rv\ncEV2ZW50LAogICAgXSwKICAgIFByb3BlcnR5SW5mbyhkaXNjcmltaW5hdG9y\nPSJ0eXBlIiksCl0K\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/anthropics/anthropic-sdk-python/contents/src/anthropic/types/raw_message_stream_event.py?ref=main",
+    "git": "https://api.github.com/repos/anthropics/anthropic-sdk-python/git/blobs/728fbe88a0d0224b803bd497fc4b2c3b7fb4eec4",
+    "html": "https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/raw_message_stream_event.py"
+  }
+}

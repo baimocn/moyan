@@ -1,0 +1,21 @@
+
+> moyan-frontend@0.1.0 dev:h5
+> uni
+
+Please note that in running mode, due to log output, sourcemap, and uncompressed source code, the performance and package size are not as good as release mode.
+Vite is compiled on demand, and clicking on an uncompiled page at runtime will compile first and then load, resulting in a slower display, and there is no such problem after release.
+Compiler version: 5.25（vue3）
+Compiling...
+
+​本地运行未开启 manifest.json 的 uniStatistics.debug，uni统计不采集、不上报；发行模式不受影响​
+
+[36m
+  vite v5.2.8[39m[32m dev server running at:
+[39m
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+
+  [36mready in 1352ms.[39m
+
+(node:36268) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

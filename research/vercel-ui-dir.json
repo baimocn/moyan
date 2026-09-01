@@ -1,0 +1,242 @@
+[
+  {
+    "name": "01-overview.mdx",
+    "path": "content/docs/04-ai-sdk-ui/01-overview.mdx",
+    "sha": "1c5cb805e23a6dbd46059e7eab8846c1d6b6d1e3",
+    "size": 4222,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/01-overview.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/01-overview.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/1c5cb805e23a6dbd46059e7eab8846c1d6b6d1e3",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/01-overview.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/01-overview.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/1c5cb805e23a6dbd46059e7eab8846c1d6b6d1e3",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/01-overview.mdx"
+    }
+  },
+  {
+    "name": "02-chatbot.mdx",
+    "path": "content/docs/04-ai-sdk-ui/02-chatbot.mdx",
+    "sha": "e59328e629810fa4c4aff4b0d3fa277618892fd9",
+    "size": 38371,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/02-chatbot.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/02-chatbot.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/e59328e629810fa4c4aff4b0d3fa277618892fd9",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/02-chatbot.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/02-chatbot.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/e59328e629810fa4c4aff4b0d3fa277618892fd9",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/02-chatbot.mdx"
+    }
+  },
+  {
+    "name": "03-chatbot-message-persistence.mdx",
+    "path": "content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx",
+    "sha": "48eaa42268cc87ec6d4b6b4aaefe23f40fd34163",
+    "size": 18114,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/48eaa42268cc87ec6d4b6b4aaefe23f40fd34163",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/48eaa42268cc87ec6d4b6b4aaefe23f40fd34163",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx"
+    }
+  },
+  {
+    "name": "03-chatbot-resume-streams.mdx",
+    "path": "content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx",
+    "sha": "e12fc409308cbc25ac374d10f2396dfec6843977",
+    "size": 15312,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/e12fc409308cbc25ac374d10f2396dfec6843977",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/e12fc409308cbc25ac374d10f2396dfec6843977",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx"
+    }
+  },
+  {
+    "name": "03-chatbot-tool-usage.mdx",
+    "path": "content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx",
+    "sha": "892ee6d8c8c0161ac009d85223271116746a238a",
+    "size": 27946,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/892ee6d8c8c0161ac009d85223271116746a238a",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/892ee6d8c8c0161ac009d85223271116746a238a",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/03-chatbot-tool-usage.mdx"
+    }
+  },
+  {
+    "name": "04-generative-user-interfaces.mdx",
+    "path": "content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx",
+    "sha": "0f823a2b9057ca783dbda09cd92d484c92ba69f5",
+    "size": 12548,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/0f823a2b9057ca783dbda09cd92d484c92ba69f5",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/0f823a2b9057ca783dbda09cd92d484c92ba69f5",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/04-generative-user-interfaces.mdx"
+    }
+  },
+  {
+    "name": "05-completion.mdx",
+    "path": "content/docs/04-ai-sdk-ui/05-completion.mdx",
+    "sha": "7389ef294978e442b830b8a7b4ebab5bc8278dad",
+    "size": 6140,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/05-completion.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/05-completion.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/7389ef294978e442b830b8a7b4ebab5bc8278dad",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/05-completion.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/05-completion.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/7389ef294978e442b830b8a7b4ebab5bc8278dad",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/05-completion.mdx"
+    }
+  },
+  {
+    "name": "08-object-generation.mdx",
+    "path": "content/docs/04-ai-sdk-ui/08-object-generation.mdx",
+    "sha": "afd2f65a05a33a40d97e435bdda4b6d9f7c1f14f",
+    "size": 9209,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/08-object-generation.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/08-object-generation.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/afd2f65a05a33a40d97e435bdda4b6d9f7c1f14f",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/08-object-generation.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/08-object-generation.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/afd2f65a05a33a40d97e435bdda4b6d9f7c1f14f",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/08-object-generation.mdx"
+    }
+  },
+  {
+    "name": "20-streaming-data.mdx",
+    "path": "content/docs/04-ai-sdk-ui/20-streaming-data.mdx",
+    "sha": "54363ea365b669c666d1ff8bd70e5fa887320245",
+    "size": 11701,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/20-streaming-data.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/20-streaming-data.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/54363ea365b669c666d1ff8bd70e5fa887320245",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/20-streaming-data.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/20-streaming-data.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/54363ea365b669c666d1ff8bd70e5fa887320245",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/20-streaming-data.mdx"
+    }
+  },
+  {
+    "name": "21-error-handling.mdx",
+    "path": "content/docs/04-ai-sdk-ui/21-error-handling.mdx",
+    "sha": "9cf9317c9b04828e414b960f514230600a66ddfd",
+    "size": 5182,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/21-error-handling.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/21-error-handling.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/9cf9317c9b04828e414b960f514230600a66ddfd",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/21-error-handling.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/21-error-handling.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/9cf9317c9b04828e414b960f514230600a66ddfd",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/21-error-handling.mdx"
+    }
+  },
+  {
+    "name": "21-transport.mdx",
+    "path": "content/docs/04-ai-sdk-ui/21-transport.mdx",
+    "sha": "04da9934aae630d3dcc6f42e68fd9c8386e2c6f6",
+    "size": 7075,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/21-transport.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/21-transport.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/04da9934aae630d3dcc6f42e68fd9c8386e2c6f6",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/21-transport.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/21-transport.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/04da9934aae630d3dcc6f42e68fd9c8386e2c6f6",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/21-transport.mdx"
+    }
+  },
+  {
+    "name": "24-reading-ui-message-streams.mdx",
+    "path": "content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx",
+    "sha": "95b8920804dab3632599d5f8fb400a73b4ca8f04",
+    "size": 2863,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/95b8920804dab3632599d5f8fb400a73b4ca8f04",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/95b8920804dab3632599d5f8fb400a73b4ca8f04",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/24-reading-ui-message-streams.mdx"
+    }
+  },
+  {
+    "name": "25-message-metadata.mdx",
+    "path": "content/docs/04-ai-sdk-ui/25-message-metadata.mdx",
+    "sha": "290e17e55e57fa2392cf0882b17817becb796906",
+    "size": 4878,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/25-message-metadata.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/25-message-metadata.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/290e17e55e57fa2392cf0882b17817becb796906",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/25-message-metadata.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/25-message-metadata.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/290e17e55e57fa2392cf0882b17817becb796906",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/25-message-metadata.mdx"
+    }
+  },
+  {
+    "name": "50-stream-protocol.mdx",
+    "path": "content/docs/04-ai-sdk-ui/50-stream-protocol.mdx",
+    "sha": "a685175fc2986c1237088f59e934fbe964995934",
+    "size": 13528,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/50-stream-protocol.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/50-stream-protocol.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/a685175fc2986c1237088f59e934fbe964995934",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/50-stream-protocol.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/50-stream-protocol.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/a685175fc2986c1237088f59e934fbe964995934",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/50-stream-protocol.mdx"
+    }
+  },
+  {
+    "name": "index.mdx",
+    "path": "content/docs/04-ai-sdk-ui/index.mdx",
+    "sha": "3c8a3103b3943aac022b7b8d2b819e6c5f802edb",
+    "size": 1999,
+    "url": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/index.mdx?ref=main",
+    "html_url": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/index.mdx",
+    "git_url": "https://api.github.com/repos/vercel/ai/git/blobs/3c8a3103b3943aac022b7b8d2b819e6c5f802edb",
+    "download_url": "https://raw.githubusercontent.com/vercel/ai/main/content/docs/04-ai-sdk-ui/index.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/vercel/ai/contents/content/docs/04-ai-sdk-ui/index.mdx?ref=main",
+      "git": "https://api.github.com/repos/vercel/ai/git/blobs/3c8a3103b3943aac022b7b8d2b819e6c5f802edb",
+      "html": "https://github.com/vercel/ai/blob/main/content/docs/04-ai-sdk-ui/index.mdx"
+    }
+  }
+]

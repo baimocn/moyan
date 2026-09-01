@@ -1,0 +1,12 @@
+
+> moyan-frontend@0.1.0 build:h5
+> uni build
+
+Compiler version: 5.25（vue3）
+Compiling...
+
+​The current application is not configured with Appid, and uni statistics cannot be used. For details, see https://ask.dcloud.net.cn/article/36303​
+
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.

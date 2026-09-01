@@ -1,0 +1,11 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "墨衍 · 选课" } },
+    { "path": "pages/tutor/tutor", "style": { "navigationBarTitleText": "同桌 · 教学" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "墨衍",
+    "backgroundColor": "#faf6ef"
+  }
+}
