@@ -9,12 +9,45 @@
 #
 # 必读：SSE 教学流（/api/tutor/turn）需要以下两点
 #   - flush_interval -1：禁用 Caddy 缓冲，事件立即推到客户端
-#   - transport 后端响应也关闭缓冲（X-Accel-Buffering: no 已经在 FastAPI header 写好）
+#   - X-Accel-Buffering: no 已经在 FastAPI header 写好
+#
+# 必读：本文件用了 rate_limit 指令（防穿透兜底），标准 caddy 二进制不含此模块。
+# 需用 xcaddy 自带：xcaddy build --with github.com/mholt/caddy-ratelimit
+# 不带 rate_limit 模块时,后端 slowapi 仍是主防线,Caddy 兜底失效（功能可降级运行）。
 
 {$MOYAN_DOMAIN:moyan.example.com} {
     encode zstd gzip
 
-    # 健康检查 / 静态资源：短链
+    # 限流兜底（Caddy 层 5x 更粗,主要防 flood；后端 slowapi 做精确档位）
+    # 需 caddy-ratelimit 模块（xcaddy 自带）
+    rate_limit {
+        zone upload_zone {
+            match {
+                path /api/upload
+            }
+            key    {remote_host}
+            window 1m
+            events  5
+        }
+        zone auth_zone {
+            match {
+                path /api/auth/*
+            }
+            key    {remote_host}
+            window 1m
+            events  30
+        }
+        zone tutor_zone {
+            match {
+                path /api/tutor/*
+            }
+            key    {remote_host}
+            window 1m
+            events  60
+        }
+    }
+
+    # 健康检查：短链
     @health path /api/health
     handle @health {
         reverse_proxy 127.0.0.1:5001
@@ -51,12 +84,4 @@
         Referrer-Policy "strict-origin-when-cross-origin"
         # 注意：开发期 H5 跨源需要 CORS，不要在这里加 frame-ancestors 等会挡 CORS 的
     }
-
-    # 限流兜底（Caddy 层 5x 更粗，Caddy 兜底防穿透，slowapi 做精确档位）
-    @upload path /api/upload
-    rate_limit @upload 5r/m
-    @auth path /api/auth/*
-    rate_limit @auth 30r/m
-    @tutor path /api/tutor/*
-    rate_limit @tutor 60r/m
 }

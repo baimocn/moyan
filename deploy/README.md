@@ -53,12 +53,22 @@ powershell -ExecutionPolicy Bypass -File deploy/run-prod.ps1
 
 ## 4. 装 + 启 Caddy
 
+Caddyfile 用了 `rate_limit` 指令（防穿透兜底），属于第三方模块 `github.com/mholt/caddy-ratelimit`，**标准 caddy 二进制不包含**，需用 xcaddy 自带。
+
 ```bash
-# 安装（Ubuntu）
+# 方式 A：标准 caddy（不含 rate_limit）
+#   - 后端 slowapi 仍是主防线
+#   - Caddy 兜底失效，功能可降级运行
+# Ubuntu:
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/deb.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 sudo apt update && sudo apt install caddy
+
+# 方式 B（推荐）：xcaddy 自带 rate_limit 模块
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+~/go/bin/xcaddy build --with github.com/mholt/caddy-ratelimit
+sudo mv caddy /usr/local/bin/
 
 # 配置域名（先导环境变量）
 export MOYAN_DOMAIN=moyan.example.com
@@ -66,6 +76,12 @@ export [email protected]
 
 # 跑
 caddy run --config deploy/Caddyfile
+```
+
+**校验 Caddyfile 语法**（改完配置后必须跑）：
+```bash
+caddy validate --config deploy/Caddyfile --adapter caddyfile
+# 输出 "valid configuration" 即通过
 ```
 
 ## 5. 验证
