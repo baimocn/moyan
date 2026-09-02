@@ -5,6 +5,10 @@ sqlalchemy>=2.0
 psycopg2-binary>=2.9
 python-multipart>=0.0.9
 
+# 鉴权/限流（部署前置 953946f：slowapi 限流器；PyJWT 签发）
+slowapi>=0.1.9
+PyJWT>=2.8
+
 # AI 引擎（判定/出题/校对 instructor 结构化输出；OpenAI 兼容协议）
 openai>=2.0
 instructor>=1.15
