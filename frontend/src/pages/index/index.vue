@@ -1,24 +1,58 @@
 <template>
-  <view class="wrap">
-    <view class="head">墨衍 · 选课</view>
-    <view class="card">
-      <picker mode="selector" :range="docNames" @change="onDoc">
-        <view class="row">教材：{{ docNames[docIdx] || '点选教材' }}</view>
-      </picker>
-      <view class="subrow" v-if="docIdx >= 0">
-        <text class="sub">上传/导入后自动转 MD，原件即清理</text>
-        <text class="ren" @click="rename">✎ 重命名</text>
+  <view class="page">
+    <view class="hero">
+      <view class="logo">墨</view>
+      <view class="brand">
+        <text class="bname">墨衍</text>
+        <text class="bsub">AI 同桌 · 一章一章带你学透</text>
       </view>
-      <picker mode="selector" :range="chapNames" @change="onChap">
-        <view class="row">章节：{{ chapNames[chapIdx] || '点选章节' }}</view>
-      </picker>
-      <button class="go" :disabled="!ready" @click="go">开始学习</button>
-      <button class="up" @click="choose">＋ 上传教材</button>
-      <view class="tip" v-if="tip">{{ tip }}</view>
-      <view class="tip">同桌已就位。规矩：先思路，后对答案。</view>
     </view>
 
-    <!-- H5 端文件选择（小程序走 wx.chooseMessageFile，条件编译） -->
+    <view class="sec">
+      <text class="sec-t">教材书架</text>
+      <text class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪</text>
+    </view>
+
+    <scroll-view scroll-y class="list" :style="{ height: listH }">
+      <view v-for="(d, i) in docs" :key="d.doc_id" class="doc" :class="{ sel: i === docIdx }" @tap="onDocPick(i)">
+        <view class="doc-top">
+          <text class="doc-title">{{ d.title || d.filename }}</text>
+          <text class="pill" v-if="i === docIdx">已选</text>
+          <text class="ren" @tap.stop="renameDoc(d)">重命名</text>
+        </view>
+        <view class="doc-meta">
+          <text>{{ d.chapter_count }} 章</text>
+          <text class="sep">·</text>
+          <text>{{ fmtWan(d.md_chars) }}</text>
+          <text class="sep">·</text>
+          <text>{{ fmtSrc(d) }}</text>
+        </view>
+        <view class="chaps" v-if="i === docIdx">
+          <view v-for="c in manifest" :key="c.index" class="chap" :class="{ on: c.index === chapIdx }" @tap.stop="chapIdx = c.index">
+            <text class="chap-no">{{ c.index + 1 }}</text>
+            <text class="chap-t">{{ c.title }}</text>
+            <text class="chap-meta">{{ fmtWan(c.char_count) }}</text>
+            <text class="tick" v-if="c.index === chapIdx">✓</text>
+          </view>
+          <view class="chap hint" v-if="!manifest.length">正在读取章节…</view>
+        </view>
+      </view>
+
+      <view class="doc up" @tap="choose">
+        <view class="up-ico">＋</view>
+        <view class="up-txt">
+          <text class="up-t">上传新教材</text>
+          <text class="up-s">PDF / Word / PPT / 扫描件，原件即清理</text>
+        </view>
+      </view>
+      <view class="doc-note">同桌已就位。规矩：先思路，后对答案。</view>
+    </scroll-view>
+
+    <view class="foot">
+      <view v-if="tip" class="tip">{{ tip }}</view>
+      <view class="start" :class="{ off: !ready }" @tap="ready && go()">开始学习</view>
+    </view>
+
     <!-- #ifdef H5 -->
     <input ref="fileInput" type="file" accept=".pdf,.docx,.pptx,.xlsx,.md,.txt,.html,.epub,.jpg,.jpeg,.png,.bmp,.tiff" style="display:none" @change="onFilePicked" />
     <!-- #endif -->
@@ -30,33 +64,58 @@ import { getDocuments, getDocument, uploadFile, getTask, renameDocument } from '
 
 export default {
   data() {
-    return { docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false }
+    return { docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px' }
   },
   computed: {
     docNames() { return this.docs.map(d => `${d.title || d.filename}（${d.chapter_count}章）`) },
     chapNames() { return this.manifest.map(c => `${c.title}（${c.char_count}字）`) },
     ready() { return this.docIdx >= 0 && this.chapIdx >= 0 }
   },
+  onLoad() {
+    try {
+      const h = uni.getSystemInfoSync()
+      this.listH = (h.windowHeight - 460) + 'px'
+    } catch (e) { /* 保持默认 */ }
+  },
   onShow() {
     this.refresh()
   },
   methods: {
+    fmtWan(n) {
+      n = Number(n || 0)
+      return n >= 10000 ? (n / 10000).toFixed(1) + ' 万字' : n + ' 字'
+    },
+    fmtSrc(d) {
+      if (d.source === 'ocr') return '扫描件 OCR'
+      if (d.format === 'md') return 'Markdown 直读'
+      const m = { pdf: 'PDF', docx: 'Word', pptx: 'PPT', xlsx: '表格' }
+      return m[d.format] || String(d.format || '资料').toUpperCase()
+    },
     refresh() {
       getDocuments().then(d => {
-        this.docs = (d.documents || []).filter(x => x.status === 'done')
-        if (this.docIdx > this.docs.length - 1) this.docIdx = -1
+        const done = (d.documents || []).filter(x => x.status === 'done')
+        const selectedId = this.docIdx >= 0 && this.docs[this.docIdx] ? this.docs[this.docIdx].doc_id : ''
+        this.docs = done
+        if (!selectedId) { this.docIdx = -1; this.manifest = [] }
+        else {
+          const idx = done.findIndex(x => x.doc_id === selectedId)
+          this.docIdx = idx
+          if (idx < 0) this.manifest = []
+        }
       }).catch(() => {})
     },
-    onDoc(e) {
-      this.docIdx = Number(e.detail.value)
-      const doc = this.docs[this.docIdx]
+    onDocPick(i) {
+      if (i === this.docIdx) { this.manifest = []; this.docIdx = -1; this.chapIdx = -1; return }
+      this.docIdx = i
+      const doc = this.docs[i]
       if (!doc) return
+      this.chapIdx = -1
+      this.manifest = []
       getDocument(doc.doc_id).then(d => {
+        if (this.docIdx !== i) return
         this.manifest = d.document.manifest || []
-        this.chapIdx = -1
-      })
+      }).catch(() => { this.tip = '章节读取失败' })
     },
-    onChap(e) { this.chapIdx = Number(e.detail.value) },
     choose() {
       // #ifdef MP-WEIXIN
       wx.chooseMessageFile({
@@ -77,7 +136,6 @@ export default {
       const f = e.target.files && e.target.files[0]
       if (f) this.askName(f)
     },
-    // 先让用户给书起名，再上传
     askName(f) {
       const defName = (f.name || '').replace(/\.[^.]+$/, '') || '未命名教材'
       uni.showModal({
@@ -92,16 +150,16 @@ export default {
       })
     },
     doUpload(file, title) {
-      this.tip = '上传中…'
-      uni.showLoading({ title: '解析中' })
+      this.tip = '上传解析中…'
+      uni.showLoading({ title: '解析中', mask: true })
       uploadFile(file, title).then(r => {
         uni.hideLoading()
-        if (!r || !r.ok) { this.tip = '上传失败：' + (r && r.detail) || '未知错误'; return }
+        if (!r || !r.ok) { this.tip = '上传失败：' + ((r && r.detail) || '未知错误'); return }
         if (r.status === 'processing') {
-          this.tip = `转换中（${r.task_id || ''}）…`
+          this.tip = '转换中，请稍候…'
           this.pollTask(r.task_id, r.doc_id)
         } else {
-          this.tip = '已加入教学计划 ✓（原件已清理）'
+          this.tip = '已上架 ✓'
           this.refresh()
         }
       }).catch(e => { uni.hideLoading(); this.tip = '上传失败：' + e })
@@ -114,7 +172,7 @@ export default {
           const t = r.task || {}
           if (t.status === 'done' || t.status === 'success') {
             this.polling = false
-            this.tip = '转换完成 ✓（原件已清理）'
+            this.tip = '转换完成，已上架 ✓'
             this.refresh()
           } else if (t.status === 'failed') {
             this.polling = false
@@ -127,18 +185,16 @@ export default {
       }
       tick()
     },
-    rename() {
-      const doc = this.docs[this.docIdx]
-      if (!doc) return
+    renameDoc(d) {
       uni.showModal({
         title: '重命名教材',
         editable: true,
         placeholderText: '输入新名称',
-        content: doc.title || doc.filename,
+        content: d.title || d.filename,
         success: r => {
           const title = r.confirm ? (r.content || '').trim() : ''
           if (!title) return
-          renameDocument(doc.doc_id, title).then(() => {
+          renameDocument(d.doc_id, title).then(() => {
             this.tip = '已重命名 ✓'
             this.refresh()
           }).catch(e => { this.tip = '重命名失败：' + e })
@@ -153,15 +209,50 @@ export default {
   }
 }
 </script>
+
 <style>
-.wrap { padding: 20rpx; }
-.head { font-size: 34rpx; letter-spacing: 4rpx; margin: 20rpx 0; }
-.card { background: #fff; border: 1px solid #e2d9c8; border-radius: 12rpx; padding: 24rpx; }
-.row { padding: 18rpx 8rpx; border-bottom: 1px dashed #e2d9c8; }
-.subrow { display: flex; justify-content: space-between; align-items: center; padding: 8rpx 8rpx 4rpx; }
-.sub { font-size: 22rpx; color: #a09078; }
-.ren { font-size: 24rpx; color: #7a5c3e; padding: 4rpx 12rpx; border: 1px solid #cbbfa8; border-radius: 8rpx; }
-.go { margin-top: 24rpx; background: #7a5c3e; color: #fff; }
-.up { margin-top: 16rpx; background: #f5ecd4; color: #7a5c3e; border: 1px dashed #cbbfa8; }
-.tip { font-size: 24rpx; color: #8a7a5e; margin-top: 16rpx; }
+page { background: #f6f2e8; }
+.page { min-height: 100vh; display: flex; flex-direction: column; padding: 32rpx 28rpx 24rpx; box-sizing: border-box; }
+
+.hero { display: flex; align-items: center; padding: 12rpx 4rpx 28rpx; }
+.logo { width: 84rpx; height: 84rpx; border-radius: 26rpx; background: #163628; color: #f2e6c9; font-size: 44rpx; font-weight: 500; display: flex; align-items: center; justify-content: center; letter-spacing: 0; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
+.brand { margin-left: 22rpx; display: flex; flex-direction: column; }
+.bname { font-size: 44rpx; font-weight: 500; letter-spacing: 10rpx; color: #163628; line-height: 1.15; }
+.bsub { font-size: 22rpx; color: #8a7f66; margin-top: 8rpx; letter-spacing: 2rpx; }
+
+.sec { display: flex; align-items: baseline; justify-content: space-between; padding: 8rpx 6rpx 18rpx; }
+.sec-t { font-size: 30rpx; font-weight: 500; color: #2b2b2b; }
+.sec-c { font-size: 22rpx; color: #9a8f74; }
+
+.list { flex: 1; }
+.doc { background: #fffdf8; border: 2rpx solid #eae2cf; border-radius: 24rpx; padding: 26rpx 28rpx; margin-bottom: 20rpx; transition: border-color 0.15s; }
+.doc.sel { border-color: #2c6e4f; box-shadow: 0 4rpx 14rpx rgba(44, 110, 79, 0.12); }
+.doc-top { display: flex; align-items: center; }
+.doc-title { flex: 1; font-size: 30rpx; font-weight: 500; color: #1f1f1f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill { font-size: 20rpx; color: #fff; background: #2c6e4f; border-radius: 999rpx; padding: 6rpx 18rpx; margin-left: 16rpx; }
+.ren { font-size: 22rpx; color: #a08a5a; padding: 6rpx 16rpx; border: 2rpx solid #ddd0b4; border-radius: 999rpx; margin-left: 16rpx; }
+.doc-meta { display: flex; align-items: center; font-size: 22rpx; color: #94896f; margin-top: 14rpx; }
+.sep { margin: 0 10rpx; color: #c9bfa5; }
+
+.chaps { margin-top: 22rpx; border-top: 2rpx dashed #eee5d2; padding-top: 16rpx; }
+.chap { display: flex; align-items: center; padding: 20rpx 16rpx; border-radius: 16rpx; margin-bottom: 6rpx; }
+.chap.on { background: #e8f1e6; }
+.chap-no { width: 44rpx; height: 44rpx; border-radius: 50%; background: #efe8d8; color: #7a6a45; font-size: 22rpx; display: flex; align-items: center; justify-content: center; }
+.chap.on .chap-no { background: #2c6e4f; color: #fff; }
+.chap-t { flex: 1; margin-left: 18rpx; font-size: 27rpx; color: #333; }
+.chap-meta { font-size: 20rpx; color: #a69a7e; margin-left: 12rpx; }
+.tick { color: #2c6e4f; font-size: 26rpx; margin-left: 12rpx; font-weight: 500; }
+.chap.hint { color: #9a8f74; font-size: 24rpx; justify-content: center; }
+
+.doc.up { display: flex; align-items: center; border-style: dashed; border-color: #cbbf9e; background: #faf6ea; }
+.up-ico { width: 64rpx; height: 64rpx; border-radius: 50%; background: #163628; color: #f2e6c9; font-size: 36rpx; display: flex; align-items: center; justify-content: center; }
+.up-txt { margin-left: 22rpx; display: flex; flex-direction: column; }
+.up-t { font-size: 28rpx; color: #3a3a3a; }
+.up-s { font-size: 21rpx; color: #a09474; margin-top: 6rpx; }
+.doc-note { text-align: center; color: #b0a487; font-size: 22rpx; padding: 10rpx 0 30rpx; letter-spacing: 1rpx; }
+
+.foot { padding-top: 20rpx; }
+.tip { text-align: center; font-size: 22rpx; color: #a08a5a; margin-bottom: 14rpx; }
+.start { background: #163628; color: #f2e6c9; font-size: 32rpx; font-weight: 500; letter-spacing: 6rpx; text-align: center; padding: 26rpx 0; border-radius: 999rpx; box-shadow: 0 8rpx 20rpx rgba(22, 54, 40, 0.22); }
+.start.off { background: #cfc8b6; color: #fff; box-shadow: none; }
 </style>

@@ -1,11 +1,13 @@
 {
   "pages": [
-    { "path": "pages/index/index", "style": { "navigationBarTitleText": "墨衍 · 选课" } },
-    { "path": "pages/tutor/tutor", "style": { "navigationBarTitleText": "同桌 · 教学" } }
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "墨衍 · 选课", "navigationBarBackgroundColor": "#f6f2e8", "navigationBarTextStyle": "black", "backgroundColor": "#f6f2e8" } },
+    { "path": "pages/tutor/tutor", "style": { "navigationBarTitleText": "墨衍 · 同桌", "navigationBarBackgroundColor": "#f6f2e8", "navigationBarTextStyle": "black", "backgroundColor": "#f6f2e8" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#f6f2e8",
     "navigationBarTitleText": "墨衍",
-    "backgroundColor": "#faf6ef"
+    "backgroundColor": "#f6f2e8",
+    "backgroundTextStyle": "dark"
   }
 }

@@ -4,5 +4,5 @@ export default {
 }
 </script>
 <style>
-page { background: #faf6ef; color: #2b2b2b; }
+page { background: #f6f2e8; color: #2b2b2b; }
 </style>

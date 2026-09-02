@@ -140,7 +140,15 @@ export function streamTurn(payload, onEvent) {
       url: BASE + '/api/tutor/turn', method: 'POST', enableChunked: true, timeout: 300000,
       header: { 'Content-Type': 'application/json' },
       data: payload,
-      success: () => resolve(),
+      // 兜底：个别基础库/工具版本 enableChunked 未生效时整包返回，此时逐块事件
+      // 不会到达 onChunkReceived —— 在这里补解析一次，避免整段消息被吞
+      success: res => {
+        try {
+          const s = res && res.data != null ? String(res.data) : ''
+          if (s.indexOf('data:') === 0) parseFrame(s, onEvent)
+        } catch (e) { /* 兜底解析失败不致命 */ }
+        resolve()
+      },
       fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败'))
     })
     task.onChunkReceived(res => {
