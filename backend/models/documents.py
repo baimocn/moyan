@@ -13,6 +13,8 @@ class Document(Base):
 
     doc_id: Mapped[str] = mapped_column(String(40), primary_key=True)
     filename: Mapped[str] = mapped_column(String(255))
+    # 展示名（用户可改）；空串时回退 filename。2026-09-01 书籍自定义命名。
+    title: Mapped[str] = mapped_column(String(255), default="")
     format: Mapped[str] = mapped_column(String(16), default="pdf")
     page_count: Mapped[int] = mapped_column(Integer, default=0)
     source: Mapped[str] = mapped_column(String(32), default="")

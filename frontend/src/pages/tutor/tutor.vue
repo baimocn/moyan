@@ -3,7 +3,8 @@
     <scroll-view scroll-y class="chat" :scroll-top="scrollTop" scroll-with-animation>
       <view v-for="(m, i) in msgs" :key="i" class="msg" :class="m.cls">
         <view class="who" v-if="m.who">{{ m.who }}</view>
-        <text>{{ m.text }}</text>
+        <mp-html v-if="m.html" :content="m.html" :markdown="false" class="rich" />
+        <text v-else>{{ m.text }}</text>
         <view v-if="m.chips && m.chips.length" class="chips">
           <text v-for="(c, j) in m.chips" :key="j" class="chip" :class="c.cls">{{ c.text }}</text>
         </view>
@@ -27,13 +28,15 @@
 
 <script>
 import { startTutor, streamTurn, getStats } from '../../utils/api.js'
+import { mdToHtml } from '../../utils/md.js'
 
 export default {
   data() {
     return {
       docId: '', chapterIndex: 0, sid: '',
       msgs: [], draft: '', streaming: false,
-      scrollTop: 0, planKps: [], curKp: '', docIdStats: ''
+      scrollTop: 0, planKps: [], curKp: '', docIdStats: '',
+      _mdTimer: null
     }
   },
   onLoad(query) {
@@ -51,9 +54,22 @@ export default {
   },
   methods: {
     push(who, text, cls) {
-      this.msgs.push({ who, text: text || '', cls: cls || (who === '你' ? 'me' : 'mate'), chips: [], question: null })
+      this.msgs.push({ who, text: text || '', html: '', cls: cls || (who === '你' ? 'me' : 'mate'), chips: [], question: null })
       this.scroll()
       return this.msgs[this.msgs.length - 1]
+    },
+    // 流式期间节流渲染 Markdown（≤4次/秒），流结束强制渲染一次
+    scheduleMd(m, force) {
+      if (force) {
+        m.html = mdToHtml(m.text)
+        this.scroll()
+        return
+      }
+      if (this._mdTimer) return
+      this._mdTimer = setTimeout(() => {
+        this._mdTimer = null
+        if (m) { m.html = mdToHtml(m.text); this.scroll() }
+      }, 250)
     },
     scroll() { this.$nextTick(() => { this.scrollTop = this.scrollTop === 99999 ? 100000 : 99999 }) },
     refreshStats() {
@@ -68,8 +84,10 @@ export default {
         const last = this.msgs[this.msgs.length - 1]
         if (last && last.cls === 'mate' && last.who === '同桌' && !last.question && !last.locked) {
           last.text += ev.delta
+          this.scheduleMd(last, false)
         } else {
-          this.push('同桌', ev.delta)
+          const m = this.push('同桌', ev.delta)
+          this.scheduleMd(m, false)
         }
       } else if (t === 'judge') {
         const j = ev.judgement || {}
@@ -84,7 +102,6 @@ export default {
         if (last && last.who === '同桌') last.chips = chips
       } else if (t === 'meta') {
         if (ev.state) { this.curKp = ev.kp || this.curKp }
-        if (ev.question || ev.kp) { /* 状态角标由路线图呈现 */ }
       } else if (t === 'question') {
         const last = this.msgs[this.msgs.length - 1]
         if (last && last.who === '同桌') { last.question = ev.question; last.locked = true }
@@ -110,7 +127,12 @@ export default {
       const cur = this.push('同桌', '')
       cur.locked = false
       streamTurn({ session_id: this.sid, user_text: text }, ev => this.handle(ev))
-        .then(() => { this.streaming = false; this.refreshStats() })
+        .then(() => {
+          this.streaming = false
+          const last = this.msgs[this.msgs.length - 1]
+          this.scheduleMd(last, true)   // 流结束：强制渲染最终 Markdown
+          this.refreshStats()
+        })
         .catch(e => { this.streaming = false; this.push('系统', '请求失败：' + e) })
     }
   }
@@ -122,6 +144,7 @@ export default {
 .msg { max-width: 88%; margin-bottom: 18rpx; padding: 16rpx 20rpx; border-radius: 12rpx; line-height: 1.7; }
 .msg.me { background: #e8f0e4; margin-left: auto; }
 .msg.mate { background: #fff; border: 1px solid #e2d9c8; }
+.rich { font-size: 28rpx; line-height: 1.7; color: #333; }
 .who { font-size: 22rpx; color: #7a5c3e; margin-bottom: 6rpx; }
 .chips { margin-top: 8rpx; }
 .chip { display: inline-block; font-size: 22rpx; padding: 4rpx 12rpx; border-radius: 16rpx; margin-right: 8rpx; background: #eee; color: #666; }

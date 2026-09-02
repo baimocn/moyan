@@ -66,6 +66,8 @@ _TABLE_ADDITIONS: dict[str, dict[str, str]] = {
         "last_review": "DATETIME",
     },
     "turns": {"usage": "JSON"},
+    # 书籍自定义命名（2026-09-01：title 展示名，空串回退 filename）
+    "documents": {"title": "VARCHAR(255) DEFAULT ''"},
     # 脚手架阶梯（2026-08-29：hint_level 进状态机，fading 可续学）
     "teaching_sessions": {"hint_level": "INTEGER DEFAULT 0",
                           "exam_questions": "JSON",

@@ -8,7 +8,7 @@
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from .. import config, storage, tasks
 from ..engine.proofread import cleanup_original
@@ -34,13 +34,15 @@ def _clean_filename(name: str) -> str:
         return name
 
 
-def _save_document_record(db, doc_id: str, *, status: str, **fields) -> None:
-    db.add(Document(doc_id=doc_id, status=status, **fields))
+def _save_document_record(db, doc_id: str, *, status: str, title: str = "", **fields) -> None:
+    db.add(Document(doc_id=doc_id, status=status, title=title, **fields))
+    db.commit()
     db.commit()
 
 
 def _doc_response(doc_id: str, filename: str, ext: str, split, headings,
-                  source: str, page_count: int, stats: dict, warnings: list) -> dict:
+                  source: str, page_count: int, stats: dict, warnings: list,
+                  title: str = "") -> dict:
     """落盘 + 注册 + 组装同步响应。headings 为空时由章节标题推导。"""
     if not headings and split:
         headings = [{"level": c.level, "text": c.title} for c in split.chapters]
@@ -54,7 +56,7 @@ def _doc_response(doc_id: str, filename: str, ext: str, split, headings,
     ]
     with SessionLocal() as db:
         _save_document_record(
-            db, doc_id, status="done",
+            db, doc_id, status="done", title=title,
             filename=filename, format=ext.lstrip("."),
             page_count=page_count, source=source,
             md_chars=split.total_chars, chapter_count=len(split.chapters),
@@ -77,7 +79,7 @@ def _doc_response(doc_id: str, filename: str, ext: str, split, headings,
 
 
 def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
-                           upload_path, work) -> dict:
+                           upload_path, work, title: str = "") -> dict:
     """Docling 同步转换（office 小件）。"""
     meta = convert_sync(upload_path, work)
     markdown = (meta.get("markdown") or "").strip()
@@ -92,10 +94,11 @@ def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
         source="docling", page_count=meta.get("page_count", 0),
         stats={"docling": {k: meta.get(k) for k in ("page_count", "chars", "seconds", "ok")}},
         warnings=[f"Docling 同步转换 {meta.get('seconds', '?')}s"],
+        title=title,
     )
 
 
-def _legacy_pdf_upload(doc_id: str, filename: str, upload_path) -> dict:
+def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "") -> dict:
     """Docling 环境缺失时的 PDF 回落：文本层同步 / 扫描件异步（旧行为）。"""
     result = parse_pdf(str(upload_path))
     markdown = result.markdown or ""
@@ -113,6 +116,7 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path) -> dict:
             ]
             _save_document_record(
                 db, doc_id, filename=filename, format="pdf", status="done",
+                title=title,
                 page_count=result.page_count, source="text-layer",
                 md_chars=split.total_chars, chapter_count=len(split.chapters),
                 headings=[{"level": h.level, "text": h.text} for h in result.headings][:200],
@@ -128,6 +132,7 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path) -> dict:
 
         _save_document_record(
             db, doc_id, filename=filename, format="pdf", status="processing",
+            title=title,
             page_count=result.page_count, source="",
             md_chars=0, chapter_count=0, headings=[],
             warnings=[*result.warnings, "扫描件，已进入后台 OCR 队列…"],
@@ -138,10 +143,18 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path) -> dict:
 
 
 @router.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...), display_name: str = Form("")):
     if not file.filename:
         raise HTTPException(400, detail="请选择要上传的文件")
     filename = _clean_filename(file.filename)
+    # 用户自定义命名优先；否则用修复后的文件名（历史乱码同样在这里兜底修复）
+    title = (display_name or "").strip()[:200]
+    if not title:
+        try:
+            title = filename.encode("latin-1").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            title = filename
+        title = title.rsplit(".", 1)[0] if "." in title else title  # 去扩展名当书名
     ext = "." + filename.rsplit(".", 1)[-1].lower()
     if ext not in config.SUPPORTED_FORMATS:
         raise HTTPException(
@@ -173,12 +186,13 @@ async def upload(file: UploadFile = File(...)):
             doc_id, filename, ext, split, None,
             source="text-layer", page_count=0,
             stats={"source": "md"}, warnings=["Markdown 直读"],
+            title=title,
         )
 
     # Docling 缺失 → 回落
     if not docling_available():
         if ext == ".pdf":
-            return _legacy_pdf_upload(doc_id, filename, upload_path)
+            return _legacy_pdf_upload(doc_id, filename, upload_path, title=title)
         raise HTTPException(
             415,
             detail="Docling 环境未就绪（缺 .docling-venv），暂只有 PDF 支持回落。"
@@ -189,17 +203,18 @@ async def upload(file: UploadFile = File(...)):
     if kind["sync"] and kind["kind"] in ("office",):
         work = config.WORK_DIR / f"docling_{doc_id}"
         work.mkdir(parents=True, exist_ok=True)
-        return _finalize_docling_sync(doc_id, filename, ext, upload_path, work)
+        return _finalize_docling_sync(doc_id, filename, ext, upload_path, work, title=title)
 
     # PDF / 图片 / 大件办公：异步 Docling 任务
     with SessionLocal() as db:
         _save_document_record(
             db, doc_id,
-            filename=filename, format=ext.lstrip("."),
+            filename=filename, format=ext.lstrip("."), status="processing",
+            title=title,
             page_count=0, source="",
             md_chars=0, chapter_count=0,
             headings=[], warnings=[f"{ext} 已进入 Docling 异步解析队列（版面/表格/OCR）…"],
-            stats={}, manifest=[], status="processing",
+            stats={}, manifest=[],
         )
     task_id = tasks.enqueue(doc_id, kind="docling")
     return {

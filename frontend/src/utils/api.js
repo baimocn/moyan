@@ -48,6 +48,50 @@ export function getDocument(docId) {
   })
 }
 
+// 书籍自定义命名（PATCH /api/documents/{id}）
+export function renameDocument(docId, title) {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${BASE}/api/documents/${docId}`, method: 'PATCH',
+      header: { 'Content-Type': 'application/json' },
+      data: { title },
+      success: r => resolve(r.data), fail: reject
+    })
+  })
+}
+
+// 上传资料（multipart）。小程序走 wx.uploadFile；H5 走 fetch + FormData
+export function uploadFile(filePath, displayName) {
+  return new Promise((resolve, reject) => {
+    // #ifdef MP-WEIXIN
+    wx.uploadFile({
+      url: BASE + '/api/upload',
+      filePath,
+      name: 'file',
+      formData: { display_name: displayName || '' },
+      success: r => {
+        try { resolve(JSON.parse(r.data)) } catch (e) { reject(new Error('响应解析失败: ' + r.data)) }
+      },
+      fail: reject
+    })
+    // #endif
+    // #ifdef H5
+    const fd = new FormData()
+    fd.append('file', filePath)
+    if (displayName) fd.append('display_name', displayName)
+    fetch(BASE + '/api/upload', { method: 'POST', body: fd })
+      .then(r => r.json()).then(resolve, reject)
+    // #endif
+  })
+}
+
+// 后台任务进度（扫描件/大文件异步解析）
+export function getTask(taskId) {
+  return new Promise((resolve, reject) => {
+    uni.request({ url: `${BASE}/api/tasks/${taskId}`, method: 'GET', success: r => resolve(r.data), fail: reject })
+  })
+}
+
 export function getStats(docId) {
   return new Promise((resolve, reject) => {
     uni.request({ url: `${BASE}/api/study/${docId}/stats`, method: 'GET', success: r => resolve(r.data), fail: reject })
@@ -65,7 +109,7 @@ export function startTutor(docId, chapterIndex) {
   })
 }
 
-// 教学轮：流式读取（H5=fetch reader / 小程序=enableChunked），逐事件回调 onEvent
+// 教学轮：流式读取（H5=fetch reader / 小程序=wx.request enableChunked），逐事件回调 onEvent
 export function streamTurn(payload, onEvent) {
   // #ifdef H5
   return fetch(BASE + '/api/tutor/turn', {
@@ -90,10 +134,14 @@ export function streamTurn(payload, onEvent) {
   // #ifdef MP-WEIXIN
   return new Promise((resolve, reject) => {
     let buf = ''
-    const task = uni.request({
+    // 直接用 wx.request：uni.request 对 enableChunked/onChunkReceived 的透传在部分
+    // alpha 版本上不可靠（表现=整包一次性到达，无打字机效果）
+    const task = wx.request({
       url: BASE + '/api/tutor/turn', method: 'POST', enableChunked: true, timeout: 300000,
       header: { 'Content-Type': 'application/json' },
-      data: payload, success: () => resolve(), fail: reject
+      data: payload,
+      success: () => resolve(),
+      fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败'))
     })
     task.onChunkReceived(res => {
       buf = parseFrame(buf + decodeAB(res.data), onEvent)
