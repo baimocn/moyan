@@ -8,6 +8,14 @@
       </view>
     </view>
 
+    <view v-if="last && last.label" class="resume" @tap="resumeLast">
+      <view class="ri">
+        <text class="rit">继续上次</text>
+        <text class="risub">上次学到这里 · {{ last.label }}</text>
+      </view>
+      <view class="rgo">继续 →</view>
+    </view>
+
     <view class="sec">
       <text class="sec-t">教材书架</text>
       <text class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪</text>
@@ -64,7 +72,7 @@ import { getDocuments, getDocument, uploadFile, getTask, renameDocument } from '
 
 export default {
   data() {
-    return { docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px' }
+    return { docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px', last: null }
   },
   computed: {
     docNames() { return this.docs.map(d => `${d.title || d.filename}（${d.chapter_count}章）`) },
@@ -79,8 +87,28 @@ export default {
   },
   onShow() {
     this.refresh()
+    try {
+      const s = uni.getStorageSync('moyan:last')
+      if (s && s.doc_id && Number.isInteger(s.chapter_index)) this.last = s
+      else this.last = null
+    } catch (e) { this.last = null }
   },
   methods: {
+    resumeLast() {
+      if (!this.last) return
+      if (!this.docs.length) { this.tip = '书架还没准备好，请稍候'; return }
+      const i = this.docs.findIndex(d => d.doc_id === this.last.doc_id)
+      if (i < 0) { this.tip = '上次教材已下架'; this.last = null; try { uni.removeStorageSync('moyan:last') } catch (e) {}; return }
+      this.docIdx = i
+      const doc = this.docs[i]
+      this.chapIdx = this.last.chapter_index
+      getDocument(doc.doc_id).then(d => {
+        if (this.docIdx !== i) return
+        this.manifest = d.document.manifest || []
+        if (this.manifest[this.chapIdx]) this.go()
+        else { this.tip = '上次章节已变更，请手动选' }
+      }).catch(() => { this.tip = '章节读取失败' })
+    },
     fmtWan(n) {
       n = Number(n || 0)
       return n >= 10000 ? (n / 10000).toFixed(1) + ' 万字' : n + ' 字'
@@ -212,7 +240,15 @@ export default {
 
 <style>
 page { background: #f6f2e8; }
-.page { min-height: 100vh; display: flex; flex-direction: column; padding: 32rpx 28rpx 24rpx; box-sizing: border-box; }
+/* H5 桌面端：内容居中限宽，避免 1280+ 宽屏拉成超长条 */
+.page { min-height: 100vh; display: flex; flex-direction: column; padding: 32rpx 28rpx 24rpx; box-sizing: border-box; max-width: 760px; margin: 0 auto; width: 100%; }
+.foot { padding-top: 20rpx; max-width: 760px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+.resume { display: flex; align-items: center; background: linear-gradient(135deg, #163628 0%, #2c6e4f 100%); color: #f2e6c9; border-radius: 20rpx; padding: 22rpx 26rpx; margin-bottom: 20rpx; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
+.ri { flex: 1; display: flex; flex-direction: column; }
+.rit { font-size: 27rpx; font-weight: 500; letter-spacing: 2rpx; }
+.risub { font-size: 22rpx; color: #d8c9a0; margin-top: 6rpx; }
+.rgo { font-size: 26rpx; color: #f2e6c9; padding: 8rpx 22rpx; border: 2rpx solid #f2e6c9; border-radius: 999rpx; }
 
 .hero { display: flex; align-items: center; padding: 12rpx 4rpx 28rpx; }
 .logo { width: 84rpx; height: 84rpx; border-radius: 26rpx; background: #163628; color: #f2e6c9; font-size: 44rpx; font-weight: 500; display: flex; align-items: center; justify-content: center; letter-spacing: 0; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
@@ -251,8 +287,7 @@ page { background: #f6f2e8; }
 .up-s { font-size: 21rpx; color: #a09474; margin-top: 6rpx; }
 .doc-note { text-align: center; color: #b0a487; font-size: 22rpx; padding: 10rpx 0 30rpx; letter-spacing: 1rpx; }
 
-.foot { padding-top: 20rpx; }
 .tip { text-align: center; font-size: 22rpx; color: #a08a5a; margin-bottom: 14rpx; }
 .start { background: #163628; color: #f2e6c9; font-size: 32rpx; font-weight: 500; letter-spacing: 6rpx; text-align: center; padding: 26rpx 0; border-radius: 999rpx; box-shadow: 0 8rpx 20rpx rgba(22, 54, 40, 0.22); }
-.start.off { background: #cfc8b6; color: #fff; box-shadow: none; }
+.start.off { background: transparent; color: #a8a08a; box-shadow: none; border: 2rpx dashed #cfc8b6; }
 </style>

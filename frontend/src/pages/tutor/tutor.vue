@@ -122,6 +122,16 @@ export default {
       this.chapterTitle = d.chapter || '教学'
       this.planKps = (d.plan || []).map(k => k.name)
       uni.setNavigationBarTitle({ title: (d.chapter || '教学').slice(0, 12) })
+      // 记住最近进度（双端共用 uni.storage），供 index 页显示"继续上次"
+      try {
+        const docTitle = (this.docs && this.docs[0] && this.docs[0].title) || ''
+        uni.setStorageSync('moyan:last', {
+          doc_id: this.docId,
+          chapter_index: this.chapterIndex,
+          label: docTitle ? (docTitle + ' · ' + (d.chapter || '本章')) : (d.chapter || '本章'),
+          ts: Date.now()
+        })
+      } catch (e) { /* 存储失败非致命 */ }
       const plan = this.planKps
       this.pushSys(plan.length ? `本次共 ${plan.length} 站：${plan.map((k, i) => `${i + 1}.${k}`).join('  ')}` : '开始学习')
       this.pushMate(d.greeting || '（开场白缺失）')
@@ -142,13 +152,14 @@ export default {
                jtag: '', jt: '', jcls: '', score: '', jnext: '', jreview: '', qIndex: 0, qtype: '' }
     },
     pushSys(text, err, note) {
-      const m = this.newMsg('sys'); m.text = text || ''; m.err = !!err; m.note = !!note
+      const m = this.newMsg('sys'); m.text = text || ''; m.err = !!err
+      m.note = !!note || m.text.length > 36
       this.msgs.push(m); this.scroll(); return m
     },
     pushMate(text) {
       const m = this.newMsg('mate', '同桌')
       m.text = text || ''
-      if (m.text) m.html = mdToHtml(m.text)   // 开场白等非流式内容直接富文本化
+      if (m.text) m.html = mdToHtml(m.text)
       this.msgs.push(m); this.scroll(); return m
     },
     pushMe(text) {
@@ -162,7 +173,6 @@ export default {
       }
       return null
     },
-    // 流式期间节流渲染 Markdown；结束强制渲染一次
     scheduleMd(m, force) {
       if (force) {
         m.html = mdToHtml(m.text); m.thinking = false; this.scroll()
@@ -190,7 +200,6 @@ export default {
     handle(ev) {
       const t = ev.type
       if (t === 'reasoning-delta') {
-        // 思考链：只维持“思考中”状态，不展示内容（防剧透），也无需滚动
         return
       } else if (t === 'text-delta') {
         this.gotText = true
@@ -269,9 +278,9 @@ export default {
           if (last) {
             last.thinking = false
             if (!last.text && !last.question && last.kind === 'mate') {
-              this.msgs = this.msgs.filter(x => x !== last)   // 空回复不占位
+              this.msgs = this.msgs.filter(x => x !== last)
             } else {
-              this.scheduleMd(last, true)                    // 流结束：强制最终渲染
+              this.scheduleMd(last, true)
             }
           }
           this.refreshStats()
@@ -311,6 +320,15 @@ page { background: #f6f2e8; }
 .row.me { justify-content: flex-end; }
 .row.sys { justify-content: center; }
 .row.judge { justify-content: flex-start; }
+/* 宽屏（桌面浏览器 / iPad）下消息行限宽居中，气泡不再被 1280+ 宽屏拉成超长条 */
+@media (min-width: 600px) {
+  .row { max-width: 720px; margin-left: auto; margin-right: auto; }
+  .col { max-width: 560px; }
+  .bub.mate { max-width: 100%; }
+  .bub.me { max-width: 420px; }
+  .jcard, .qcard { max-width: 100%; }
+  .sys { max-width: 560px; }
+}
 
 .sys { max-width: 88%; font-size: 22rpx; color: #9a8f74; background: rgba(255, 253, 248, 0.8); border: 2rpx solid #efe7d4; border-radius: 999rpx; padding: 10rpx 26rpx; line-height: 1.6; text-align: center; }
 .sys.note { border-radius: 16rpx; text-align: left; max-width: 94%; white-space: pre-wrap; padding: 16rpx 22rpx; color: #6f6750; }
@@ -333,7 +351,7 @@ page { background: #f6f2e8; }
 .rich li { margin: 3px 0; line-height: 1.7; }
 .rich h3 { font-size: 17px; font-weight: 500; margin: 10px 0 4px; color: #163628; }
 .rich h4 { font-size: 15px; font-weight: 500; margin: 8px 0 4px; color: #163628; }
-.rich blockquote { border-left: 3px solid #c8b98a; margin: 6px 0; padding: 2px 10px; color: #7a6f55; }
+.rich blockquote { border-left: 3rpx solid #c8b98a; margin: 6rpx 0; padding: 2rpx 10rpx; color: #7a6f55; }
 
 .typing { display: flex; align-items: center; padding: 6rpx 2rpx; }
 
