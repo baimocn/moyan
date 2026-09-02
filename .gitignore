@@ -22,3 +22,7 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+# 部署件本地状态
+deploy/caddy/
+# 测试 SQLite（conftest 动态建，schema 与开发库可能不同）
+backend/tests/test_dev.db

@@ -10,9 +10,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
 
 from . import config, tasks
+from .auth.router import router as auth_router
 from .models import init_db
+from .rate_limit import _rate_limit_handler, limiter
 from .routers import documents, study, tasks as tasks_router, tutor, upload
 from .settings import app_settings
 
@@ -26,12 +29,20 @@ async def lifespan(_app: FastAPI):
     from .container import services
     print(f"墨衍 API 已启动（数据库：{settings.db_settings.db_url.split('://')[0]}；"
           f"AI 引擎：{'READY' if settings.ai_settings.engine_ready else '未配置'}"
-          f"{'（mock 演示）' if services.mock else ''}）")
+          f"{'（mock 演示）' if services.mock else ''}；"
+          f"鉴权：{'关闭' if app_settings.auth_disabled else '开启'}；"
+          f"限流：user_id 主 / IP 兑底）")
     yield
 
 
-app = FastAPI(title="墨衍 · AI 导师 API", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="墨衍 · AI 导师 API", version="0.4.0", lifespan=lifespan)
 
+# 限流（slowapi）：挂全局异常处理 + Limiter 实例
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+
+# 鉴权优先挂载（其他业务路由可 Depends(get_current_user））
+app.include_router(auth_router)
 app.include_router(upload.router)
 app.include_router(documents.router)
 app.include_router(tasks_router.router)

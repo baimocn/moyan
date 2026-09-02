@@ -22,6 +22,8 @@ class TeachingSession(Base):
     __tablename__ = "teaching_sessions"
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)   # s_xxx
+    # 鉴权落档（2026-09-02）：openid。NULL = 鉴权前老数据 / 游客模式
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     doc_id: Mapped[str] = mapped_column(String(40), ForeignKey("documents.doc_id"), index=True)
     chapter_index: Mapped[int] = mapped_column(Integer, default=0)
     chapter_title: Mapped[str] = mapped_column(String(200), default="")
@@ -43,6 +45,8 @@ class Turn(Base):
     __tablename__ = "turns"
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    # 鉴权落档（2026-09-02）：冗余存 openid，列表/统计走 user_id 走索引不走 JOIN session
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     session_id: Mapped[str] = mapped_column(String(40), ForeignKey("teaching_sessions.id"), index=True)
     role: Mapped[str] = mapped_column(String(16), default="")       # user / assistant
     kind: Mapped[str] = mapped_column(String(16), default="")       # explain/question/answer/judge
@@ -56,6 +60,8 @@ class Judgement(Base):
     __tablename__ = "judgements"
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    # 鉴权落档（2026-09-02）：按用户隔离判定审计
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     session_id: Mapped[str] = mapped_column(String(40), ForeignKey("teaching_sessions.id"), index=True)
     question_id: Mapped[str] = mapped_column(String(120), default="")
     correctness: Mapped[str] = mapped_column(String(20), default="")
@@ -77,6 +83,7 @@ class Weakness(Base):
     __tablename__ = "weaknesses"
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     doc_id: Mapped[str] = mapped_column(String(40), index=True)
     skill_id: Mapped[str] = mapped_column(String(120), index=True)
     name: Mapped[str] = mapped_column(String(200), default="")      # 中文名（检索注入用）
@@ -116,4 +123,20 @@ class StrategyLog(Base):
     effect: Mapped[float] = mapped_column(Float, default=0.0)        # 判定分数（短程效果）
     review_passed: Mapped[bool] = mapped_column(default=True)        # 裁判是否通过
     session_id: Mapped[str] = mapped_column(String(40), default="")
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)
+
+
+class UserProfile(Base):
+    """用户档案（鉴权后落档，2026-09-02 部署前置）。
+
+    user_id 形如 openid（开发期为 dev_xxx / wx_dev_user 等）。
+    关键查询：按 user_id 拿 sessions/turns/judgements 计数（me 接口）。
+    """
+    __tablename__ = "user_profiles"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    nick_name: Mapped[str] = mapped_column(String(64), default="")
+    avatar_url: Mapped[str] = mapped_column(String(512), default="")
+    created_at = mapped_column(DateTime(timezone=True), default=_tznow)
+    last_active = mapped_column(DateTime(timezone=True), default=_tznow, onupdate=_tznow)

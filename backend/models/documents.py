@@ -12,6 +12,8 @@ class Document(Base):
     __tablename__ = "documents"
 
     doc_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    # 鉴权落档（2026-09-02 部署前置）：NULL = 鉴权前老数据 / 游客
+    user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     filename: Mapped[str] = mapped_column(String(255))
     # 展示名（用户可改）；空串时回退 filename。2026-09-01 书籍自定义命名。
     title: Mapped[str] = mapped_column(String(255), default="")

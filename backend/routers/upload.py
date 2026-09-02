@@ -5,20 +5,32 @@
 - 办公格式（docx/pptx/xlsx/html/epub）小件：Docling 直读，同步返回（实测 ~0s）；
 - PDF / 图片 / 大件办公：进后台 Docling 任务（布局模型 14~40s/页），返回 task_id 轮询；
 - Docling 环境缺失：PDF 回落 legacy（文本层同步 + 扫描件 RapidOCR 异步），其余格式 415。
+
+user_id 注入：用 ContextVar 在请求开始时（依赖注入后）写入，模块级 _save_document_record
+            不需参数化即可读，写入 documents 表。
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+import contextvars
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 
 from .. import config, storage, tasks
+from ..auth.deps import CurrentUser, get_current_user_optional
 from ..engine.proofread import cleanup_original
 from ..models import Document, SessionLocal
+from ..rate_limit import L_UPLOAD, limiter
 from ..services.chapter_splitter import split_markdown
 from ..services.docling_adapter import (convert_sync, docling_available,
                                         preflight)
 from ..services.pdf_parser import parse_pdf
 
 router = APIRouter(prefix="/api", tags=["upload"])
+
+# 上下文用户：依赖注入时设置；模块函数读它
+_current_user_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "moyan_current_user_id", default=None
+)
 
 
 # 浏览器/客户端文件名常被 Starlette 按 latin-1 解码（中文乱码），这里尝试还原 UTF-8
@@ -34,8 +46,10 @@ def _clean_filename(name: str) -> str:
         return name
 
 
-def _save_document_record(db, doc_id: str, *, status: str, title: str = "", **fields) -> None:
-    db.add(Document(doc_id=doc_id, status=status, title=title, **fields))
+def _save_document_record(db, doc_id: str, *, status: str, title: str = "",
+                         user_id: str | None = None, **fields) -> None:
+    db.add(Document(doc_id=doc_id, status=status, title=title,
+                    user_id=user_id, **fields))
     db.commit()
     db.commit()
 
@@ -143,7 +157,13 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "")
 
 
 @router.post("/upload")
-async def upload(file: UploadFile = File(...), display_name: str = Form("")):
+@limiter.limit(L_UPLOAD)
+async def upload(request: Request, file: UploadFile = File(...),
+                 display_name: str = Form(""),
+                 user: CurrentUser | None = Depends(get_current_user_optional)):
+    """上传教材（5/hour/user_id）。user_id 落档到 documents 表（鉴权后才有 user_id 列写入）。"""
+    # 把 user_id 写入 ContextVar（_save_document_record 自动取）
+    _current_user_id.set(user.openid if user else None)
     if not file.filename:
         raise HTTPException(400, detail="请选择要上传的文件")
     filename = _clean_filename(file.filename)

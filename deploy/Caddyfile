@@ -1,0 +1,62 @@
+# 墨衍 · Caddy 2 反代配置（ACME 自动证书）
+#
+# 部署步骤：
+#   1) 域名 moyan.example.com A/AAAA 解析到本机公网 IP
+#   2) 80/443 端口未占（Caddy 会监听）
+#   3) 启动后端：python run.py  或  deploy/run-prod.sh
+#   4) 启动 Caddy：caddy run --config deploy/Caddyfile
+#   5) 验证：curl https://moyan.example.com/api/health
+#
+# 必读：SSE 教学流（/api/tutor/turn）需要以下两点
+#   - flush_interval -1：禁用 Caddy 缓冲，事件立即推到客户端
+#   - transport 后端响应也关闭缓冲（X-Accel-Buffering: no 已经在 FastAPI header 写好）
+
+{$MOYAN_DOMAIN:moyan.example.com} {
+    encode zstd gzip
+
+    # 健康检查 / 静态资源：短链
+    @health path /api/health
+    handle @health {
+        reverse_proxy 127.0.0.1:5001
+    }
+
+    # 教学流（SSE）：反代关缓冲，立即推流
+    @sse path /api/tutor/turn
+    handle @sse {
+        reverse_proxy 127.0.0.1:5001 {
+            flush_interval -1
+            buffer_requests false
+        }
+    }
+
+    # 其余业务：标准反代
+    handle {
+        reverse_proxy 127.0.0.1:5001 {
+            # 传递客户端 IP（鉴权/限流/审计用）
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            # 上传教材允许大 body
+            max_request_body_size 250MB
+        }
+    }
+
+    # 全站 TLS（ACME 自动，邮箱用于 Let's Encrypt 通知）
+    tls {$MOYAN_EMAIL:[email protected]}
+
+    # 安全头
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # 注意：开发期 H5 跨源需要 CORS，不要在这里加 frame-ancestors 等会挡 CORS 的
+    }
+
+    # 限流兜底（Caddy 层 5x 更粗，Caddy 兜底防穿透，slowapi 做精确档位）
+    @upload path /api/upload
+    rate_limit @upload 5r/m
+    @auth path /api/auth/*
+    rate_limit @auth 30r/m
+    @tutor path /api/tutor/*
+    rate_limit @tutor 60r/m
+}

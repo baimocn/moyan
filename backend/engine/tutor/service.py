@@ -35,7 +35,7 @@ class TutorService:
     # ---------- 启动 / 恢复 ----------
 
     async def start_chapter(self, doc_id: str, chapter_index: int,
-                            session_id: str = "") -> TutorSession:
+                            session_id: str = "", user_id: str = "") -> TutorSession:
         manifest = storage.get_chapter_manifest(doc_id)
         if not manifest:
             raise ValueError(f"文档不存在或尚未解析：{doc_id}")
@@ -91,6 +91,7 @@ class TutorService:
             [{"id": k.id, "name": k.name, "summary": k.summary, "skill_id": k.skill_id}
              for k in plan.kps],
             dict(ses.weak), hint_level=ses.hint_level,
+            user_id=user_id or None,
         )
         self.sessions[session_id] = ses
         return ses
@@ -169,7 +170,8 @@ class TutorService:
                 j = ev["judgement"]
                 repo.add_judgement(ses.session_id, {**j, "question_id":
                                                     (ses.current_question.question_id
-                                                     if ses.current_question else "")})
+                                                     if ses.current_question else "")},
+                                   user_id=ses.user_id or None)
                 for wp in j.get("weak_points", []):
                     sid = wp.get("skill_id", "")
                     if not sid:
@@ -179,6 +181,7 @@ class TutorService:
                         wp.get("mastery", "low"),
                         chapter_index=ses.chapter_index,
                         chapter_title=ses.chapter_title,
+                        user_id=ses.user_id or None,
                     )
             yield ev
 
@@ -195,6 +198,7 @@ class TutorService:
             exam_questions=[q.model_dump() for q in ses.exam_questions],
             exam_idx=ses.exam_idx,
             exam_scores=dict(ses.exam_scores),
+            user_id=ses.user_id or None,
         )
 
     def _flush_turns(self, ses: TutorSession) -> None:
@@ -202,7 +206,7 @@ class TutorService:
         while ses._saved_turns < len(ses.turn_history):
             t = ses.turn_history[ses._saved_turns]
             repo.add_turn(ses.session_id, t["role"], t.get("kind", ""), t["content"],
-                          usage=t.get("usage"))
+                          usage=t.get("usage"), user_id=ses.user_id or None)
             ses._saved_turns += 1
 
 

@@ -1,17 +1,21 @@
 """墨衍 · 教学路由（章节导航式：start / turn-SSE）
 
 依赖注入：服务从容器取（container.get_services）；未配置 AI 且 mock 未开 → 503。
+鉴权：start / turn 强制 get_current_user（鉴权 disabled 时取 mock user_id）。
+限流：L_TUTOR（30/minute，按 user_id / IP 兑底）。
 """
 from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from ..auth.deps import CurrentUser, get_current_user
 from ..container import EngineNotReadyError, get_services
 from ..models import repo
+from ..rate_limit import L_TUTOR, limiter
 
 router = APIRouter(prefix="/api/tutor", tags=["tutor"])
 
@@ -27,14 +31,17 @@ class TurnReq(BaseModel):
 
 
 @router.post("/start")
-async def tutor_start(req: StartReq):
+@limiter.limit(L_TUTOR)
+async def tutor_start(request: Request, req: StartReq,
+                      user: CurrentUser = Depends(get_current_user)):
     srv = get_services()
     try:
         srv.require_real()
     except EngineNotReadyError as exc:
         raise HTTPException(503, detail=str(exc)) from exc
     try:
-        ses = await srv.tutor.start_chapter(req.doc_id, req.chapter_index)
+        ses = await srv.tutor.start_chapter(req.doc_id, req.chapter_index,
+                                             user_id=user.openid)
     except ValueError as exc:
         raise HTTPException(404, detail=str(exc)) from exc
     return {
@@ -46,11 +53,14 @@ async def tutor_start(req: StartReq):
         "engine": "mock" if srv.mock else "real",
         "greeting": getattr(ses, "greeting", ""),
         "plan": [{"id": k.id, "name": k.name, "summary": k.summary} for k in ses.plan.kps],
+        "user_id": user.openid,
     }
 
 
 @router.post("/turn")
-async def tutor_turn(req: TurnReq):
+@limiter.limit(L_TUTOR)
+async def tutor_turn(request: Request, req: TurnReq,
+                     user: CurrentUser = Depends(get_current_user)):
     srv = get_services()
     try:
         srv.require_real()
@@ -61,7 +71,8 @@ async def tutor_turn(req: TurnReq):
 
     async def gen():
         try:
-            async for ev in srv.tutor.handle_turn(req.session_id, req.user_text):
+            async for ev in srv.tutor.handle_turn(req.session_id, req.user_text,
+                                                  user_id=user.openid):
                 yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
         except Exception as exc:  # noqa: BLE001 流中兜底，前端可感知而非挂死
             yield f"data: {json.dumps({'type': 'error', 'error': str(exc)}, ensure_ascii=False)}\n\n"

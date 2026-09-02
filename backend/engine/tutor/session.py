@@ -30,6 +30,7 @@ class TutorSession:
     exam_idx: int = 0
     exam_scores: dict[str, float] = field(default_factory=dict)
     greeting: str = ""                # 人物化开场白（D11，start 时合成，不持久化）
+    user_id: str = ""                 # 鉴权落档（2026-09-02 部署前置），空 = 游客/未鉴权
     _saved_turns: int = 0             # 落库游标（增量写 turn）
 
     def to_snapshot(self) -> dict:

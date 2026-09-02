@@ -30,6 +30,15 @@ class AppSettings(BaseSettings):
     ai_mock: bool = False              # 显式开启 mock 演示（无 key 且未开时拒绝 AI 服务）
     cors_origins: str = ""             # 跨源白名单（逗号分隔，如 https://moyan.example）；空=仅同源
     debug: bool = False
+    # ---- 鉴权（部署前置：2026-09-02）----
+    # 微信小程序登录 AppID / AppSecret（从 mp.weixin.qq.com 后台拿）
+    wx_appid: str = ""
+    wx_appsecret: str = ""
+    # JWT 签发密钥（HS256）。生产必须 ≥32 字节随机串。空串时若开启鉴权会启动失败
+    jwt_secret: str = ""
+    # 鉴权总开关：1=完全免登录（dev / 微信开发者工具游客模式），0=强制 Bearer token
+    # 留 str 而非 bool 是为了容忍 "1"/"true"/"yes" 多种写法
+    auth_disabled: bool = False
 
 
 class DbSettings(BaseSettings):

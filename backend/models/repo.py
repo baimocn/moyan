@@ -65,7 +65,8 @@ def save_session(session_id: str, doc_id: str, chapter_index: int, chapter_title
                  state: str, kp_idx: int, plan: list, weak: dict,
                  current_question: dict | None = None, hint_level: int = 0,
                  exam_questions: list | None = None, exam_idx: int = 0,
-                 exam_scores: dict | None = None) -> None:
+                 exam_scores: dict | None = None,
+                 user_id: str | None = None) -> None:
     with SessionLocal() as db:
         row = db.get(TeachingSession, session_id)
         if row is None:
@@ -74,7 +75,8 @@ def save_session(session_id: str, doc_id: str, chapter_index: int, chapter_title
                                    plan=plan, weak=weak, current_question=current_question or {},
                                    hint_level=hint_level,
                                    exam_questions=exam_questions or [],
-                                   exam_idx=exam_idx, exam_scores=exam_scores or {}))
+                                   exam_idx=exam_idx, exam_scores=exam_scores or {},
+                                   user_id=user_id))
         else:
             row.state = state
             row.kp_idx = kp_idx
@@ -84,6 +86,8 @@ def save_session(session_id: str, doc_id: str, chapter_index: int, chapter_title
             row.exam_questions = exam_questions or []
             row.exam_idx = exam_idx
             row.exam_scores = exam_scores or {}
+            if user_id:
+                row.user_id = user_id     # 老会话回写鉴权（首次鉴权即占用）
         db.commit()
 
 
@@ -150,15 +154,16 @@ def list_sessions(doc_id: str, limit: int = 20) -> list[dict]:
     ]
 
 
-def add_turn(session_id: str, role: str, kind: str, content: str, usage: dict | None = None) -> None:
+def add_turn(session_id: str, role: str, kind: str, content: str,
+             usage: dict | None = None, user_id: str | None = None) -> None:
     with SessionLocal() as db:
         db.add(Turn(id=f"t_{uuid.uuid4().hex[:10]}", session_id=session_id,
                     role=role, kind=kind, content=content[:5000],
-                    usage=usage or {}))
+                    usage=usage or {}, user_id=user_id))
         db.commit()
 
 
-def add_judgement(session_id: str, j: dict) -> None:
+def add_judgement(session_id: str, j: dict, user_id: str | None = None) -> None:
     with SessionLocal() as db:
         db.add(Judgement(
             id=f"j_{uuid.uuid4().hex[:10]}",
@@ -169,19 +174,26 @@ def add_judgement(session_id: str, j: dict) -> None:
             decision=j.get("decision", ""),
             confidence=j.get("confidence", 0.0),
             payload=j,
+            user_id=user_id,
         ))
         db.commit()
 
 
 def upsert_weakness(doc_id: str, skill_id: str, name: str, mastery: str,
-                    chapter_index: int = -1, chapter_title: str = "") -> None:
+                    chapter_index: int = -1, chapter_title: str = "",
+                    user_id: str | None = None) -> None:
     """薄弱点入账：新卡片立即到期（尽快首学/复习）；已有卡片不打断其 FSRS 排程。
 
     chapter_index/chapter_title 供"概念→章节"聚合（复习任务 = due ∩ 章节）。
+    user_id 鉴权落档（2026-09-02）：老行 NULL 不动（兼容），新行必带。
     """
     with SessionLocal() as db:
-        row = db.query(Weakness).filter(
-            Weakness.doc_id == doc_id, Weakness.skill_id == skill_id).first()
+        # 兼容鉴权前后：user_id 维度查询需要 + user_id 约束
+        q = db.query(Weakness).filter(
+            Weakness.doc_id == doc_id, Weakness.skill_id == skill_id)
+        if user_id:
+            q = q.filter(Weakness.user_id == user_id)
+        row = q.first()
         now = _now()
         if row is None:
             db.add(Weakness(
@@ -189,7 +201,7 @@ def upsert_weakness(doc_id: str, skill_id: str, name: str, mastery: str,
                 name=name, mastery=mastery, times_low=1,
                 chapter_index=chapter_index, chapter_title=chapter_title,
                 due_at=now, fsrs_state=State.Learning.value, fsrs_step=0,
-                last_seen_at=now))
+                last_seen_at=now, user_id=user_id))
         else:
             if name and row.name != name:
                 row.name = name
@@ -392,14 +404,15 @@ def study_stats(doc_id: str) -> dict:
 
 def save_strategy_feedback(doc_id: str, skill_id: str, strategy: str,
                            effect: float, review_passed: bool,
-                           session_id: str = "") -> None:
+                           session_id: str = "",
+                           user_id: str | None = None) -> None:
     """每轮判定后落一条策略反馈（短程效果=判定分数；裁判是否通过=质量信号）。"""
     with SessionLocal() as db:
         db.add(StrategyLog(
             id=f"sl_{uuid.uuid4().hex[:10]}", doc_id=doc_id,
             skill_id=skill_id or "", strategy=strategy or "",
             effect=float(effect or 0.0), review_passed=bool(review_passed),
-            session_id=session_id,
+            session_id=session_id, user_id=user_id,
         ))
         db.commit()
 

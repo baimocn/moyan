@@ -267,6 +267,7 @@ class TutorActions:
                 ses.doc_id, skill, j.decision.value, j.score,
                 bool(review and review.get("passed")) if review else True,
                 ses.session_id,
+                user_id=ses.user_id or None,
             )
         except Exception:  # noqa: BLE001 反馈日志失败不影响教学
             pass
