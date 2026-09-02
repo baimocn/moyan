@@ -7,6 +7,11 @@
 - iss: moyan
 
 密钥来源：app_settings.jwt_secret。生产必须 ≥32 字节随机串。
+
+开发模式（MOYAN_AUTH_DISABLED=1）下鉴权全绿灯（deps 直接返回 mock 用户），
+token 仅是前端契约占位、无安全意义，故允许内置固定密钥兜底，
+保证 dev-login / wx-login 无需手工配密钥即可签发。生产（auth_disabled=0）
+仍保持"未配置即响亮失败"，防止带上低配密钥上线。
 """
 from __future__ import annotations
 
@@ -21,10 +26,16 @@ ALG = "HS256"
 ISS = "moyan"
 EXP_SECONDS = 7 * 24 * 3600
 
+# 仅 MOYAN_AUTH_DISABLED=1 时生效的内置密钥；生产永不使用
+_DEV_FALLBACK_SECRET = "moyan-dev-only-insecure-secret-do-not-use-in-prod"
+
 
 def _secret() -> str:
-    """取 JWT 密钥。空串或太短 → 抛 RuntimeError（开发期早暴露）。"""
+    """取 JWT 密钥。空串或太短 → 抛 RuntimeError（生产早暴露）。"""
     s = (app_settings.jwt_secret or "").strip()
+    if not s and app_settings.auth_disabled:
+        # 免鉴权开发模式：内置固定密钥兜底（见模块 docstring）
+        s = _DEV_FALLBACK_SECRET
     if not s:
         raise RuntimeError(
             "MOYAN_JWT_SECRET 未配置。在 .env 加 MOYAN_JWT_SECRET=<随机32字节以上>。"

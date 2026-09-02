@@ -1,5 +1,9 @@
 // 墨衍 · 前端 API 层（双前端：H5 fetch 流式 / 小程序 enableChunked，同一事件协议）
 // BASE：H5 走 vite 代理（免 CORS）；小程序直连后端（开发者工具勾"不校验合法域名"）
+//
+// 鉴权（2026-09-02 部署前置）：所有请求自动带 Authorization: Bearer <token>。
+// 401 自动重登一次（force=true），再 401 → 抛错给上层。
+// token 来自 utils/auth.js 的 storage（App.vue onLaunch 已静默登录）。
 
 // #ifdef H5
 export const BASE = ''
@@ -7,6 +11,13 @@ export const BASE = ''
 // #ifdef MP-WEIXIN
 export const BASE = 'http://127.0.0.1:5001'
 // #endif
+
+import { ensureLogin, getToken } from './auth.js'
+
+function _authHeader() {
+  const t = getToken()
+  return t ? { Authorization: 'Bearer ' + t } : {}
+}
 
 function decodeAB(ab) {
   // 小程序端 ArrayBuffer → UTF-8 文本；低端机无 TextDecoder 时的兜底（仅 ASCII 完整）
@@ -36,87 +47,139 @@ function parseFrame(buf, onEvent) {
   return buf
 }
 
-export function getDocuments() {
+// ---- 公共 uni.request 包装（401 自动重登一次）----
+
+function _uniReq(method, url, { data, header, responseType } = {}) {
   return new Promise((resolve, reject) => {
-    uni.request({ url: BASE + '/api/documents', method: 'GET', success: r => resolve(r.data), fail: reject })
+    const opts = {
+      url: BASE + url,
+      method,
+      header: { 'Content-Type': 'application/json', ..._authHeader(), ...(header || {}) },
+      success: r => {
+        if (r.statusCode === 401) {
+          // 401 → 重登一次 + 重发
+          ensureLogin({ force: true })
+            .then(() => _uniReq(method, url, { data, header, responseType }))
+            .then(resolve, reject)
+          return
+        }
+        resolve(r)
+      },
+      fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败')),
+    }
+    if (data !== undefined) opts.data = data
+    if (responseType) opts.responseType = responseType
+    uni.request(opts)
   })
 }
 
+function _extract(r) { return r && r.data }
+
+// ---- API ----
+
+export function getDocuments() {
+  return _uniReq('GET', '/api/documents').then(_extract)
+}
+
 export function getDocument(docId) {
-  return new Promise((resolve, reject) => {
-    uni.request({ url: `${BASE}/api/documents/${docId}`, method: 'GET', success: r => resolve(r.data), fail: reject })
-  })
+  return _uniReq('GET', `/api/documents/${docId}`).then(_extract)
 }
 
 // 书籍自定义命名（PATCH /api/documents/{id}）
 export function renameDocument(docId, title) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${BASE}/api/documents/${docId}`, method: 'PATCH',
-      header: { 'Content-Type': 'application/json' },
-      data: { title },
-      success: r => resolve(r.data), fail: reject
-    })
-  })
+  return _uniReq('PATCH', `/api/documents/${docId}`, { data: { title } }).then(_extract)
 }
 
 // 上传资料（multipart）。小程序走 wx.uploadFile；H5 走 fetch + FormData
 export function uploadFile(filePath, displayName) {
   return new Promise((resolve, reject) => {
-    // #ifdef MP-WEIXIN
-    wx.uploadFile({
-      url: BASE + '/api/upload',
-      filePath,
-      name: 'file',
-      formData: { display_name: displayName || '' },
-      success: r => {
-        try { resolve(JSON.parse(r.data)) } catch (e) { reject(new Error('响应解析失败: ' + r.data)) }
-      },
-      fail: reject
-    })
-    // #endif
-    // #ifdef H5
-    const fd = new FormData()
-    fd.append('file', filePath)
-    if (displayName) fd.append('display_name', displayName)
-    fetch(BASE + '/api/upload', { method: 'POST', body: fd })
-      .then(r => r.json()).then(resolve, reject)
-    // #endif
+    const _doUpload = () => {
+      // #ifdef MP-WEIXIN
+      wx.uploadFile({
+        url: BASE + '/api/upload',
+        filePath,
+        name: 'file',
+        header: _authHeader(),                       // ← Bearer
+        formData: { display_name: displayName || '' },
+        success: r => {
+          try {
+            const body = JSON.parse(r.data)
+            // 401 兜底：wx.uploadFile 不像 uni.request 有 success 钩子
+            if (r.statusCode === 401) {
+              ensureLogin({ force: true })
+                .then(() => uploadFile(filePath, displayName))
+                .then(resolve, reject)
+              return
+            }
+            resolve(body)
+          } catch (e) { reject(new Error('响应解析失败: ' + r.data)) }
+        },
+        fail: reject,
+      })
+      // #endif
+      // #ifdef H5
+      const fd = new FormData()
+      fd.append('file', filePath)
+      if (displayName) fd.append('display_name', displayName)
+      fetch(BASE + '/api/upload', {
+        method: 'POST',
+        body: fd,
+        headers: _authHeader(),                       // ← Bearer（fetch 不会自动设 Content-Type）
+      })
+        .then(async r => {
+          if (r.status === 401) {
+            await ensureLogin({ force: true })
+            return uploadFile(filePath, displayName)
+          }
+          return r.json()
+        })
+        .then(resolve, reject)
+      // #endif
+    }
+    _doUpload()
   })
 }
 
 // 后台任务进度（扫描件/大文件异步解析）
 export function getTask(taskId) {
-  return new Promise((resolve, reject) => {
-    uni.request({ url: `${BASE}/api/tasks/${taskId}`, method: 'GET', success: r => resolve(r.data), fail: reject })
-  })
+  return _uniReq('GET', `/api/tasks/${taskId}`).then(_extract)
 }
 
 export function getStats(docId) {
-  return new Promise((resolve, reject) => {
-    uni.request({ url: `${BASE}/api/study/${docId}/stats`, method: 'GET', success: r => resolve(r.data), fail: reject })
-  })
+  return _uniReq('GET', `/api/study/${docId}/stats`).then(_extract)
 }
 
 export function startTutor(docId, chapterIndex) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: BASE + '/api/tutor/start', method: 'POST',
-      header: { 'Content-Type': 'application/json' },
-      data: { doc_id: docId, chapter_index: chapterIndex },
-      success: r => resolve(r.data), fail: reject
-    })
-  })
+  return _uniReq('POST', '/api/tutor/start', { data: { doc_id: docId, chapter_index: chapterIndex } }).then(_extract)
 }
 
 // 教学轮：流式读取（H5=fetch reader / 小程序=wx.request enableChunked），逐事件回调 onEvent
 export function streamTurn(payload, onEvent) {
   // #ifdef H5
-  return fetch(BASE + '/api/tutor/turn', {
+  return _streamTurnH5(payload, onEvent)
+  // #endif
+  // #ifdef MP-WEIXIN
+  return _streamTurnMP(payload, onEvent)
+  // #endif
+}
+
+function _streamTurnH5(payload, onEvent) {
+  const doFetch = () => fetch(BASE + '/api/tutor/turn', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).then(resp => {
+    headers: { 'Content-Type': 'application/json', ..._authHeader() },
+    body: JSON.stringify(payload),
+  })
+  return doFetch().then(async resp => {
+    if (resp.status === 401) {
+      await ensureLogin({ force: true })
+      return _streamTurnH5(payload, onEvent)
+    }
+    if (!resp.ok) {
+      // 业务错误（如 503 引擎未就绪）→ 解析 JSON 抛出
+      let detail = ''
+      try { detail = (await resp.json()).detail || '' } catch (e) {}
+      throw new Error(`HTTP ${resp.status}${detail ? ': ' + detail : ''}`)
+    }
     const reader = resp.body.getReader()
     const dec = new TextDecoder()
     let buf = ''
@@ -130,30 +193,36 @@ export function streamTurn(payload, onEvent) {
     }
     return pump()
   })
-  // #endif
-  // #ifdef MP-WEIXIN
+}
+
+function _streamTurnMP(payload, onEvent) {
   return new Promise((resolve, reject) => {
     let buf = ''
-    // 直接用 wx.request：uni.request 对 enableChunked/onChunkReceived 的透传在部分
-    // alpha 版本上不可靠（表现=整包一次性到达，无打字机效果）
-    const task = wx.request({
-      url: BASE + '/api/tutor/turn', method: 'POST', enableChunked: true, timeout: 300000,
-      header: { 'Content-Type': 'application/json' },
-      data: payload,
-      // 兜底：个别基础库/工具版本 enableChunked 未生效时整包返回，此时逐块事件
-      // 不会到达 onChunkReceived —— 在这里补解析一次，避免整段消息被吞
-      success: res => {
-        try {
-          const s = res && res.data != null ? String(res.data) : ''
-          if (s.indexOf('data:') === 0) parseFrame(s, onEvent)
-        } catch (e) { /* 兜底解析失败不致命 */ }
-        resolve()
-      },
-      fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败'))
-    })
-    task.onChunkReceived(res => {
-      buf = parseFrame(buf + decodeAB(res.data), onEvent)
-    })
+    let retried = false
+    const doReq = () => {
+      const task = wx.request({
+        url: BASE + '/api/tutor/turn', method: 'POST', enableChunked: true, timeout: 300000,
+        header: { 'Content-Type': 'application/json', ..._authHeader() },
+        data: payload,
+        success: res => {
+          // 401：force 重登 + 重发
+          if (res.statusCode === 401 && !retried) {
+            retried = true
+            ensureLogin({ force: true }).then(() => doReq(), reject)
+            return
+          }
+          try {
+            const s = res && res.data != null ? String(res.data) : ''
+            if (s.indexOf('data:') === 0) parseFrame(s, onEvent)
+          } catch (e) { /* 兜底解析失败不致命 */ }
+          resolve()
+        },
+        fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败')),
+      })
+      task.onChunkReceived(res => {
+        buf = parseFrame(buf + decodeAB(res.data), onEvent)
+      })
+    }
+    doReq()
   })
-  // #endif
 }

@@ -2,6 +2,10 @@
 
 策略：用 TestClient 直接打挂载了 limiter 的最小 FastAPI 子集。
 被装饰的 endpoint 第一参数必须是 request（slowapi 内部要求）。
+
+注意：不要在此模块顶层 setdefault MOYAN_AUTH_DISABLED——
+test_auth.py 会先导入并把 env 设为 "0"，模块级写法在整套运行时永远不生效。
+鉴权开关一律在各测试内 monkeypatch 显式指定（见 test B/C）。
 """
 from __future__ import annotations
 
@@ -11,7 +15,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-os.environ.setdefault("MOYAN_AUTH_DISABLED", "1")
 os.environ.setdefault("MOYAN_JWT_SECRET", "test-secret-rate-limit")
 os.environ.setdefault("MOYAN_WX_APPID", "wx-test-appid-rate")
 os.environ.setdefault("MOYAN_WX_APPSECRET", "test-app-secret-for-rate-limit-tests")
@@ -53,8 +56,13 @@ def test_key_func_prefers_user_id():
 
 # ---- B) 限流真档（拿真 app 跑 /api/auth/me 30/min）----
 
-def test_rate_limit_30_per_minute():
-    """30/minute 装饰器的 /api/auth/me：第 31 次返 429。"""
+def test_rate_limit_30_per_minute(monkeypatch):
+    """30/minute 装饰器的 /api/tutor/start：第 31 次返 429。"""
+    # 显式置免鉴权：本测试要用 dev-login 直登。
+    # 不能依赖 env 默认（整套运行时 test_auth 已把 app_settings.auth_disabled 固定为 False）
+    monkeypatch.setattr("backend.auth.deps.app_settings.auth_disabled", True)
+    monkeypatch.setattr("backend.auth.router.app_settings.auth_disabled", True)
+
     client = TestClient(real_app)
     # dev-login 拿 token
     r = client.post("/api/auth/dev-login", json={"dev_openid": "rl_tester"})
