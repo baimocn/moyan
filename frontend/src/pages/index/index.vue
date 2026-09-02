@@ -62,7 +62,18 @@
     </view>
 
     <!-- #ifdef H5 -->
-    <input ref="fileInput" type="file" accept=".pdf,.docx,.pptx,.xlsx,.md,.txt,.html,.epub,.jpg,.jpeg,.png,.bmp,.tiff" style="display:none" @change="onFilePicked" />
+    <!-- H5 命名弹层：uni.showModal 的 editable 在 H5 端不生效（实测无输入框），
+         故网页端用自制弹层；小程序端仍走 showModal editable -->
+    <view v-if="dlg.show" class="dlg-mask" @tap.self="dlgCancel">
+      <view class="dlg">
+        <text class="dlg-t">{{ dlg.title }}</text>
+        <input class="dlg-i" v-model="dlg.val" :placeholder="dlg.ph" :focus="dlg.show" confirm-type="done" @confirm="dlgOk" />
+        <view class="dlg-btns">
+          <view class="dlg-btn" @tap="dlgCancel">取消</view>
+          <view class="dlg-btn ok" @tap="dlgOk">确定</view>
+        </view>
+      </view>
+    </view>
     <!-- #endif -->
   </view>
 </template>
@@ -72,7 +83,10 @@ import { getDocuments, getDocument, uploadFile, getTask, renameDocument } from '
 
 export default {
   data() {
-    return { docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px', last: null }
+    return {
+      docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px', last: null,
+      dlg: { show: false, mode: '', title: '', ph: '', val: '' }, pending: null
+    }
   },
   computed: {
     docNames() { return this.docs.map(d => `${d.title || d.filename}（${d.chapter_count}章）`) },
@@ -157,14 +171,65 @@ export default {
       })
       // #endif
       // #ifdef H5
-      this.$refs.fileInput && this.$refs.fileInput.click()
+      this.pickH5File()
       // #endif
     },
-    onFilePicked(e) {
-      const f = e.target.files && e.target.files[0]
-      if (f) this.askName(f)
+    // #ifdef H5
+    // uni-app 的 <input> 组件编译后是 uni-input，不支持 type=file 也不暴露原生
+    // click()（旧实现 this.$refs.fileInput.click() 直接 TypeError，上传点不动）。
+    // 这里动态创建原生 input[type=file] 触发系统文件选择器（H5 标准做法）。
+    pickH5File() {
+      const el = document.createElement('input')
+      el.type = 'file'
+      el.accept = '.pdf,.docx,.pptx,.xlsx,.md,.txt,.html,.epub,.jpg,.jpeg,.png,.bmp,.tiff'
+      el.style.display = 'none'
+      el.addEventListener('change', (e) => {
+        const f = e.target && e.target.files && e.target.files[0]
+        if (el.parentNode) el.parentNode.removeChild(el)
+        if (f) this.askName(f)
+      })
+      document.body.appendChild(el)
+      el.click()
     },
+    // H5 命名弹层（上传与重命名共用）
+    openNameDlg(mode, obj) {
+      const def = mode === 'rename' ? (obj.title || obj.filename || '') : ((obj.name || '').replace(/\.[^.]+$/, '') || '未命名教材')
+      this.pending = obj
+      this.dlg = {
+        show: true, mode,
+        title: mode === 'rename' ? '重命名教材' : '给教材起个名',
+        ph: mode === 'rename' ? '输入新名称' : '留空用文件名',
+        val: def
+      }
+    },
+    dlgOk() {
+      const dlg = this.dlg
+      if (!dlg.show) return
+      const val = (dlg.val || '').trim()
+      this.dlg.show = false
+      const obj = this.pending
+      this.pending = null
+      if (dlg.mode === 'rename') {
+        if (!val) return
+        renameDocument(obj.doc_id, val).then(() => {
+          this.tip = '已重命名 ✓'
+          this.refresh()
+        }).catch(e => { this.tip = '重命名失败：' + e })
+      } else {
+        const title = val || (obj.name || '').replace(/\.[^.]+$/, '') || '未命名教材'
+        this.doUpload(obj, title)
+      }
+    },
+    dlgCancel() {
+      this.dlg.show = false
+      this.pending = null
+    },
+    // #endif
     askName(f) {
+      // #ifdef H5
+      this.openNameDlg('upload', f)
+      // #endif
+      // #ifdef MP-WEIXIN
       const defName = (f.name || '').replace(/\.[^.]+$/, '') || '未命名教材'
       uni.showModal({
         title: '给教材起个名',
@@ -176,6 +241,7 @@ export default {
           this.doUpload(f.path || f, title || defName)
         }
       })
+      // #endif
     },
     doUpload(file, title) {
       this.tip = '上传解析中…'
@@ -214,6 +280,10 @@ export default {
       tick()
     },
     renameDoc(d) {
+      // #ifdef H5
+      this.openNameDlg('rename', d)
+      // #endif
+      // #ifdef MP-WEIXIN
       uni.showModal({
         title: '重命名教材',
         editable: true,
@@ -228,6 +298,7 @@ export default {
           }).catch(e => { this.tip = '重命名失败：' + e })
         }
       })
+      // #endif
     },
     go() {
       const doc = this.docs[this.docIdx]
@@ -254,7 +325,7 @@ page { background: #f6f2e8; }
 .logo { width: 84rpx; height: 84rpx; border-radius: 26rpx; background: #163628; color: #f2e6c9; font-size: 44rpx; font-weight: 500; display: flex; align-items: center; justify-content: center; letter-spacing: 0; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
 .brand { margin-left: 22rpx; display: flex; flex-direction: column; }
 .bname { font-size: 44rpx; font-weight: 500; letter-spacing: 10rpx; color: #163628; line-height: 1.15; }
-.bsub { font-size: 22rpx; color: #8a7f66; margin-top: 8rpx; letter-spacing: 2rpx; }
+.bsub { font-size: 22rpx; color: #8a7f66; margin-top: 6rpx; letter-spacing: 2rpx; }
 
 .sec { display: flex; align-items: baseline; justify-content: space-between; padding: 8rpx 6rpx 18rpx; }
 .sec-t { font-size: 30rpx; font-weight: 500; color: #2b2b2b; }
@@ -266,7 +337,7 @@ page { background: #f6f2e8; }
 .doc-top { display: flex; align-items: center; }
 .doc-title { flex: 1; font-size: 30rpx; font-weight: 500; color: #1f1f1f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pill { font-size: 20rpx; color: #fff; background: #2c6e4f; border-radius: 999rpx; padding: 6rpx 18rpx; margin-left: 16rpx; }
-.ren { font-size: 22rpx; color: #a08a5a; padding: 6rpx 16rpx; border: 2rpx solid #ddd0b4; border-radius: 999rpx; margin-left: 16rpx; }
+.ren { font-size: 22rpx; color: #a08a5a; padding: 6rpx 16rpx; border: 2rpx solid #ddd0b4; border-radius: 999rpx; margin-left: 16rpx; cursor: pointer; }
 .doc-meta { display: flex; align-items: center; font-size: 22rpx; color: #94896f; margin-top: 14rpx; }
 .sep { margin: 0 10rpx; color: #c9bfa5; }
 
@@ -280,7 +351,7 @@ page { background: #f6f2e8; }
 .tick { color: #2c6e4f; font-size: 26rpx; margin-left: 12rpx; font-weight: 500; }
 .chap.hint { color: #9a8f74; font-size: 24rpx; justify-content: center; }
 
-.doc.up { display: flex; align-items: center; border-style: dashed; border-color: #cbbf9e; background: #faf6ea; }
+.doc.up { display: flex; align-items: center; border-style: dashed; border-color: #cbbf9e; background: #faf6ea; cursor: pointer; }
 .up-ico { width: 64rpx; height: 64rpx; border-radius: 50%; background: #163628; color: #f2e6c9; font-size: 36rpx; display: flex; align-items: center; justify-content: center; }
 .up-txt { margin-left: 22rpx; display: flex; flex-direction: column; }
 .up-t { font-size: 28rpx; color: #3a3a3a; }
@@ -288,6 +359,15 @@ page { background: #f6f2e8; }
 .doc-note { text-align: center; color: #b0a487; font-size: 22rpx; padding: 10rpx 0 30rpx; letter-spacing: 1rpx; }
 
 .tip { text-align: center; font-size: 22rpx; color: #a08a5a; margin-bottom: 14rpx; }
-.start { background: #163628; color: #f2e6c9; font-size: 32rpx; font-weight: 500; letter-spacing: 6rpx; text-align: center; padding: 26rpx 0; border-radius: 999rpx; box-shadow: 0 8rpx 20rpx rgba(22, 54, 40, 0.22); }
+.start { background: #163628; color: #f2e6c9; font-size: 32rpx; font-weight: 500; letter-spacing: 6rpx; text-align: center; padding: 26rpx 0; border-radius: 999rpx; box-shadow: 0 8rpx 20rpx rgba(22, 54, 40, 0.22); cursor: pointer; }
 .start.off { background: transparent; color: #a8a08a; box-shadow: none; border: 2rpx dashed #cfc8b6; }
+
+/* H5 命名弹层 */
+.dlg-mask { position: fixed; inset: 0; background: rgba(20, 26, 18, 0.45); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.dlg { width: 560rpx; background: #fffdf8; border-radius: 24rpx; padding: 40rpx 36rpx 30rpx; box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.25); }
+.dlg-t { font-size: 32rpx; font-weight: 500; color: #163628; }
+.dlg-i { margin-top: 28rpx; background: #f6f2e8; border: 2rpx solid #ddd0b4; border-radius: 14rpx; padding: 18rpx 22rpx; font-size: 28rpx; color: #2b2b2b; }
+.dlg-btns { display: flex; justify-content: flex-end; margin-top: 34rpx; }
+.dlg-btn { font-size: 28rpx; color: #8a7f66; padding: 12rpx 30rpx; border-radius: 999rpx; }
+.dlg-btn.ok { background: #163628; color: #f2e6c9; margin-left: 16rpx; font-weight: 500; }
 </style>
