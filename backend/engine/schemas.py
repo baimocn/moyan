@@ -43,13 +43,13 @@ class Decision(str, Enum):
 
 
 class Misconception(BaseModel):
-    concept: str = Field(..., description="误区对应的知识点名（对齐 skill_id）")
+    concept: str = Field("", description="误区对应的知识点名（对齐 skill_id；模型常漏，留空由下游兜底）")
     description: str = Field(..., description="学生错在哪、怎么理解的")
     evidence: str = Field("", description="学生原话片段，便于复核")
 
 
 class WeakPoint(BaseModel):
-    skill_id: str = Field(..., description="知识点/技能标签 ID，如 process/state")
+    skill_id: str = Field("", description="知识点/技能标签 ID，如 process/state；模型常漏，留空由下游兜底")
     mastery: str = Field("low", pattern="^(low|mid|high)$")
     evidence: str = Field("", description="判定依据简述")
 
@@ -70,8 +70,61 @@ class AnswerJudgement(BaseModel):
     weak_points: list[WeakPoint] = []
     feedback: Feedback = Field(default_factory=lambda: Feedback(positive=""))
     confidence: float = Field(default=0.8, ge=0, le=1)
+
+    @field_validator("misconceptions", mode="before")
+    @classmethod
+    def _coerce_misconceptions(cls, v):
+        """模型偶发把 misconceptions 写成字符串/单个对象（实测致判定流中断）——宽容归一。
+
+        字符串按换行/分号拆条，每条包成 Misconception(description=…)，不炸校验。
+        """
+        return _coerce_model_list(v, Misconception, "description")
+
+    @field_validator("weak_points", mode="before")
+    @classmethod
+    def _coerce_weak_points(cls, v):
+        """weak_points 同款宽容归一：字符串 → [WeakPoint(evidence=…)]。"""
+        return _coerce_model_list(v, WeakPoint, "evidence")
+
+    @field_validator("feedback", mode="before")
+    @classmethod
+    def _coerce_feedback(cls, v):
+        """模型偶发把 feedback 整体写成一句话——包成 Feedback(positive=…) 而非炸校验。"""
+        if isinstance(v, str):
+            v = v.strip()
+            return {"positive": v} if v else {"positive": ""}
+        return v
     # 运行时注入的 token 用量（exclude：不进序列化/LLM 校验；成本审计用）
     usage: dict = Field(default_factory=dict, exclude=True)
+
+
+def _coerce_model_list(v, model_cls, text_field: str):
+    """通用宽松归一：str/dict/混合列表 → list[model_cls 可接受的 dict]。"""
+    if v is None or v == "":
+        return []
+    if isinstance(v, model_cls):
+        return [v]
+    if isinstance(v, dict):
+        v = [v]
+    if isinstance(v, str):
+        v = v.strip()
+        if not v:
+            return []
+        parts = [p.strip(" ;；.。") for p in re.split(r"[\n;；]+", v) if p.strip()]
+        v = parts or [v]
+    if isinstance(v, list):
+        out = []
+        for item in v:
+            if isinstance(item, model_cls):
+                out.append(item)
+            elif isinstance(item, dict):
+                out.append(item)
+            elif isinstance(item, str):
+                item = item.strip()
+                if item:
+                    out.append({text_field: item})
+        return out
+    return v
 
 
 # ---------- 出题 ----------

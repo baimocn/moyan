@@ -18,6 +18,19 @@ from typing import Optional
 # 匹配 Markdown 标题行：^#{1,6} 一个空格 内容
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 
+# 整行 HTML 注释（docling 常见的页码占位 `<!-- 第 1 页 -->` 等）
+# 替换成空串后该行变空行，行号保持不变，不影响标题锚点定位。
+_COMMENT_LINE_RE = re.compile(r"^[ \t]*<!--.*?-->[ \t]*$", re.MULTILINE)
+# "纯注释标题行"：`# <!-- 第 1 页 -->` —— 剥掉注释只剩 # 残骸，整行清空
+_COMMENT_HEADING_RE = re.compile(r"^[ \t]*#{1,6}[ \t]*<!--.*?-->[ \t]*$", re.MULTILINE)
+# 标题文本内嵌的注释片段
+_COMMENT_INLINE_RE = re.compile(r"<!--.*?-->")
+
+
+def _clean_title(title: str) -> str:
+    """剥离标题里的 HTML 注释；剥离后为空的标题不是有效标题。"""
+    return _COMMENT_INLINE_RE.sub("", title).strip()
+
 
 @dataclass
 class TocItem:
@@ -59,7 +72,7 @@ def _parse_headings(markdown: str) -> list[tuple[int, int, str]]:
         m = _HEADING_RE.match(line)
         if m:
             level = len(m.group(1))
-            title = m.group(2).strip()
+            title = _clean_title(m.group(2))
             if title:
                 out.append((level, lineno, title))
     return out
@@ -67,7 +80,10 @@ def _parse_headings(markdown: str) -> list[tuple[int, int, str]]:
 
 def split_markdown(markdown: str) -> SplitResult:
     """把 Markdown 切成章节。"""
-    md = (markdown or "").strip()
+    # 整行 HTML 注释（如 docling 的 `<!-- 第 1 页 -->` 页码占位）清成空行：
+    # 行号不变，标题锚点定位不受影响；避免注释行被当前言内容或碎章标题。
+    # 纯注释标题行（`# <!-- 第 1 页 -->`）同理整行清空，防止 # 残骸入标题。
+    md = _COMMENT_HEADING_RE.sub("", _COMMENT_LINE_RE.sub("", markdown or "")).strip()
     result = SplitResult()
     if not md:
         return result
@@ -107,7 +123,8 @@ def split_markdown(markdown: str) -> SplitResult:
     first_anchor_line = top_anchors[0][0]
     prelude = "\n".join(lines[:first_anchor_line]).strip()
     if prelude:
-        sections.insert(0, (prelude.splitlines()[0][:20] or "前言", prelude, [], False))
+        first_line = _clean_title(prelude.splitlines()[0])
+        sections.insert(0, (first_line[:20] or "前言", prelude, [], False))
 
     chapters: list[Chapter] = []
     for idx, (title, body, toc, _is_top) in enumerate(sections):
