@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -74,6 +75,25 @@ def preflight(path: Path, ext: str) -> dict:
     return {"kind": "unknown", "sync": False}
 
 
+def _clean_worker_env() -> dict:
+    """docling 子进程环境：剥离沙箱/系统代理，强制离线读本地模型缓存。
+
+    背景：docling 每次启动都会向 HuggingFace 校验/下载模型权重，若继承
+    http(s)_proxy（如沙箱会话注入的本地代理）会经代理访问 → ProxyError:
+    502 Bad Gateway，转换在 50s+ 后失败。模型权重已在本机缓存
+    （~/.cache/huggingface/hub, docling-project/*），HF_HUB_OFFLINE=1
+    直接纯离线加载最稳。仅影响 docling 解析子进程，不影响后端 AI 引擎联网。
+    """
+    env = dict(os.environ)
+    for k in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY",
+              "all_proxy", "ALL_PROXY", "no_proxy", "NO_PROXY"):
+        env.pop(k, None)
+    env["HF_HUB_OFFLINE"] = "1"
+    env["HF_HUB_DISABLE_TELEMETRY"] = "1"
+    env["TRANSFORMERS_OFFLINE"] = "1"
+    return env
+
+
 def _run_worker(src: Path, out_md: Path, out_json: Path, timeout_s: int = 3600) -> dict:
     """子进程执行 docling_worker；返回 meta。"""
     out_md.parent.mkdir(parents=True, exist_ok=True)
@@ -84,6 +104,7 @@ def _run_worker(src: Path, out_md: Path, out_json: Path, timeout_s: int = 3600) 
     proc = subprocess.run(
         cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout_s,
         cwd=str(config.PROJECT_ROOT),
+        env=_clean_worker_env(),
     )
     if out_json.exists():
         try:
