@@ -196,32 +196,36 @@ function _streamTurnH5(payload, onEvent) {
 }
 
 function _streamTurnMP(payload, onEvent) {
+  // 微信小程序 wx.request + enableChunked 的已知必要参数：
+  // - enableHttp2:false —— 真机上 chunked 与 HTTP/2 不兼容会收不到分块（需强制 HTTP/1.1）
+  // - responseType:'arraybuffer' —— onChunkReceived 回调 res.data 是 ArrayBuffer
+  // - timeout 300000 覆盖多模态/长文生成
   return new Promise((resolve, reject) => {
     let buf = ''
     let retried = false
     const doReq = () => {
       const task = wx.request({
-        url: BASE + '/api/tutor/turn', method: 'POST', enableChunked: true, timeout: 300000,
+        url: BASE + '/api/tutor/turn', method: 'POST',
+        enableChunked: true, enableHttp2: false, responseType: 'arraybuffer', timeout: 300000,
         header: { 'Content-Type': 'application/json', ..._authHeader() },
         data: payload,
         success: res => {
-          // 401：force 重登 + 重发
-          if (res.statusCode === 401 && !retried) {
-            retried = true
-            ensureLogin({ force: true }).then(() => doReq(), reject)
-            return
-          }
-          try {
-            const s = res && res.data != null ? String(res.data) : ''
-            if (s.indexOf('data:') === 0) parseFrame(s, onEvent)
-          } catch (e) { /* 兜底解析失败不致命 */ }
-          resolve()
-        },
-        fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败')),
-      })
-      task.onChunkReceived(res => {
-        buf = parseFrame(buf + decodeAB(res.data), onEvent)
-      })
+            if (res.statusCode === 401 && !retried) {
+              retried = true
+              ensureLogin({ force: true }).then(() => doReq(), reject)
+              return
+            }
+            try {
+              const s = res && res.data != null ? String(res.data) : ''
+              if (s.indexOf('data:') === 0) parseFrame(s, onEvent)
+            } catch (e) { /* 兜底解析失败不致命 */ }
+            resolve()
+          },
+          fail: err => reject(new Error(err && err.errMsg ? err.errMsg : '请求失败')),
+        })
+        task.onChunkReceived(res => {
+          buf = parseFrame(buf + decodeAB(res.data), onEvent)
+        })
     }
     doReq()
   })

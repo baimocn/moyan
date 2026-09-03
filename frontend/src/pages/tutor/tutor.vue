@@ -83,11 +83,14 @@
 <script>
 import { startTutor, streamTurn, getStats } from '../../utils/api.js'
 import { mdToHtml } from '../../utils/md.js'
+// mp-html：MP-WEIXIN 用它渲染 markdown→HTML（v-html 在小程序不存在），未注册则流式文字气泡空白
+import mpHtml from 'mp-html/dist/uni-app/components/mp-html/mp-html.vue'
 
 let uidSeed = 1
 const TYPE_NAME = { single_choice: '单选题', multiple_choice: '多选题', fill_blank: '填空题', short_answer: '简答题' }
 
 export default {
+  components: { mpHtml },
   data() {
     return {
       docId: '', chapterIndex: 0, sid: '', chapterTitle: '',

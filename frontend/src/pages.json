@@ -9,5 +9,8 @@
     "navigationBarTitleText": "墨衍",
     "backgroundColor": "#f6f2e8",
     "backgroundTextStyle": "dark"
+  },
+  "easycom": {
+    "^mp-html$": "mp-html/dist/uni-app/components/mp-html/mp-html.vue"
   }
 }
