@@ -24,7 +24,7 @@
     <scroll-view scroll-y class="list">
       <view v-for="(d, i) in docs" :key="d.doc_id" class="doc" :class="{ sel: i === docIdx }" @tap="onDocPick(i)">
         <view class="doc-top">
-          <text class="doc-title">{{ d.title || d.filename }}</text>
+          <text class="doc-title">{{ d.display_title || d.title || cleanName(d.filename) }}</text>
           <text class="pill" v-if="i === docIdx">已选</text>
           <text class="ren" @tap.stop="renameDoc(d)">重命名</text>
         </view>
@@ -89,7 +89,7 @@ export default {
     }
   },
   computed: {
-    docNames() { return this.docs.map(d => `${d.title || d.filename}（${d.chapter_count}章）`) },
+    docNames() { return this.docs.map(d => `${d.display_title || d.title || this.cleanName(d.filename)}（${d.chapter_count}章）`) },
     chapNames() { return this.manifest.map(c => `${c.title}（${c.char_count}字）`) },
     ready() { return this.docIdx >= 0 && this.chapIdx >= 0 }
   },
@@ -184,6 +184,10 @@ export default {
       })
       document.body.appendChild(el)
       el.click()
+    },
+    // 本地兜底：后端未返回 display_title 时去文档扩展名
+    cleanName(n) {
+      return ((n || '').replace(/\.(pdf|md|docx|doc|txt|wps)$/i, '').trim() || '未命名教材')
     },
     // H5 命名弹层（上传与重命名共用）
     openNameDlg(mode, obj) {
@@ -282,7 +286,7 @@ export default {
         title: '重命名教材',
         editable: true,
         placeholderText: '输入新名称',
-        content: d.title || d.filename,
+        content: d.display_title || d.title || this.cleanName(d.filename),
         success: r => {
           const title = r.confirm ? (r.content || '').trim() : ''
           if (!title) return

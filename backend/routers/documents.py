@@ -58,11 +58,28 @@ def _display_name(doc: Document, db=None) -> str:
     return doc.filename or ""
 
 
+_DOC_EXTS = (".pdf", ".md", ".docx", ".doc", ".txt", ".wps", ".ppt", ".pptx")
+
+
+def _clean_display_title(title: str, filename: str) -> str:
+    """书架展示名：title 非空且不等于 filename 时原样返回；
+    否则去掉常见文档扩展名（大小写不敏感），结果为空则兜底。"""
+    name = title or filename or ""
+    low = name.lower()
+    for ext in _DOC_EXTS:
+        if low.endswith(ext):
+            name = name[: -len(ext)].strip()
+            break
+    return name or "未命名教材"
+
+
 def _doc_to_dict(doc: Document, db=None) -> dict:
+    title = _display_name(doc, db)
     return {
         "doc_id": doc.doc_id,
         "filename": doc.filename,
-        "title": _display_name(doc, db),
+        "title": title,
+        "display_title": _clean_display_title(title, doc.filename or ""),
         "format": doc.format,
         "page_count": doc.page_count,
         "source": doc.source,
