@@ -156,6 +156,17 @@ export default {
       m.note = !!note || m.text.length > 36
       this.msgs.push(m); this.scroll(); return m
     },
+    // 档案消息就地更新：已存在"档案："开头的 sys 则替换 text（保留 uid），否则新增
+    setArchiveSys(text) {
+      const idx = this.msgs.findIndex(m => m.kind === 'sys' && m.text && m.text.startsWith('档案：'))
+      if (idx >= 0) {
+        this.msgs[idx].text = text
+        this.msgs[idx].note = text.length > 36
+        this.scroll()
+      } else {
+        this.pushSys(text, false, text.length > 36)
+      }
+    },
     pushMate(text) {
       const m = this.newMsg('mate', '同桌')
       m.text = text || ''
@@ -194,7 +205,7 @@ export default {
       getStats(this.docIdStats).then(d => {
         const s = d.stats || {}
         const weak = s.weak_points || {}
-        this.pushSys(`档案：薄弱 ${weak.low || 0} / ${weak.mid || 0} / ${weak.high || 0}（弱/中/强） · 待复习 ${s.review_due || 0} · tokens ${s.tokens && s.tokens.total || 0}`)
+        this.setArchiveSys(`档案：薄弱 ${weak.low || 0} / ${weak.mid || 0} / ${weak.high || 0}（弱/中/强） · 待复习 ${s.review_due || 0} · tokens ${s.tokens && s.tokens.total || 0}`)
       }).catch(() => {})
     },
     handle(ev) {
