@@ -21,7 +21,7 @@
       <text class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪</text>
     </view>
 
-    <scroll-view scroll-y class="list" :style="{ height: listH }">
+    <scroll-view scroll-y class="list">
       <view v-for="(d, i) in docs" :key="d.doc_id" class="doc" :class="{ sel: i === docIdx }" @tap="onDocPick(i)">
         <view class="doc-top">
           <text class="doc-title">{{ d.title || d.filename }}</text>
@@ -84,7 +84,7 @@ import { getDocuments, getDocument, uploadFile, getTask, renameDocument } from '
 export default {
   data() {
     return {
-      docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, listH: '600px', last: null,
+      docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, last: null,
       dlg: { show: false, mode: '', title: '', ph: '', val: '' }, pending: null
     }
   },
@@ -92,12 +92,6 @@ export default {
     docNames() { return this.docs.map(d => `${d.title || d.filename}（${d.chapter_count}章）`) },
     chapNames() { return this.manifest.map(c => `${c.title}（${c.char_count}字）`) },
     ready() { return this.docIdx >= 0 && this.chapIdx >= 0 }
-  },
-  onLoad() {
-    try {
-      const h = uni.getSystemInfoSync()
-      this.listH = (h.windowHeight - 460) + 'px'
-    } catch (e) { /* 保持默认 */ }
   },
   onShow() {
     this.refresh()
@@ -312,7 +306,11 @@ export default {
 <style>
 page { background: #f6f2e8; }
 /* H5 桌面端：内容居中限宽，避免 1280+ 宽屏拉成超长条 */
-.page { min-height: 100vh; display: flex; flex-direction: column; padding: 32rpx 28rpx 24rpx; box-sizing: border-box; max-width: 760px; margin: 0 auto; width: 100%; }
+.page { height: 100vh; display: flex; flex-direction: column; padding: 32rpx 28rpx 24rpx; box-sizing: border-box; max-width: 760px; margin: 0 auto; width: 100%; }
+/* #ifdef H5 */
+/* uni h5 页面头占 44px，min-height:100vh 会把 .foot 顶出视口（2026-09-03 实测 foot 在 y≈1790） */
+.page { height: calc(100vh - 44px); }
+/* #endif */
 .foot { padding-top: 20rpx; max-width: 760px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
 .resume { display: flex; align-items: center; background: linear-gradient(135deg, #163628 0%, #2c6e4f 100%); color: #f2e6c9; border-radius: 20rpx; padding: 22rpx 26rpx; margin-bottom: 20rpx; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
@@ -331,7 +329,7 @@ page { background: #f6f2e8; }
 .sec-t { font-size: 30rpx; font-weight: 500; color: #2b2b2b; }
 .sec-c { font-size: 22rpx; color: #9a8f74; }
 
-.list { flex: 1; }
+.list { flex: 1; min-height: 0; }
 .doc { background: #fffdf8; border: 2rpx solid #eae2cf; border-radius: 24rpx; padding: 26rpx 28rpx; margin-bottom: 20rpx; transition: border-color 0.15s; }
 .doc.sel { border-color: #2c6e4f; box-shadow: 0 4rpx 14rpx rgba(44, 110, 79, 0.12); }
 .doc-top { display: flex; align-items: center; }

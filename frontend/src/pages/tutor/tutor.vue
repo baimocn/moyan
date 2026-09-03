@@ -299,6 +299,10 @@ export default {
 <style>
 page { background: #f6f2e8; }
 .page { height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; background: #f6f2e8; }
+/* #ifdef H5 */
+/* uni h5 页面头占 44px，100vh 会把底部输入栏顶出视口（2026-09-03 实测输入栏 y=569 > vh=564） */
+.page { height: calc(100vh - 44px); }
+/* #endif */
 
 .route { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 28rpx 14rpx; border-bottom: 2rpx solid #ece4d2; background: #faf6ec; }
 .rt-chap { font-size: 27rpx; font-weight: 500; color: #163628; display: block; max-width: 430rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
