@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import func, or_
 
 from .. import storage
 from ..models import Document, SessionLocal
@@ -114,15 +115,29 @@ def rename_document(doc_id: str, body: RenameIn):
 
 
 @router.get("/documents")
-def list_documents():
+def list_documents(q: str = ""):
+    """共享书架（全用户 done 文档可见）。q 非空时按 title/filename 过滤（共享书库搜索）。
+
+    多词 AND：按空白拆词，每个词都须命中（大小写不敏感子串）——"python 快速"
+    能命中《Python 快速上手》，整段 LIKE 匹配不到。
+    """
+    raw = (q or "").strip().lower()
+    keywords = [w for w in raw.split() if w]
     with SessionLocal() as db:
-        docs = db.query(Document).order_by(Document.created_at.desc()).limit(200).all()
+        query = db.query(Document)
+        for w in keywords:
+            like = f"%{w}%"
+            query = query.filter(or_(
+                func.lower(Document.title).contains(like),
+                func.lower(Document.filename).contains(like),
+            ))
+        docs = query.order_by(Document.created_at.desc()).limit(200).all()
         items = []
         for d in docs:
             item = _doc_to_dict(d, db)
             item.pop("manifest", None)
             items.append(item)
-    return {"ok": True, "documents": items}
+    return {"ok": True, "documents": items, "q": raw}
 
 
 @router.get("/documents/{doc_id}")

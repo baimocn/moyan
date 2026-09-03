@@ -1,8 +1,10 @@
 // 墨衍网页版 · 书架/文档 API（与小程序同协议）
 import { request } from './client.js'
 
-export function getDocuments() {
-  return request('GET', '/api/documents')
+// q：共享书库搜索（多词 AND，大小写不敏感）；空 = 全量
+export function getDocuments(q) {
+  const query = (q || '').trim()
+  return request('GET', '/api/documents' + (query ? `?q=${encodeURIComponent(query)}` : ''))
 }
 
 export function getDocument(docId) {

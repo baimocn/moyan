@@ -12,11 +12,12 @@ user_id 注入：用 ContextVar 在请求开始时（依赖注入后）写入，
 from __future__ import annotations
 
 import contextvars
+import hashlib
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
 
 from .. import config, storage, tasks
-from ..auth.deps import CurrentUser, get_current_user_optional
+from ..auth.deps import CurrentUser, get_requester
 from ..engine.proofread import cleanup_original
 from ..models import Document, SessionLocal
 from ..rate_limit import L_UPLOAD, limiter
@@ -30,6 +31,10 @@ router = APIRouter(prefix="/api", tags=["upload"])
 # 上下文用户：依赖注入时设置；模块函数读它
 _current_user_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "moyan_current_user_id", default=None
+)
+# 共享书库去重（2026-09-03）：upload 时算好 sha256，落库自动带上
+_current_content_hash: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "moyan_content_hash", default=None
 )
 
 
@@ -49,8 +54,9 @@ def _clean_filename(name: str) -> str:
 def _save_document_record(db, doc_id: str, *, status: str, title: str = "",
                          user_id: str | None = None, **fields) -> None:
     db.add(Document(doc_id=doc_id, status=status, title=title,
-                    user_id=user_id, **fields))
-    db.commit()
+                    user_id=user_id,
+                    content_hash=_current_content_hash.get(),
+                    **fields))
     db.commit()
 
 
@@ -160,10 +166,11 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "")
 @limiter.limit(L_UPLOAD)
 async def upload(request: Request, response: Response, file: UploadFile = File(...),
                  display_name: str = Form(""),
-                 user: CurrentUser | None = Depends(get_current_user_optional)):
-    """上传教材（5/hour/user_id）。user_id 落档到 documents 表（鉴权后才有 user_id 列写入）。"""
+                 user: CurrentUser = Depends(get_requester)):
+    """上传教材（5/hour/requester）。匿名走 X-Device-Id 设备身份；同文件命中共享书库直接复用。"""
     # 把 user_id 写入 ContextVar（_save_document_record 自动取）
     _current_user_id.set(user.openid if user else None)
+    _current_content_hash.set(None)
     if not file.filename:
         raise HTTPException(400, detail="请选择要上传的文件")
     filename = _clean_filename(file.filename)
@@ -181,6 +188,38 @@ async def upload(request: Request, response: Response, file: UploadFile = File(.
             415,
             detail=f"暂不支持 {ext} 格式。当前支持：{', '.join(sorted(config.SUPPORTED_FORMATS))}",
         )
+
+    # ---- 共享书库去重：流式 sha256（1MB 分块，不整读入内存），同 hash 的 done 文档直接复用 ----
+    digest = hashlib.sha256()
+    while True:
+        chunk = file.file.read(1024 * 1024)
+        if not chunk:
+            break
+        digest.update(chunk)
+    file.file.seek(0)  # 复位，后续 save_upload / 解析仍从头读
+    content_hash = digest.hexdigest()
+    _current_content_hash.set(content_hash)
+    with SessionLocal() as db:
+        existing = (db.query(Document)
+                    .filter(Document.content_hash == content_hash,
+                            Document.status == "done")
+                    .order_by(Document.created_at.desc())
+                    .first())
+    if existing is not None:
+        return {
+            "ok": True,
+            "doc_id": existing.doc_id,
+            "status": "done",
+            "reused": True,
+            "message": "书库已有此书，直接使用",
+            "document": {
+                "doc_id": existing.doc_id,
+                "filename": existing.filename,
+                "title": existing.title or existing.filename or "未命名教材",
+                "chapter_count": existing.chapter_count,
+                "manifest": existing.manifest or [],
+            },
+        }
 
     doc_id = storage.new_doc_id()
     upload_path = storage.save_upload(doc_id, file)

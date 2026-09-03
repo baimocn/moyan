@@ -1,5 +1,5 @@
 <script setup>
-// 书架首页 —— 与小程序 pages/index/index 等价（列表/展开章节/继续上次/重命名/上传）
+// 书架首页（网页版 v2，2026-09-03）：免登录 · 书架为主体 · 上传收为左上角子功能 · 顶部共享书库搜索
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDocuments, getDocument, renameDocument } from '../api/documents.js'
@@ -14,6 +14,10 @@ const manifest = ref([])
 const tip = ref('')
 const last = ref(null)
 
+// 搜索（共享书库，多词 AND）
+const searchQ = ref('')
+let searchTimer = null
+
 // 上传命名弹层 + 重命名弹层共用
 const dlg = ref({ show: false, mode: '', title: '', ph: '', val: '' })
 let pending = null
@@ -21,6 +25,7 @@ const uploading = ref(false)
 const fileInput = ref(null)
 
 const ready = computed(() => docIdx.value >= 0 && chapIdx.value >= 0)
+const searching = computed(() => searchQ.value.trim().length > 0)
 
 onMounted(() => {
   refresh()
@@ -47,9 +52,20 @@ function fmtSrc(d) {
   return m[d.format] || String(d.format || '资料').toUpperCase()
 }
 
+// ---- 搜索（300ms 防抖）----
+function onSearchInput() {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => refresh(), 300)
+}
+function clearSearch() {
+  searchQ.value = ''
+  clearTimeout(searchTimer)
+  refresh()
+}
+
 async function refresh() {
   try {
-    const d = await getDocuments()
+    const d = await getDocuments(searchQ.value)
     const done = (d.documents || []).filter(x => x.status === 'done')
     const selectedId = docIdx.value >= 0 && docs.value[docIdx.value] ? docs.value[docIdx.value].doc_id : ''
     docs.value = done
@@ -98,7 +114,7 @@ async function resumeLast() {
   } catch (e) { tip.value = '章节读取失败' }
 }
 
-// ---- 上传 ----
+// ---- 上传（左上角子功能）----
 function choose() { fileInput.value && fileInput.value.click() }
 function onFileChange(e) {
   const f = e.target && e.target.files && e.target.files[0]
@@ -144,12 +160,22 @@ async function doUpload(file, title) {
   try {
     const r = await uploadFile(file, title)
     if (!r || !r.ok) { tip.value = '上传失败：' + ((r && r.detail) || '未知错误'); return }
+    if (r.reused) {
+      // 共享书库命中：不重复解析，直接打开已有书
+      tip.value = '书库已有此书，已为你打开 ✓'
+      await refresh()
+      const i = docs.value.findIndex(d => d.doc_id === r.doc_id)
+      if (i >= 0) await onDocPick(i)
+      return
+    }
     if (r.status === 'processing') {
       tip.value = '转换中，请稍候…'
       pollTask(r.task_id, r.doc_id)
     } else {
       tip.value = '已上架 ✓'
-      refresh()
+      await refresh()
+      const i = docs.value.findIndex(d => d.doc_id === r.doc_id)
+      if (i >= 0) await onDocPick(i)
     }
   } catch (e) {
     tip.value = '上传失败：' + (e.message || e)
@@ -186,11 +212,21 @@ function go() {
 
 <template>
   <div class="page">
-    <div class="hero">
-      <div class="logo">墨</div>
+    <!-- 顶栏：左=品牌+上传子功能 · 中=共享书库搜索 -->
+    <div class="topbar">
       <div class="brand">
+        <div class="logo">墨</div>
         <div class="bname">墨衍</div>
-        <div class="bsub">AI 同桌 · 一章一章带你学透</div>
+      </div>
+      <button class="up-btn" :disabled="uploading" @click="choose">
+        <span class="up-ico">＋</span>
+        <span>{{ uploading ? '上传中…' : '上传教材' }}</span>
+      </button>
+      <div class="search">
+        <span class="s-ico">⌕</span>
+        <input v-model="searchQ" class="s-input" placeholder="搜索共享书库，大家传过的书都能用"
+               @input="onSearchInput" @keyup.enter="refresh" />
+        <span v-if="searching" class="s-clear" @click="clearSearch">×</span>
       </div>
     </div>
 
@@ -203,8 +239,9 @@ function go() {
     </div>
 
     <div class="sec">
-      <span class="sec-t">教材书架</span>
+      <span class="sec-t">{{ searching ? '搜索结果' : '共享书架' }}</span>
       <span class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪</span>
+      <span class="sec-c" v-else-if="searching">没有匹配的书籍</span>
     </div>
 
     <div class="list">
@@ -232,14 +269,21 @@ function go() {
         </div>
       </div>
 
-      <div class="doc up" @click="choose">
-        <div class="up-ico">＋</div>
-        <div class="up-txt">
-          <div class="up-t">上传新教材</div>
-          <div class="up-s">PDF / Word / PPT / 扫描件，原件即清理</div>
-        </div>
+      <!-- 空态：无搜索=书架空引导；有搜索=无结果 -->
+      <div v-if="!docs.length" class="empty">
+        <template v-if="searching">
+          <div class="e-t">没有找到「{{ searchQ.trim() }}」相关的书</div>
+          <div class="e-s">换个关键词试试，或者成为第一个上传它的人</div>
+          <button class="e-btn" @click="choose">＋ 上传这本书</button>
+        </template>
+        <template v-else>
+          <div class="e-t">书架还是空的</div>
+          <div class="e-s">搜索共享书库看看大家传过的书，或上传你的第一本教材</div>
+          <button class="e-btn" @click="choose">＋ 上传教材</button>
+        </template>
       </div>
-      <div class="doc-note">同桌已就位。规矩：先思路，后对答案。</div>
+
+      <div class="doc-note">无需登录 · 上传即共享 · 同桌已就位：先思路，后对答案</div>
     </div>
 
     <div class="foot">
@@ -266,13 +310,25 @@ function go() {
 </template>
 
 <style scoped>
-.page { height: 100vh; display: flex; flex-direction: column; padding: 18px 20px 16px; max-width: 640px; margin: 0 auto; width: 100%; }
+.page { height: 100vh; display: flex; flex-direction: column; padding: 14px 20px 16px; max-width: 640px; margin: 0 auto; width: 100%; }
 
-.hero { display: flex; align-items: center; padding: 6px 2px 16px; }
-.logo { width: 46px; height: 46px; border-radius: 14px; background: var(--ink); color: #f2e6c9; font-size: 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(22, 54, 40, 0.18); }
-.brand { margin-left: 12px; display: flex; flex-direction: column; }
-.bname { font-size: 24px; font-weight: 500; letter-spacing: 5px; color: var(--ink); line-height: 1.15; }
-.bsub { font-size: 12px; color: var(--tx-2); margin-top: 3px; letter-spacing: 1px; }
+/* 顶栏：品牌+上传 靠左，搜索占满剩余宽度 */
+.topbar { display: flex; align-items: center; gap: 10px; padding: 2px 0 12px; }
+.brand { display: flex; align-items: center; flex-shrink: 0; }
+.logo { width: 34px; height: 34px; border-radius: 10px; background: var(--ink); color: #f2e6c9; font-size: 18px; font-weight: 500; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(22, 54, 40, 0.18); }
+.bname { font-size: 17px; font-weight: 500; letter-spacing: 3px; color: var(--ink); margin-left: 8px; }
+
+.up-btn { display: flex; align-items: center; flex-shrink: 0; border: 1px dashed #cbbf9e; background: #faf6ea; color: #5a503a; font-size: 13px; padding: 7px 12px; border-radius: 999px; cursor: pointer; transition: background .15s; }
+.up-btn:hover { background: #f3ecd8; }
+.up-btn:disabled { opacity: .55; cursor: default; }
+.up-ico { font-size: 14px; margin-right: 4px; color: var(--ink-soft); }
+
+.search { flex: 1; min-width: 0; display: flex; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; }
+.search:focus-within { border-color: var(--ink-soft); box-shadow: 0 0 0 3px rgba(44, 110, 79, 0.10); }
+.s-ico { font-size: 15px; color: #a8987a; }
+.s-input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 13px; color: var(--tx); margin-left: 7px; }
+.s-input::placeholder { color: #b3a685; }
+.s-clear { font-size: 16px; color: #a8987a; cursor: pointer; padding: 0 2px 0 8px; }
 
 .resume { display: flex; align-items: center; background: linear-gradient(135deg, #163628 0%, #2c6e4f 100%); color: #f2e6c9; border-radius: 12px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(22, 54, 40, 0.18); cursor: pointer; }
 .ri { flex: 1; display: flex; flex-direction: column; }
@@ -280,7 +336,7 @@ function go() {
 .risub { font-size: 12px; color: #d8c9a0; margin-top: 3px; }
 .rgo { font-size: 13px; color: #f2e6c9; padding: 5px 13px; border: 1px solid #f2e6c9; border-radius: 999px; }
 
-.sec { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 3px 10px; }
+.sec { display: flex; align-items: baseline; justify-content: space-between; padding: 2px 3px 10px; }
 .sec-t { font-size: 16px; font-weight: 500; color: var(--tx); }
 .sec-c { font-size: 12px; color: #9a8f74; }
 
@@ -305,11 +361,10 @@ function go() {
 .tick { color: var(--ink-soft); font-size: 14px; margin-left: 7px; font-weight: 500; }
 .chap.hint { color: #9a8f74; font-size: 13px; justify-content: center; }
 
-.doc.up { display: flex; align-items: center; border-style: dashed; border-color: #cbbf9e; background: #faf6ea; cursor: pointer; }
-.up-ico { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: #f2e6c9; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.up-txt { margin-left: 12px; display: flex; flex-direction: column; }
-.up-t { font-size: 15px; color: #3a3a3a; }
-.up-s { font-size: 12px; color: #a09474; margin-top: 3px; }
+.empty { text-align: center; padding: 44px 20px 20px; }
+.e-t { font-size: 16px; color: #4a4433; font-weight: 500; }
+.e-s { font-size: 13px; color: #a09474; margin-top: 8px; }
+.e-btn { margin-top: 18px; border: 0; background: var(--ink); color: #f2e6c9; font-size: 14px; padding: 10px 22px; border-radius: 999px; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 54, 40, 0.20); }
 .doc-note { text-align: center; color: #b0a487; font-size: 12px; padding: 6px 0 14px; letter-spacing: 1px; }
 
 .foot { padding-top: 12px; }

@@ -79,8 +79,10 @@ _TABLE_ADDITIONS: dict[str, dict[str, str]] = {
               "user_id": "VARCHAR(64)"},
     # 书籍自定义命名（2026-09-01：title 展示名，空串回退 filename）
     # 鉴权落档（2026-09-02）：upload 时写入 user_id
+    # 共享书库去重（2026-09-03）：文件 sha256
     "documents": {"title": "VARCHAR(255) DEFAULT ''",
-                  "user_id": "VARCHAR(64)"},
+                  "user_id": "VARCHAR(64)",
+                  "content_hash": "VARCHAR(64)"},
     "judgements": {"user_id": "VARCHAR(64)"},
     "weaknesses": {"user_id": "VARCHAR(64)"},
     "strategy_logs": {"user_id": "VARCHAR(64)"},

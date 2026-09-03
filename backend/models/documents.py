@@ -14,6 +14,8 @@ class Document(Base):
     doc_id: Mapped[str] = mapped_column(String(40), primary_key=True)
     # 鉴权落档（2026-09-02 部署前置）：NULL = 鉴权前老数据 / 游客
     user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    # 共享书库去重（2026-09-03）：文件 sha256，同 hash 的 done 文档上传时直接复用
+    content_hash: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     filename: Mapped[str] = mapped_column(String(255))
     # 展示名（用户可改）；空串时回退 filename。2026-09-01 书籍自定义命名。
     title: Mapped[str] = mapped_column(String(255), default="")

@@ -1,6 +1,6 @@
 // 墨衍网页版 · 教学辅导 API：start（普通 JSON）+ turn（SSE 流式）
 // SSE 解析逻辑与小程序 api.js::_streamTurnH5 同构：缓冲到 \n\n 分帧，data: JSON 逐事件回调
-import { request, authHeader, clearAuth } from './client.js'
+import { request, authHeader, getDeviceId } from './client.js'
 
 export function startTutor(docId, chapterIndex) {
   return request('POST', '/api/tutor/start', {
@@ -11,14 +11,12 @@ export function startTutor(docId, chapterIndex) {
 export function streamTurn(payload, onEvent) {
   const doFetch = () => fetch('/api/tutor/turn', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId(), ...authHeader() },
     body: JSON.stringify(payload),
   })
   return doFetch().then(async resp => {
     if (resp.status === 401) {
-      clearAuth()
-      location.href = '/login'
-      throw new Error('登录已失效')
+      throw new Error('登录状态失效，请刷新页面重试')
     }
     if (!resp.ok) {
       let detail = ''

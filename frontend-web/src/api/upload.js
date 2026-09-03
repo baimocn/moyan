@@ -1,5 +1,5 @@
 // 墨衍网页版 · 上传 + 任务轮询 API
-import { request, authHeader, getToken } from './client.js'
+import { request, authHeader, getDeviceId } from './client.js'
 
 export async function uploadFile(file, displayName) {
   const fd = new FormData()
@@ -8,13 +8,14 @@ export async function uploadFile(file, displayName) {
   const resp = await fetch('/api/upload', {
     method: 'POST',
     body: fd,
-    headers: authHeader(), // fetch + FormData 不手动设 Content-Type（浏览器自动带 boundary）
+    headers: { 'X-Device-Id': getDeviceId(), ...authHeader() }, // fetch + FormData 不手动设 Content-Type（浏览器自动带 boundary）
   })
-  if (resp.status === 401) throw new Error('登录已失效，请重新登录')
   if (!resp.ok) {
     let detail = ''
     try { detail = (await resp.json()).detail || '' } catch (e) { /* ignore */ }
-    throw new Error(detail || `HTTP ${resp.status}`)
+    const err = new Error(detail || `HTTP ${resp.status}`)
+    err.status = resp.status
+    throw err
   }
   return resp.json()
 }

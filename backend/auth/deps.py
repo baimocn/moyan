@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..settings import app_settings
@@ -92,5 +92,50 @@ def get_current_user_optional(
     if not openid:
         return None
     u = CurrentUser(openid=openid, user_id=openid, is_mock=False)
+    request.state.user = u
+    return u
+
+
+_DEVICE_ID_RE = __import__("re").compile(r"^[A-Za-z0-9_-]{8,64}$")
+
+
+def get_requester(
+    request: Request,
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    device_id: str = Header(default="", alias="X-Device-Id"),
+) -> CurrentUser:
+    """可登录可匿名的请求者解析（网页版免登录核心，2026-09-03）。
+
+    优先级：
+    1. AUTH_DISABLED=1 → mock dev_user（本地开发）
+    2. Bearer 有效    → 真实用户（小程序 / 已登录网页用户，行为不变）
+    3. X-Device-Id    → 匿名设备用户 web_<did>（网页免登录，进度按浏览器隔离）
+    4. 都没有         → web_anon 兜底
+
+    总是设置 request.state.user —— 限流 key_func 以此为维度。
+    """
+    # 1. 开发模式免鉴权
+    if app_settings.auth_disabled:
+        u = _mock_user()
+        request.state.user = u
+        return u
+
+    # 2. Bearer 有效 → 真实用户
+    if creds is not None and creds.credentials:
+        try:
+            payload = verify_token(creds.credentials)
+            openid = str(payload.get("sub") or "")
+            if openid:
+                u = CurrentUser(openid=openid, user_id=openid, is_mock=False)
+                request.state.user = u
+                return u
+        except Exception:  # noqa: BLE001 token 无效不拒客，落入匿名分支
+            pass
+
+    # 3/4. 匿名：X-Device-Id（白名单清洗）或 web_anon 兜底
+    did = (device_id or "").strip()
+    if not _DEVICE_ID_RE.match(did):
+        did = "anon"
+    u = CurrentUser(openid=f"web_{did}", user_id=f"web_{did}", is_mock=False)
     request.state.user = u
     return u
