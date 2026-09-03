@@ -20,6 +20,9 @@ apikeys.*
 # 前端依赖与构建产物（npm install / npm run build:mp-weixin 可重建）
 frontend/node_modules/
 frontend/dist/
+# 网页版独立工程（2026-09-03）
+frontend-web/node_modules/
+frontend-web/dist/
 # 参考资料库（外部参考，不入版本库）
 参考项目/
 # 杂项

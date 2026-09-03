@@ -132,10 +132,15 @@ class UserProfile(Base):
 
     user_id 形如 openid（开发期为 dev_xxx / wx_dev_user 等）。
     关键查询：按 user_id 拿 sessions/turns/judgements 计数（me 接口）。
+
+    2026-09-03 网页版：auth_type 区分 wx | web；email/password_hash 仅网页用户有值。
     """
     __tablename__ = "user_profiles"
 
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    auth_type: Mapped[str] = mapped_column(String(16), default="wx")   # wx | web
+    email: Mapped[str | None] = mapped_column(String(128), index=True, nullable=True, unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     nick_name: Mapped[str] = mapped_column(String(64), default="")
     avatar_url: Mapped[str] = mapped_column(String(512), default="")
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)

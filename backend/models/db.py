@@ -84,6 +84,12 @@ _TABLE_ADDITIONS: dict[str, dict[str, str]] = {
     "judgements": {"user_id": "VARCHAR(64)"},
     "weaknesses": {"user_id": "VARCHAR(64)"},
     "strategy_logs": {"user_id": "VARCHAR(64)"},
+    # 网页版邮箱密码登录（2026-09-03 网页版 MVP）：auth_type/email/password_hash
+    "user_profiles": {
+        "auth_type": "VARCHAR(16) DEFAULT 'wx'",
+        "email": "VARCHAR(128)",
+        "password_hash": "VARCHAR(255)",
+    },
 }
 
 

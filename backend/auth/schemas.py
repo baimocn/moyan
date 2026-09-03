@@ -1,7 +1,18 @@
 """墨衍 · 鉴权 Pydantic 模型。"""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+import re
+
+from pydantic import BaseModel, Field, field_validator
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _check_email(v: str) -> str:
+    v = v.strip().lower()
+    if not _EMAIL_RE.match(v):
+        raise ValueError("邮箱格式无效")
+    return v
 
 
 class WxLoginReq(BaseModel):
@@ -18,6 +29,29 @@ class DevLoginReq(BaseModel):
     用于本地调试 / 微信开发者工具「游客模式」绕过登录：直接传 dev_openid 拿到 token。
     """
     dev_openid: str = Field(default="dev_user", min_length=1, max_length=64)
+
+
+class RegisterReq(BaseModel):
+    """网页版邮箱密码注册（2026-09-03 网页版 MVP）。"""
+    email: str = Field(min_length=5, max_length=128)
+    password: str = Field(min_length=8, max_length=64)
+    nick_name: str = Field(default="", max_length=64)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        return _check_email(v)
+
+
+class LoginReq(BaseModel):
+    """网页版邮箱密码登录。"""
+    email: str = Field(min_length=5, max_length=128)
+    password: str = Field(min_length=1, max_length=64)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        return _check_email(v)
 
 
 class LoginResp(BaseModel):
