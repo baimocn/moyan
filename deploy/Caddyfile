@@ -54,23 +54,22 @@
     }
 
     # 教学流（SSE）：反代关缓冲，立即推流
+    # 注：buffer_requests 是 v2.9+ 子指令,标准 caddy v2.8 不认 → 不写,flush_interval -1 已够
     @sse path /api/tutor/turn
     handle @sse {
         reverse_proxy 127.0.0.1:5001 {
             flush_interval -1
-            buffer_requests false
         }
     }
 
     # 其余业务：标准反代
+    # 注：max_request_body_size 不是标准子指令 → 用 request_body 块(v2.7.6+)
+    #     header_up X-Forwarded-* 由 Caddy 默认填充,无需手写
     handle {
+        request_body {
+            max_size 250MB
+        }
         reverse_proxy 127.0.0.1:5001 {
-            # 传递客户端 IP（鉴权/限流/审计用）
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-For {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-            # 上传教材允许大 body
-            max_request_body_size 250MB
         }
     }
 
