@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import AsyncIterator
 
@@ -15,6 +16,8 @@ from ..quiz import QuizService
 from ..schemas import KnowledgePlan, KnowledgePoint, TutorState
 from .actions import TutorActions
 from .session import TutorSession
+
+logger = logging.getLogger("moyan.tutor")
 
 
 class TutorService:
@@ -49,8 +52,9 @@ class TutorService:
         preview = (storage.get_chapter(doc_id, chapter_index) or {}).get("markdown", "")[:600]
 
         # 章计划缓存（真实引擎一次生成 ~80s；只该每章一次，之后复用）
+        # 坏缓存（<3 站，历史上 prompt 不强导致）直接失效重生成并覆盖
         cached = storage.load_learning_plan(doc_id, chapter_index)
-        if cached:
+        if cached and len(cached) >= 3:
             plan = KnowledgePlan(
                 chapter_id=f"ch{chapter_index}", chapter_title=chapter_title,
                 kps=[KnowledgePoint(id=k["id"], name=k["name"],
@@ -59,6 +63,9 @@ class TutorService:
                      for k in cached],
             )
         else:
+            if cached:
+                logger.warning("章计划缓存不合格（%d 站 <3），重新生成: %s ch%s",
+                               len(cached), doc_id, chapter_index)
             plan = await self._quiz.plan_knowledge(
                 f"ch{chapter_index}", chapter_title, toc_titles, preview,
             )

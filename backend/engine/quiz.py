@@ -76,7 +76,7 @@ class QuizService:
         heading_structure: str, preview: str = "",
     ) -> KnowledgePlan:
         if self.mock or self._client is None:
-            return self._mock_plan(chapter_id, chapter_title, heading_structure)
+            return self._mock_plan(chapter_id, chapter_title, heading_structure, preview)
         messages = [{"role": "user", "content": KNOWLEDGE_PLAN_INSTRUCTION.format(
             chapter_title=chapter_title,
             heading_structure=heading_structure or "（无子标题结构）",
@@ -90,12 +90,19 @@ class QuizService:
             )
             plan.chapter_id = chapter_id
             plan.chapter_title = chapter_title
+            # 数量硬约束：LLM 只给 1-2 站时视为不合格，退回增强兜底（保证 >=3 站）
+            if len(plan.kps) < 3:
+                logger.warning(
+                    "知识点计划仅 %d 站（不合格），退回增强兜底：%s", len(plan.kps), chapter_title)
+                return self._mock_plan(chapter_id, chapter_title, heading_structure, preview)
             return plan
         except Exception as exc:  # noqa: BLE001
             logger.warning("知识点计划生成失败，退回 mock 计划（教学序列会退化）：%s", exc)
-            return self._mock_plan(chapter_id, chapter_title, heading_structure)
+            return self._mock_plan(chapter_id, chapter_title, heading_structure, preview)
 
-    def _mock_plan(self, chapter_id: str, chapter_title: str, heading_structure: str) -> KnowledgePlan:
+    def _mock_plan(self, chapter_id: str, chapter_title: str,
+                   heading_structure: str, preview: str = "") -> KnowledgePlan:
+        """无 LLM 可用时的兜底教学序列：heading → 教材句子 → 三段框架，保证 >=3 站。"""
         heads = [h.strip() for h in (heading_structure or "").split("|") if h.strip()]
         kps = []
         for i, h in enumerate(heads[:8], 1):
@@ -105,10 +112,36 @@ class QuizService:
                 summary=f"来自小节：{name}",
                 skill_id=f"kp-{i:02d}",
             ))
-        if not kps:
-            kps.append(KnowledgePoint(id=f"{chapter_id}/kp-01", name=chapter_title,
-                                      summary="本章", skill_id="kp-01"))
-        return KnowledgePlan(chapter_id=chapter_id, chapter_title=chapter_title, kps=kps)
+
+        # 无子标题结构但有教材片段：按句切分归纳，至少 3 站
+        if len(kps) < 3 and preview:
+            sents = [s.strip() for s in re.split(r"[。！？；\n]+", preview or "")
+                     if s.strip() and len(s.strip()) > 6]
+            for i, s in enumerate(sents[:8], len(kps) + 1):
+                name = s[:16] + ("…" if len(s) > 16 else "")
+                kps.append(KnowledgePoint(
+                    id=f"{chapter_id}/kp-{i:02d}", name=name,
+                    summary=s[:48],
+                    skill_id=f"kp-{i:02d}",
+                ))
+
+        # 仍不足 3 站：按"引入→核心概念→应用/小结"三段框架补足（禁整章名当唯一知识点）
+        if len(kps) < 3:
+            base = chapter_title or "本章"
+            frames = [
+                ("引入与背景", f"为什么学{base}、解决什么问题"),
+                ("核心概念", f"{base}的核心概念与原理"),
+                ("应用与小结", f"{base}的典型应用与本节小结"),
+            ]
+            for i, (name, summary) in enumerate(frames[:8], len(kps) + 1):
+                kps.append(KnowledgePoint(
+                    id=f"{chapter_id}/kp-{i:02d}", name=name,
+                    summary=summary, skill_id=f"kp-{i:02d}",
+                ))
+                if len(kps) >= 3:
+                    break
+
+        return KnowledgePlan(chapter_id=chapter_id, chapter_title=chapter_title, kps=kps[:8])
 
     async def make_question(
         self, *, context: str, weak_points: str,
