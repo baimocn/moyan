@@ -17,7 +17,7 @@ const KEY_OPENID = 'moyan:openid'
 const BASE = ''
 // #endif
 // #ifdef MP-WEIXIN
-const BASE = 'http://127.0.0.1:5001'
+const BASE = 'https://moyan.baimo7715.top'
 // #endif
 
 function _setToken(token, userId, openid) {

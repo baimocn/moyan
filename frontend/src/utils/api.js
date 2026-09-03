@@ -9,7 +9,7 @@
 export const BASE = ''
 // #endif
 // #ifdef MP-WEIXIN
-export const BASE = 'http://127.0.0.1:5001'
+export const BASE = 'https://moyan.baimo7715.top'
 // #endif
 
 import { ensureLogin, getToken } from './auth.js'
