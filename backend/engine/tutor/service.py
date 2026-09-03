@@ -138,13 +138,16 @@ class TutorService:
 
     # ---------- 主轮 ----------
 
-    async def handle_turn(self, session_id: str, user_text: str) -> AsyncIterator[dict]:
+    async def handle_turn(self, session_id: str, user_text: str,
+                          user_id: str = "") -> AsyncIterator[dict]:
         ses = self.sessions.get(session_id)
         if ses is None and repo.load_session(session_id):
             ses = self.resume_session(session_id)   # 服务重启后按档案自动恢复
         if ses is None:
             yield {"type": "error", "error": "会话不存在"}
             return
+        if user_id and not ses.user_id:
+            ses.user_id = user_id   # 游客会话登录后归属补挂
         yield {"type": EV_START, "session_id": session_id,
                "chapter": ses.chapter_title, "state": ses.state.value,
                "ts": _tznow().timestamp()}

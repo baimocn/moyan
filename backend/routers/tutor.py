@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -32,7 +32,7 @@ class TurnReq(BaseModel):
 
 @router.post("/start")
 @limiter.limit(L_TUTOR)
-async def tutor_start(request: Request, req: StartReq,
+async def tutor_start(request: Request, response: Response, req: StartReq,
                       user: CurrentUser = Depends(get_current_user)):
     srv = get_services()
     try:
@@ -59,7 +59,7 @@ async def tutor_start(request: Request, req: StartReq,
 
 @router.post("/turn")
 @limiter.limit(L_TUTOR)
-async def tutor_turn(request: Request, req: TurnReq,
+async def tutor_turn(request: Request, response: Response, req: TurnReq,
                      user: CurrentUser = Depends(get_current_user)):
     srv = get_services()
     try:

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import contextvars
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
 
 from .. import config, storage, tasks
 from ..auth.deps import CurrentUser, get_current_user_optional
@@ -158,7 +158,7 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "")
 
 @router.post("/upload")
 @limiter.limit(L_UPLOAD)
-async def upload(request: Request, file: UploadFile = File(...),
+async def upload(request: Request, response: Response, file: UploadFile = File(...),
                  display_name: str = Form(""),
                  user: CurrentUser | None = Depends(get_current_user_optional)):
     """上传教材（5/hour/user_id）。user_id 落档到 documents 表（鉴权后才有 user_id 列写入）。"""

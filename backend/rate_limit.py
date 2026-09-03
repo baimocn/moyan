@@ -5,6 +5,8 @@ key_func：优先 user_id（鉴权后从 request.state.user 拿），否则客�
 
 约定：
 - 装饰器要求被装饰的函数第一参数为 request: Request（slowapi 内部读 self）
+- headers_enabled=True 时，被装饰端点【必须】声明 response: Response 参数，
+  否则 slowapi 注入 X-RateLimit-* 头时抛 500（业务已执行但响应失败，教训 2026-09-03）
 - 自定义 429 响应：返 JSON {detail, retry_after}
 - mock 模式 / AUTH_DISABLED 时仍走限流（防 dev 误打）
 """
