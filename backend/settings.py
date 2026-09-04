@@ -29,6 +29,9 @@ class AppSettings(BaseSettings):
     ocr_intra_threads: int = 2
     parser_engine: str = "docling"     # docling（主引擎，需 .docling-venv）| legacy（RapidOCR/文本层快路径）
     teaching_reviewer: str = "sample"  # 输出后裁判：off | sample（默认） | on
+    # ---- 上传内容安全审核（MOD-01，2026-09-04）----
+    # 上架前 AI 审核（黄赌毒等违禁内容拒绝入库）；0 可关闭（本地自用环境）
+    moderation: bool = True
     ai_mock: bool = False              # 显式开启 mock 演示（无 key 且未开时拒绝 AI 服务）
     cors_origins: str = ""             # 跨源白名单（逗号分隔，如 https://moyan.example）；空=仅同源
     debug: bool = False

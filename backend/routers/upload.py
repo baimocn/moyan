@@ -13,11 +13,13 @@ from __future__ import annotations
 
 import contextvars
 import hashlib
+import shutil
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
 
 from .. import config, storage, tasks
 from ..auth.deps import CurrentUser, get_requester
+from ..engine.moderation import moderate_markdown_async, stats_entry as mod_stats
 from ..engine.proofread import cleanup_original
 from ..models import Document, SessionLocal
 from ..rate_limit import L_UPLOAD, limiter
@@ -60,6 +62,12 @@ def _save_document_record(db, doc_id: str, *, status: str, title: str = "",
     db.commit()
 
 
+def _raise_rejected(doc_id: str, mod: dict) -> None:
+    """同步路径审核拒绝：清理上传残壳并 422（不落任何库记录与产物）。"""
+    shutil.rmtree(config.UPLOAD_DIR / doc_id, ignore_errors=True)
+    raise HTTPException(422, detail=f"内容审核未通过：{mod.get('reason') or '内容违规'}")
+
+
 def _doc_response(doc_id: str, filename: str, ext: str, split, headings,
                   source: str, page_count: int, stats: dict, warnings: list,
                   title: str = "") -> dict:
@@ -98,13 +106,16 @@ def _doc_response(doc_id: str, filename: str, ext: str, split, headings,
     }
 
 
-def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
-                           upload_path, work, title: str = "") -> dict:
+async def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
+                                 upload_path, work, title: str = "") -> dict:
     """Docling 同步转换（office 小件）。"""
     meta = convert_sync(upload_path, work)
     markdown = (meta.get("markdown") or "").strip()
     if not markdown:
         raise HTTPException(422, detail=meta.get("error") or "Docling 未产出内容")
+    mod = await moderate_markdown_async(markdown)
+    if mod["verdict"] == "reject":
+        _raise_rejected(doc_id, mod)
     split = split_markdown(markdown)
     storage.save_markdown(doc_id, markdown)
     storage.save_chapters(doc_id, split.chapters)
@@ -112,18 +123,22 @@ def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
     return _doc_response(
         doc_id, filename, ext, split, None,
         source="docling", page_count=meta.get("page_count", 0),
-        stats={"docling": {k: meta.get(k) for k in ("page_count", "chars", "seconds", "ok")}},
+        stats={"docling": {k: meta.get(k) for k in ("page_count", "chars", "seconds", "ok")},
+               "moderation": mod_stats(mod)},
         warnings=[f"Docling 同步转换 {meta.get('seconds', '?')}s"],
         title=title,
     )
 
 
-def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "") -> dict:
+async def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "") -> dict:
     """Docling 环境缺失时的 PDF 回落：文本层同步 / 扫描件异步（旧行为）。"""
     result = parse_pdf(str(upload_path))
     markdown = result.markdown or ""
     with SessionLocal() as db:
         if markdown:
+            mod = await moderate_markdown_async(markdown)
+            if mod["verdict"] == "reject":
+                _raise_rejected(doc_id, mod)
             split = split_markdown(markdown)
             storage.save_markdown(doc_id, markdown)
             storage.save_chapters(doc_id, split.chapters)
@@ -140,7 +155,9 @@ def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str = "")
                 page_count=result.page_count, source="text-layer",
                 md_chars=split.total_chars, chapter_count=len(split.chapters),
                 headings=[{"level": h.level, "text": h.text} for h in result.headings][:200],
-                warnings=result.warnings, stats=result.stats, manifest=manifest,
+                warnings=result.warnings,
+                stats={**result.stats, "moderation": mod_stats(mod)},
+                manifest=manifest,
             )
             return {"ok": True, "doc_id": doc_id, "status": "done",
                     "document": {"doc_id": doc_id, "filename": filename,
@@ -237,6 +254,12 @@ async def upload(request: Request, response: Response, file: UploadFile = File(.
     # md/txt：直读
     if kind["kind"] == "md":
         markdown = upload_path.read_text(encoding="utf-8")
+        mod = await moderate_markdown_async(markdown)
+        if mod["verdict"] == "reject":
+            _raise_rejected(doc_id, mod)
+        warnings = ["Markdown 直读"]
+        if mod.get("skipped") == "error":
+            warnings.append(mod.get("reason") or "审核服务异常")
         split = split_markdown(markdown)
         storage.save_markdown(doc_id, markdown)
         storage.save_chapters(doc_id, split.chapters)
@@ -244,14 +267,15 @@ async def upload(request: Request, response: Response, file: UploadFile = File(.
         return _doc_response(
             doc_id, filename, ext, split, None,
             source="text-layer", page_count=0,
-            stats={"source": "md"}, warnings=["Markdown 直读"],
+            stats={"source": "md", "moderation": mod_stats(mod)},
+            warnings=warnings,
             title=title,
         )
 
     # Docling 缺失 → 回落
     if not docling_available():
         if ext == ".pdf":
-            return _legacy_pdf_upload(doc_id, filename, upload_path, title=title)
+            return await _legacy_pdf_upload(doc_id, filename, upload_path, title=title)
         raise HTTPException(
             415,
             detail="Docling 环境未就绪（缺 .docling-venv），暂只有 PDF 支持回落。"
@@ -262,7 +286,7 @@ async def upload(request: Request, response: Response, file: UploadFile = File(.
     if kind["sync"] and kind["kind"] in ("office",):
         work = config.WORK_DIR / f"docling_{doc_id}"
         work.mkdir(parents=True, exist_ok=True)
-        return _finalize_docling_sync(doc_id, filename, ext, upload_path, work, title=title)
+        return await _finalize_docling_sync(doc_id, filename, ext, upload_path, work, title=title)
 
     # PDF / 图片 / 大件办公：异步 Docling 任务
     with SessionLocal() as db:

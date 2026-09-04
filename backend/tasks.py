@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import queue
+import shutil
 import threading
 import traceback
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ from pathlib import Path
 from sqlalchemy import select
 
 from . import config, storage
+from .engine.moderation import moderate_markdown_sync, stats_entry as mod_stats
 from .models import Document, SessionLocal, Task
 from .engine.proofread import cleanup_original
 from .container import services
@@ -58,6 +60,21 @@ def _update_task(task_id: str, **fields) -> None:
             setattr(task, k, v)
         task.updated_at = datetime.now(timezone.utc)
         db.commit()
+
+
+def _reject_document(task_id: str, doc_id: str, mod: dict, work: Path | None = None) -> None:
+    """异步任务审核拒绝（MOD-01）：任务 failed + 文档 rejected + 产物不落盘 + 残壳清理。"""
+    reason = mod.get("reason") or "内容违规"
+    _update_task(task_id, status="failed", progress=1.0,
+                 message=f"内容审核未通过：{reason}",
+                 finished_at=datetime.now(timezone.utc))
+    _update_document(doc_id, status="rejected",
+                     stats={"moderation": mod_stats(mod)},
+                     warnings=[f"内容审核未通过：{reason}"])
+    if work is not None:
+        shutil.rmtree(work, ignore_errors=True)
+    cleanup_original(doc_id)
+    print(f"[task {task_id}] 内容审核拒绝 {doc_id}：{reason}")
 
 
 def _update_document(doc_id: str, **fields) -> None:
@@ -110,6 +127,13 @@ def _run_ocr_task(task_id: str) -> None:
         _update_task(task_id, progress=1.0, message="切割章节…")
 
         markdown = ocr_result.markdown or ""
+        # MOD-01：AI 内容审核（校对等付费步骤之前，拒绝则直接终止）
+        _update_task(task_id, message="AI 内容审核中…")
+        mod = moderate_markdown_sync(markdown)
+        if mod["verdict"] == "reject":
+            _reject_document(task_id, doc_id, mod, work)
+            return
+        mod_warn = [mod.get("reason")] if mod.get("skipped") == "error" else []
         # D8：教材校对（定点纠错，教材可信度最高）+ 原件清理
         corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
         if n_corrected:
@@ -139,8 +163,8 @@ def _run_ocr_task(task_id: str) -> None:
             md_chars=split.total_chars,
             chapter_count=len(split.chapters),
             headings=[{"level": h.level, "text": h.text} for h in ocr_result.headings][:200],
-            warnings=ocr_result.warnings,
-            stats=ocr_result.stats,
+            warnings=[*ocr_result.warnings, *mod_warn],
+            stats={**ocr_result.stats, "moderation": mod_stats(mod)},
             manifest=manifest,
             status="done",
         )
@@ -204,6 +228,14 @@ def _run_docling_task(task_id: str) -> None:
             _update_document(doc_id, status="failed")
             return
 
+        # MOD-01：AI 内容审核（校对等付费步骤之前，拒绝则直接终止）
+        _update_task(task_id, message="AI 内容审核中…")
+        mod = moderate_markdown_sync(markdown)
+        if mod["verdict"] == "reject":
+            _reject_document(task_id, doc_id, mod, work)
+            return
+        mod_warn = [mod.get("reason")] if mod.get("skipped") == "error" else []
+
         corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
         if n_corrected:
             print(f"[task {task_id}] 校对修正 {n_corrected} 处")
@@ -230,8 +262,9 @@ def _run_docling_task(task_id: str) -> None:
             md_chars=split.total_chars,
             chapter_count=len(split.chapters),
             headings=[{"level": c.level, "text": c.title} for c in split.chapters][:200],
-            warnings=[f"Docling 转换 {meta.get('seconds', '?')}s（docling_worker）"],
-            stats={"docling": {k: meta.get(k) for k in ("page_count", "chars", "seconds", "ok")}},
+            warnings=[f"Docling 转换 {meta.get('seconds', '?')}s（docling_worker）", *mod_warn],
+            stats={"docling": {k: meta.get(k) for k in ("page_count", "chars", "seconds", "ok")},
+                   "moderation": mod_stats(mod)},
             manifest=manifest,
             status="done",
         )
