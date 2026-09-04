@@ -18,15 +18,19 @@
 - [ ] **DOC-02**: 删除不存在的 doc_id 返回 404；幂等重删返回 404（不做软删除，v2 再议）
 - [ ] **DOC-03**: 网页版书架对 admin 显示删除入口（确认弹层），删除后列表即时刷新
 
+### MOD — 上传内容安全审核（2026-09-04 新增，已上线）
+
+- [x] **MOD-01**: 文本产出后、付费 AI 步骤（校对）与上架前，用粗活引擎 json_mode 一次判定；黄赌毒等违禁 → 同步路径 422 / 异步任务 status=rejected+task failed，产物不落盘；fail-open（审核异常放行+warnings 留痕）；mock/未配引擎/MOYAN_MODERATION=0 跳过；通过则 stats.moderation 留痕（verdict/category/reason/engine）
+
 ### COST — 成本可见
 
-- [ ] **COST-01**: 每次 AI 调用记录 usage（prompt_tokens/completion_tokens/model/endpoint）到新表 `ai_usage`，含日期；管理统计接口可按天聚合并按 env 单价估算金额（¥）
+- [x] **COST-01**: `ai_usage` 统一台账（providers/structured 出口自动记账，ai_scope 标注 endpoint，重试/failover 各记一行）；`GET /api/admin/usage` 按天×endpoint×模型聚合（2026-09-04 上线，只记 tokens 不估金额——用户用套餐）
 
 ### STATS — 浏览量统计（双前端共用，有人点进来就算）
 
-- [ ] **STATS-01**: `POST /api/metrics/pv`（免鉴权、fire-and-forget）：body `{source: web|mp, page, device_id}`，写入 `page_views(id, ts, source, page, device_id)`
-- [ ] **STATS-02**: 双端埋点：frontend-web router afterEach 上报；小程序 App onShow 上报（失败静默，绝不影响主流程）
-- [ ] **STATS-03**: 统计接口 `GET /api/admin/stats`（admin only）返回：今日/累计 PV、UV（device_id 去重）、来源分布（web vs mp）、教学轮次数、文档数、token 消耗与估算金额
+- [x] **STATS-01**: `POST /api/metrics/pv`（免鉴权、fire-and-forget）：body `{source: web|mp, page, device_id}`，写入 `page_views(id, ts, source, page, device_id)`
+- [x] **STATS-02**: 网页端 router.afterEach sendBeacon 上报已上线；小程序侧代码已备好（docs/待合入-小程序埋点.md），0.2.1 审核通过后合入
+- [x] **STATS-03**: 统计接口 `GET /api/admin/stats`（admin only）：今日/累计 PV、UV、来源分布、教学轮次数、文档数、token 消耗（金额估算按用户决策不做）
 
 ### ADMINUI — 管理后台页
 
