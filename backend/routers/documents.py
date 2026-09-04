@@ -125,6 +125,10 @@ async def rename_document(doc_id: str, body: RenameIn,
         doc = db.get(Document, doc_id)
         if doc is None:
             raise HTTPException(404, detail="文档不存在")
+        # 同名短路（REN-01 边界）：改成当前名是无效操作，不烧 AI（title 为空的书
+        # 展示名来自文件名，不适用短路）
+        if doc.title and doc.title == title[:200]:
+            return {"ok": True, "document": _doc_to_dict(doc), "unchanged": True}
         if user.role != "admin":
             md = ""
             try:
