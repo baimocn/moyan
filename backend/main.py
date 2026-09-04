@@ -16,7 +16,7 @@ from . import config, tasks
 from .auth.router import router as auth_router
 from .models import init_db
 from .rate_limit import _rate_limit_handler, limiter
-from .routers import documents, study, tasks as tasks_router, tutor, upload
+from .routers import admin, documents, metrics, study, tasks as tasks_router, tutor, upload
 from .settings import app_settings
 
 
@@ -51,6 +51,8 @@ app.include_router(documents.router)
 app.include_router(tasks_router.router)
 app.include_router(tutor.router)
 app.include_router(study.router)
+app.include_router(metrics.router)
+app.include_router(admin.router)
 
 # 双前端地基（2026-08-29）：跨源白名单（MOYAN_CORS_ORIGINS，逗号分隔）。
 # 默认空 = 行为与从前完全一致（仅同源）；小程序 wx.request 不走浏览器 CORS，不受此影响。

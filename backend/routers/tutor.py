@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from ..auth.deps import CurrentUser, get_requester
 from ..container import EngineNotReadyError, get_services
+from ..ledger import ai_scope
 from ..models import repo
 from ..rate_limit import L_TUTOR, limiter
 
@@ -71,9 +72,12 @@ async def tutor_turn(request: Request, response: Response, req: TurnReq,
 
     async def gen():
         try:
-            async for ev in srv.tutor.handle_turn(req.session_id, req.user_text,
-                                                  user_id=user.openid):
-                yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
+            # 本轮所有真实 AI 调用（讲解流/判定/出题/质检）统一记 tutor_turn 台账
+            with ai_scope("tutor_turn", session_id=req.session_id,
+                          user_id=user.openid or None):
+                async for ev in srv.tutor.handle_turn(req.session_id, req.user_text,
+                                                      user_id=user.openid):
+                    yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
         except Exception as exc:  # noqa: BLE001 流中兜底，前端可感知而非挂死
             yield f"data: {json.dumps({'type': 'error', 'error': str(exc)}, ensure_ascii=False)}\n\n"
         finally:

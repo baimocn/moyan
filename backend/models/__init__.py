@@ -2,10 +2,11 @@
 from .documents import Document
 from .tasks import Task
 from .study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
+from .usage import AiUsage, PageView
 from .db import Base, SessionLocal, engine, get_db, init_db
 
 __all__ = [
     "Document", "Task", "TeachingSession", "Turn", "Judgement", "Weakness",
-    "StrategyLog",
+    "StrategyLog", "AiUsage", "PageView",
     "Base", "SessionLocal", "engine", "get_db", "init_db",
 ]

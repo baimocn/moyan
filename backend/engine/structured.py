@@ -17,6 +17,15 @@ from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
+
+def _ledger_record(model: str, resp_model: str, usage: dict) -> None:
+    """台账记账（懒导入防循环依赖；失败内部已兜底）。"""
+    try:
+        from ..ledger import record
+        record(model, resp_model, usage)
+    except Exception:  # noqa: BLE001
+        pass
+
 _SCHEMA_HINT = """输出要求：
 - 返回**纯 JSON**（不要 markdown 代码块、不要前后缀文字）；
 - JSON 必须能按结构解析：{hint}"""
@@ -54,6 +63,7 @@ async def chat_json(
             )
             content = _strip_fences((resp.choices[0].message.content or "").strip())
             usage = _usage_dict(resp.usage)
+            _ledger_record("", getattr(resp, "model", "") or model, usage)
             if not content:
                 raise ValueError("空响应")
             data = json.loads(content)

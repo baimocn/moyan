@@ -20,6 +20,7 @@ from sqlalchemy import select
 
 from . import config, storage
 from .engine.moderation import moderate_markdown_sync, stats_entry as mod_stats
+from .ledger import ai_scope
 from .models import Document, SessionLocal, Task
 from .engine.proofread import cleanup_original
 from .container import services
@@ -134,8 +135,9 @@ def _run_ocr_task(task_id: str) -> None:
             _reject_document(task_id, doc_id, mod, work)
             return
         mod_warn = [mod.get("reason")] if mod.get("skipped") == "error" else []
-        # D8：教材校对（定点纠错，教材可信度最高）+ 原件清理
-        corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
+        # D8：教材校对（定点纠错，教材可信度最高）+ 原件清理；校对 AI 调用记 proofread 台账
+        with ai_scope("proofread", doc_id=doc_id):
+            corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
         if n_corrected:
             print(f"[task {task_id}] 校对修正 {n_corrected} 处")
             markdown = corrected
@@ -236,7 +238,8 @@ def _run_docling_task(task_id: str) -> None:
             return
         mod_warn = [mod.get("reason")] if mod.get("skipped") == "error" else []
 
-        corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
+        with ai_scope("proofread", doc_id=doc_id):
+            corrected, n_corrected = services.proofread.proofread_markdown(markdown, work)
         if n_corrected:
             print(f"[task {task_id}] 校对修正 {n_corrected} 处")
             markdown = corrected

@@ -84,14 +84,16 @@ def _parse_verdict(content: str) -> dict:
 
 
 async def _moderate_via_engine(sample: str) -> dict:
-    """真实引擎调用（json_mode，粗活引擎优先省钱，缺省回落主引擎）。"""
+    """真实引擎调用（json_mode，粗活引擎优先省钱，缺省回落主引擎）；调用入 moderation 台账。"""
     base, key, model = services.engine_factory.require_engine(cheap=True)
     provider = Provider(EngineConfig(
         name="moderation", base_url=base, api_key=key, model=model))
-    resp = await provider.chat(
-        _build_messages(sample),
-        temperature=0.0, max_tokens=200, json_mode=True,
-    )
+    from ..ledger import ai_scope
+    with ai_scope("moderation"):
+        resp = await provider.chat(
+            _build_messages(sample),
+            temperature=0.0, max_tokens=200, json_mode=True,
+        )
     out = _parse_verdict(resp.get("content", ""))
     out["engine"] = resp.get("engine", "")
     return out
