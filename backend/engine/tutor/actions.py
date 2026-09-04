@@ -12,6 +12,7 @@ from typing import AsyncIterator
 
 from ... import storage
 from ...models import repo
+from ...settings import app_settings
 from ..persona import persona_book_hits
 from ..prompts import (TEACHER_SYSTEM_PROMPT, TEACHER_TURN_HINT,
                        student_profile)
@@ -27,6 +28,13 @@ _SOLICIT_PATTERNS = (
     "假如你是学生", "你现在是学生", "假装你是",
     "很急", "好烦", "烦死了",
 )
+
+
+def _looks_question(text: str) -> bool:
+    """VEC-04 gate：回答里夹带提问（？/疑问词）才值得跨章检索，省 token。"""
+    from ...vec import looks_like_question
+    return looks_like_question(text)
+
 
 def _bump_solicit(text: str) -> bool:
     t = (text or "").lower()
@@ -187,8 +195,22 @@ class TutorActions:
         # 施压计数：命中即 +1，连续 ≥3 次强制 hint_level=3（D3 宽松策略）
         ses.solicit_count = ses.solicit_count + 1 if _bump_solicit(user_text) else 0
         effective_level = 3 if ses.solicit_count >= 3 else ses.hint_level
+
+        # VEC-04 跨章注入（默认关：settings.vec_inject）：回答像提问且疑似超章时，
+        # 检索全书其他章节作参考上下文（附进 judge 的 context，不改判定语义）
+        judge_ctx = ses.last_context
+        if app_settings.vec_inject and _looks_question(user_text):
+            try:
+                from ... import vec
+                extra = vec.cross_chapter_context(
+                    ses.doc_id, ses.chapter_index, user_text)
+                if extra:
+                    judge_ctx = f"{judge_ctx or ''}\n\n{extra}"
+            except Exception:  # noqa: BLE001 检索失败绝不阻断教学
+                pass
+
         _t0 = time.perf_counter()
-        j = await self.judge.judge(q, user_text, ses.last_context, ses.solicit_count,
+        j = await self.judge.judge(q, user_text, judge_ctx, ses.solicit_count,
                                    hint_level=effective_level)
         perf = {"judge_ms": int((time.perf_counter() - _t0) * 1000)}
         solicit_was = ses.solicit_count

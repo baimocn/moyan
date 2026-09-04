@@ -16,6 +16,7 @@ from ..config import CHAPTERS_DIR, MARKDOWN_DIR, UPLOAD_DIR
 from ..models import Document, SessionLocal
 from ..models.study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
 from ..models.tasks import Task
+from ..models.vec import DocumentChunk
 
 router = APIRouter(prefix="/api", tags=["documents"])
 
@@ -163,6 +164,9 @@ def delete_document(doc_id: str, admin: CurrentUser = Depends(require_admin)):
         ).rowcount
         db.execute(sa_delete(TeachingSession).where(TeachingSession.doc_id == doc_id))
         counts["tasks"] = db.execute(sa_delete(Task).where(Task.doc_id == doc_id)).rowcount
+        # 向量切片（Phase 5 VEC-05：挂在 DOC-01 清理链上）
+        counts["chunks"] = db.execute(
+            sa_delete(DocumentChunk).where(DocumentChunk.doc_id == doc_id)).rowcount
         db.delete(doc)
         db.commit()
 

@@ -62,6 +62,33 @@ def admin_login(request: Request, response: Response, body: AdminLoginReq):
             "expires_in_days": _ADMIN_TOKEN_DAYS}
 
 
+# ---- Phase 5：向量知识库管理（VEC-01/02/03，管理员显式触发防烧钱）----
+
+@router.post("/vec/index/{doc_id}")
+def vec_build_index(doc_id: str, admin: CurrentUser = Depends(require_admin)):
+    """为教材建向量索引（切片+嵌入）。重复调用=重建。未配 embedding 时只落切片。"""
+    from .. import vec
+    result = vec.build_index(doc_id)
+    if not result.get("ok"):
+        raise HTTPException(422, detail=result.get("error") or "建索引失败")
+    return result
+
+
+@router.get("/vec/status/{doc_id}")
+def vec_index_status(doc_id: str, admin: CurrentUser = Depends(require_admin)):
+    from .. import vec
+    return {"ok": True, **vec.index_status(doc_id)}
+
+
+@router.get("/vec/search")
+def vec_search(doc_id: str, q: str, top_k: int = Query(default=4, ge=1, le=20),
+               admin: CurrentUser = Depends(require_admin)):
+    """检索调试：验证某本书的向量索引质量。"""
+    from .. import vec
+    hits = vec.search(doc_id, q, top_k=top_k)
+    return {"ok": True, "doc_id": doc_id, "q": q, "hits": hits}
+
+
 @router.get("/usage")
 def usage_ledger(days: int = Query(default=30, ge=1, le=365),
                  admin: CurrentUser = Depends(require_admin)):

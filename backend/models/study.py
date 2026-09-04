@@ -138,7 +138,9 @@ class UserProfile(Base):
     __tablename__ = "user_profiles"
 
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    auth_type: Mapped[str] = mapped_column(String(16), default="wx")   # wx | web
+    # server_default 必须保留：裸 SQL upsert（不经过 ORM 默认值）依赖 DB 级默认；
+    # 只写 default="wx" 时新建库的裸插入会 NOT NULL 炸（2026-09-04 test_dev.db 重建实测）
+    auth_type: Mapped[str] = mapped_column(String(16), default="wx", server_default="wx")   # wx | web
     email: Mapped[str | None] = mapped_column(String(128), index=True, nullable=True, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     nick_name: Mapped[str] = mapped_column(String(64), default="")

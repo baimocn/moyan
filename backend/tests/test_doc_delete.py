@@ -105,7 +105,8 @@ def test_admin_delete_cascades_all(client, monkeypatch, tmp_path):
     body = r.json()
     assert body["ok"] is True
     assert body["deleted"] == {"sessions": 1, "turns": 1, "judgements": 1,
-                               "weaknesses": 1, "strategy_logs": 1, "tasks": 1}
+                               "weaknesses": 1, "strategy_logs": 1, "tasks": 1,
+                               "chunks": 0}
     residue = _residue(doc_id)
     assert not any(residue.values()), f"DB 残留: {residue}"
     assert not (tmp_path / "markdown" / f"{doc_id}.md").exists()

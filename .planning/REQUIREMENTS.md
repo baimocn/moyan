@@ -40,11 +40,11 @@
 
 ### VEC — 向量知识库（场景：学生提问超出当前章时检索全书相关段落补上下文）
 
-- [ ] **VEC-01**: pgvector 扩展启用 + `document_chunks` 表（doc_id, chapter_index, chunk_text, embedding vector）+ 章节切片嵌入管线（云端 embedding API，批次处理）
-- [ ] **VEC-02**: 嵌入成本护栏：全库嵌入前估算成本并打日志；单价与模型写 env
-- [ ] **VEC-03**: 检索接口（内部）：按当前文档 + 查询文本取 top-k 相关切片
-- [ ] **VEC-04**: 教学引擎注入：turn 处理中当学生提问疑似超章时检索并作为参考上下文注入 prompt（受开关控制，默认可关）
-- [ ] **VEC-05**: 删除文档时联级清 `document_chunks`（挂在 DOC-01 的清理链上）
+- [x] **VEC-01**: `document_chunks` 表（doc_id, chapter_index, chunk_index, chunk_text, embedding JSON, embedded 布尔）+ 章节切片嵌入管线（~500字/块段界切分+80字重叠）。**MVP 决策：向量 JSON 列 + Python 余弦（SQLite/PG 通用），pgvector 待语料上量再迁**；embedding 服务未配置时优雅降级（只落切片，检索返空）（2026-09-04）
+- [x] **VEC-02**: 成本护栏：建索引仅管理员显式触发（`POST /api/admin/vec/index/{doc_id}`，上传不自动嵌入）；单本 token 估算超 `MOYAN_VEC_MAX_EMBED_TOKENS`（默认30万）拒绝执行；embedding 消耗入 ai_usage 台账（endpoint=embedding）
+- [x] **VEC-03**: 检索（内部函数 `vec.search` + 管理调试端点 `GET /api/admin/vec/search`）：余弦 top-k、可排除当前章、零分块过滤
+- [x] **VEC-04**: 教学注入：evaluate 中学生回答疑似提问（？/疑问词启发式）时跨章检索拼入 judge context；`MOYAN_VEC_INJECT` 开关**默认关**（2026-09-04 本地已实现未开启）
+- [x] **VEC-05**: 删除文档联级清 `document_chunks`（已挂 DOC-01 清理链，deleted.chunks 计数返回）
 
 ## v2 Requirements（deferred）
 

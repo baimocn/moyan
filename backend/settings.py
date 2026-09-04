@@ -45,6 +45,11 @@ class AppSettings(BaseSettings):
     # 网页管理台口令（Phase 4 /admin 入口）：非空时 POST /api/admin/login 可用，
     # 口令正确 → 签发管理员 openid 的长效 JWT。空串=入口关闭（404）。非用户登录层。
     admin_web_password: str = ""
+    # ---- 向量知识库（Phase 5 VEC，2026-09-04）----
+    # 教学注入开关（VEC-04）：学生提问疑似超章时检索全书切片作参考上下文。默认关。
+    vec_inject: bool = False
+    # 建索引护栏（VEC-02）：单本教材 embedding 总 token 估算上限，超出拒绝建索引
+    vec_max_embed_tokens: int = 300_000
     # ---- 鉴权（部署前置：2026-09-02）----
     # 微信小程序登录 AppID / AppSecret（从 mp.weixin.qq.com 后台拿）
     wx_appid: str = ""
@@ -104,6 +109,14 @@ class AiSettings(BaseSettings):
     cheap_base_url: str = ""           # 缺省回退到 fallback
     cheap_key: str = ""
     cheap_model: str = ""
+    # embedding（VEC-01）：OpenAI 兼容 /embeddings；未配置=向量能力优雅降级（只落切片）
+    embed_base_url: str = ""
+    embed_key: str = ""
+    embed_model: str = ""
+
+    @property
+    def embed_ready(self) -> bool:
+        return bool(self.embed_base_url and self.embed_key and self.embed_model)
 
     @property
     def has_main(self) -> bool:
