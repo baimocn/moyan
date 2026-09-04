@@ -6,13 +6,14 @@
 
 - **Project**: 墨衍（双前端 · 一后端 · 共享书库）
 - **Milestone**: M2 管理底座 → M3 向量知识库（路线图 6 阶段）
-- **Phase**: Phase 1（权限分层与生产安全硬校验）——未开始
+- **Phase**: Phase 1 完成（01-01-SUMMARY），下一 Phase 2（文档删除与联级清理）
 - **Mode**: mvp（每阶段端到端交付）
 - **Blocked**: 无（小程序审核与 Phase 1-4 无代码交集）
 
 ## LOG
 
 - 2026-09-04: GSD 初始化完成。棕地映射 7 文档（.planning/codebase/，342 行）。PROJECT/REQUIREMENTS/ROADMAP 就绪。方向设计来源：out/下一阶段方向设计_M2管理底座_M3向量库.md
+- 2026-09-04: Phase 1 完成并提交——role 三态贯通（CurrentUser.role / me.role / require_admin 403 依赖）+ MOYAN_ENV=production 安全硬校验（AUTH_DISABLED 强制关 + dev-login 403）+ 11 新测试（全量 104/104）。ADMIN-02 真实挂载点移至 Phase 2 DELETE（rename 是普通用户功能不可收权）。注意：pytest 需 --basetemp=./pytest-tmp（系统 Temp 被沙箱拒）
 
 ## Key Context for Next Session
 
