@@ -39,7 +39,8 @@ class AppSettings(BaseSettings):
     # dev（默认，本地开发）/ production（生产；启动时强制关闭免鉴权与 dev-login）
     env: str = "dev"
     # ---- 管理员清单（权限分层 ADMIN-01）----
-    # 逗号分隔的 openid 列表，命中的用户 role=admin。例：ADMIN_OPENIDS=oX123,oX456
+    # 逗号分隔的 openid 列表，命中的用户 role=admin。例：MOYAN_ADMIN_OPENIDS=oX123,oX456
+    # 注意 env_prefix=MOYAN_：.env 里变量名必须带前缀（曾误写 ADMIN_OPENIDS 致 0 人，2026-09-04）
     admin_openids: str = ""
     # ---- 鉴权（部署前置：2026-09-02）----
     # 微信小程序登录 AppID / AppSecret（从 mp.weixin.qq.com 后台拿）
