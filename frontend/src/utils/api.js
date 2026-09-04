@@ -77,8 +77,10 @@ function _extract(r) { return r && r.data }
 
 // ---- API ----
 
-export function getDocuments() {
-  return _uniReq('GET', '/api/documents').then(_extract)
+// q：共享书库搜索（多词 AND，后端 v2 已上线）；空/undefined = 全量书架
+export function getDocuments(q) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : ''
+  return _uniReq('GET', `/api/documents${qs}`).then(_extract)
 }
 
 export function getDocument(docId) {

@@ -6,6 +6,21 @@
         <text class="bname">墨衍</text>
         <text class="bsub">AI 同桌 · 一章一章带你学透</text>
       </view>
+      <view class="up-btn" @tap="choose">
+        <text class="up-btn-t">{{ uploading ? '上传中…' : '＋ 上传' }}</text>
+      </view>
+    </view>
+
+    <!-- 共享书库搜索（v2 同步）：hero 下方通栏，300ms 防抖 -->
+    <view class="search">
+      <input
+        class="s-input"
+        v-model="searchQ"
+        placeholder="搜索共享书库，大家传过的书都能用"
+        confirm-type="search"
+        @confirm="searchNow"
+      />
+      <text class="s-clear" v-if="searchQ" @tap="clearSearch">×</text>
     </view>
 
     <view v-if="last && last.label" class="resume" @tap="resumeLast">
@@ -17,8 +32,8 @@
     </view>
 
     <view class="sec">
-      <text class="sec-t">教材书架</text>
-      <text class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪</text>
+      <text class="sec-t">{{ searching ? '搜索中…' : (searchQ ? '搜索结果' : '共享书架') }}</text>
+      <text class="sec-c" v-if="docs.length">{{ docs.length }} 本就绪 · 大家传过的都能用</text>
     </view>
 
     <scroll-view scroll-y class="list">
@@ -46,13 +61,11 @@
         </view>
       </view>
 
-      <view class="doc up" @tap="choose">
-        <view class="up-ico">＋</view>
-        <view class="up-txt">
-          <text class="up-t">上传新教材</text>
-          <text class="up-s">PDF / Word / PPT / 扫描件，原件即清理</text>
-        </view>
+      <view class="empty" v-if="!docs.length">
+        <view class="e-t">{{ searchQ ? '没找到相关的书' : '书架还是空的' }}</view>
+        <view class="e-s">{{ searchQ ? '换个词试试，或从聊天记录把书传上来' : '搜索大家传过的书，或点右上角「＋ 上传」传你的第一本教材' }}</view>
       </view>
+
       <view class="doc-note">同桌已就位。规矩：先思路，后对答案。</view>
     </scroll-view>
 
@@ -85,7 +98,15 @@ export default {
   data() {
     return {
       docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, last: null,
+      searchQ: '', searching: false, uploading: false,
       dlg: { show: false, mode: '', title: '', ph: '', val: '' }, pending: null
+    }
+  },
+  watch: {
+    // 搜索 300ms 防抖（网页 v2 同款节奏）
+    searchQ() {
+      clearTimeout(this._st)
+      this._st = setTimeout(() => this.searchNow(), 300)
     }
   },
   computed: {
@@ -127,18 +148,32 @@ export default {
       const m = { pdf: 'PDF', docx: 'Word', pptx: 'PPT', xlsx: '表格' }
       return m[d.format] || String(d.format || '资料').toUpperCase()
     },
-    refresh() {
-      getDocuments().then(d => {
+    refresh(selectId) {
+      // 搜索词非空时即搜索请求（书架与搜索共用同一列表管线）
+      const q = (this.searchQ || '').trim()
+      this._lastQ = q
+      return getDocuments(q).then(d => {
+        if (this._lastQ !== q) return // 竞态保护：仅采纳最后一次请求
         const done = (d.documents || []).filter(x => x.status === 'done')
-        const selectedId = this.docIdx >= 0 && this.docs[this.docIdx] ? this.docs[this.docIdx].doc_id : ''
+        const curId = selectId || (this.docIdx >= 0 && this.docs[this.docIdx] ? this.docs[this.docIdx].doc_id : '')
         this.docs = done
-        if (!selectedId) { this.docIdx = -1; this.manifest = [] }
-        else {
-          const idx = done.findIndex(x => x.doc_id === selectedId)
-          this.docIdx = idx
-          if (idx < 0) this.manifest = []
-        }
-      }).catch(() => {})
+        const idx = curId ? done.findIndex(x => x.doc_id === curId) : -1
+        this.docIdx = idx
+        if (idx < 0) { this.manifest = []; this.chapIdx = -1 }
+      })
+    },
+    searchNow() {
+      const q = (this.searchQ || '').trim()
+      this.searching = true
+      // 不用 .finally：部分低版本基础库不 polyfill
+      const done = () => { if (this._lastQ === q) this.searching = false }
+      this.refresh().then(done, done)
+    },
+    clearSearch() {
+      this.searchQ = ''
+      clearTimeout(this._st)
+      this.searching = false
+      this.refresh()
     },
     onDocPick(i) {
       if (i === this.docIdx) { this.manifest = []; this.docIdx = -1; this.chapIdx = -1; return }
@@ -242,11 +277,28 @@ export default {
       // #endif
     },
     doUpload(file, title) {
-      this.tip = '上传解析中…'
+      this.tip = ''
+      this.uploading = true
       uni.showLoading({ title: '解析中', mask: true })
       uploadFile(file, title).then(r => {
         uni.hideLoading()
-        if (!r || !r.ok) { this.tip = '上传失败：' + ((r && r.detail) || '未知错误'); return }
+        this.uploading = false
+        if (!r || !r.ok) {
+          // 429 限流：后端返回 {ok:false, detail, retry_after}
+          if (r && r.retry_after) this.tip = `上传太频繁，约 ${Math.max(1, Math.ceil(r.retry_after / 60))} 分钟后再试`
+          else this.tip = '上传失败：' + ((r && r.detail) || '未知错误')
+          return
+        }
+        if (r.reused) {
+          // 共享书库去重命中：同书秒回，自动选中并展开章节
+          this.tip = '书库已有此书，直接使用 ✓'
+          this.refresh(r.doc_id).then(() => {
+            const doc = this.docs[this.docIdx]
+            if (!doc) return
+            return getDocument(doc.doc_id).then(d => { this.manifest = d.document.manifest || [] })
+          }).catch(() => {})
+          return
+        }
         if (r.status === 'processing') {
           this.tip = '转换中，请稍候…'
           this.pollTask(r.task_id, r.doc_id)
@@ -254,7 +306,7 @@ export default {
           this.tip = '已上架 ✓'
           this.refresh()
         }
-      }).catch(e => { uni.hideLoading(); this.tip = '上传失败：' + e })
+      }).catch(e => { uni.hideLoading(); this.uploading = false; this.tip = '上传失败：' + e })
     },
     pollTask(taskId, docId) {
       if (this.polling) return
@@ -323,11 +375,20 @@ page { background: #f6f2e8; }
 .risub { font-size: 22rpx; color: #d8c9a0; margin-top: 6rpx; }
 .rgo { font-size: 26rpx; color: #f2e6c9; padding: 8rpx 22rpx; border: 2rpx solid #f2e6c9; border-radius: 999rpx; }
 
-.hero { display: flex; align-items: center; padding: 12rpx 4rpx 28rpx; }
+.hero { display: flex; align-items: center; padding: 12rpx 4rpx 20rpx; }
 .logo { width: 84rpx; height: 84rpx; border-radius: 26rpx; background: #163628; color: #f2e6c9; font-size: 44rpx; font-weight: 500; display: flex; align-items: center; justify-content: center; letter-spacing: 0; box-shadow: 0 6rpx 16rpx rgba(22, 54, 40, 0.18); }
-.brand { margin-left: 22rpx; display: flex; flex-direction: column; }
+.brand { flex: 1; margin-left: 22rpx; display: flex; flex-direction: column; min-width: 0; }
 .bname { font-size: 44rpx; font-weight: 500; letter-spacing: 10rpx; color: #163628; line-height: 1.15; }
 .bsub { font-size: 22rpx; color: #8a7f66; margin-top: 6rpx; letter-spacing: 2rpx; }
+
+/* 右上角上传小按钮（D1：书多时底部卡够不着，收进顶栏） */
+.up-btn { flex-shrink: 0; background: #163628; color: #f2e6c9; border-radius: 999rpx; padding: 14rpx 26rpx; box-shadow: 0 6rpx 14rpx rgba(22, 54, 40, 0.2); }
+.up-btn-t { font-size: 26rpx; font-weight: 500; letter-spacing: 1rpx; }
+
+/* 共享书库搜索（D2：hero 下方通栏，网页 v2 同款观感） */
+.search { position: relative; margin-bottom: 18rpx; }
+.s-input { width: 100%; box-sizing: border-box; background: #fffdf8; border: 2rpx solid #eae2cf; border-radius: 999rpx; padding: 18rpx 64rpx 18rpx 30rpx; font-size: 27rpx; color: #2b2b2b; }
+.s-clear { position: absolute; right: 22rpx; top: 50%; transform: translateY(-50%); width: 40rpx; height: 40rpx; border-radius: 50%; background: #efe8d8; color: #8a7f66; font-size: 28rpx; display: flex; align-items: center; justify-content: center; }
 
 .sec { display: flex; align-items: baseline; justify-content: space-between; padding: 8rpx 6rpx 18rpx; }
 .sec-t { font-size: 30rpx; font-weight: 500; color: #2b2b2b; }
@@ -353,11 +414,11 @@ page { background: #f6f2e8; }
 .tick { color: #2c6e4f; font-size: 26rpx; margin-left: 12rpx; font-weight: 500; }
 .chap.hint { color: #9a8f74; font-size: 24rpx; justify-content: center; }
 
-.doc.up { display: flex; align-items: center; border-style: dashed; border-color: #cbbf9e; background: #faf6ea; cursor: pointer; }
-.up-ico { width: 64rpx; height: 64rpx; border-radius: 50%; background: #163628; color: #f2e6c9; font-size: 36rpx; display: flex; align-items: center; justify-content: center; }
-.up-txt { margin-left: 22rpx; display: flex; flex-direction: column; }
-.up-t { font-size: 28rpx; color: #3a3a3a; }
-.up-s { font-size: 21rpx; color: #a09474; margin-top: 6rpx; }
+/* 空态（书架空 / 搜索无结果） */
+.empty { background: #fffdf8; border: 2rpx dashed #ddd0b4; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center; margin-bottom: 20rpx; }
+.e-t { font-size: 30rpx; font-weight: 500; color: #3a3a3a; }
+.e-s { font-size: 23rpx; color: #a09474; margin-top: 14rpx; line-height: 1.6; }
+
 .doc-note { text-align: center; color: #b0a487; font-size: 22rpx; padding: 10rpx 0 30rpx; letter-spacing: 1rpx; }
 
 .tip { text-align: center; font-size: 22rpx; color: #a08a5a; margin-bottom: 14rpx; }
