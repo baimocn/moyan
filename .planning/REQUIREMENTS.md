@@ -34,9 +34,9 @@
 
 ### ADMINUI — 管理后台页
 
-- [ ] **ADMINUI-01**: frontend-web 新增 `/admin` 路由：非 admin 访问显示"无权限"（判定依据：登录后 openid ∈ ADMIN_OPENIDS，由 /me 或专用接口返回 role）
-- [ ] **ADMINUI-02**: 文档管理视图：列表（标题/状态/大小/上传时间）+ 删除按钮（确认弹层）+ 改名
-- [ ] **ADMINUI-03**: 统计面板：数字卡展示 STATS-03 全部指标（简单数字卡，不引图表库）
+- [x] **ADMINUI-01**: frontend-web 新增 `/admin` 路由 + 口令门：`POST /api/admin/login` 用 `MOYAN_ADMIN_WEB_PASSWORD` 换 30 天管理员 JWT（secrets.compare_digest + 10/min 限流；非用户登录层，网页免登录原则不变）；已持有效 token 刷新直接进看板（2026-09-04 上线本地）
+- [x] **ADMINUI-02**: 文档管理视图：列表（标题/状态/doc_id）+ 删除按钮（确认弹层，含学习记录提示）；改名沿用书架普通用户功能（Phase 2 决策不改挂载点）
+- [x] **ADMINUI-03**: 统计面板：8 张数字卡（PV/UV 今日+累计、tokens 今日+累计、教学轮次、上架教材）+ 来源分布行 + AI 用量台账表（近 30 天按天×endpoint×模型），纯数字卡无图表库（2026-09-04 上线本地，生产未部署）
 
 ### VEC — 向量知识库（场景：学生提问超出当前章时检索全书相关段落补上下文）
 
@@ -69,6 +69,6 @@
 | ADMIN-01..03 | Phase 1 权限分层与生产安全硬校验 | pending |
 | DOC-01..03 + VEC-05（清理链挂点） | Phase 2 文档删除与联级清理 | pending |
 | COST-01, STATS-01..03 | Phase 3 用量观测 | pending |
-| ADMINUI-01..03 | Phase 4 管理后台页 | pending |
+| ADMINUI-01..03 | Phase 4 管理后台页 | done（2026-09-04 本地，生产未部署） |
 | VEC-01..03 | Phase 5 向量知识库底座 | pending |
 | VEC-04 | Phase 6 检索注入教学引擎 | pending |

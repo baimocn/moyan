@@ -1,17 +1,24 @@
 """墨衍 · 管理统计接口（Phase 3 COST-01 / STATS-03，require_admin 闸门）
 
-GET /api/admin/usage  AI token 台账：按天×endpoint×模型聚合（默认近30天）+ 总计
-GET /api/admin/stats  平台总览：PV/UV/来源分布 + 教学轮次/文档数 + token 消耗
+GET  /api/admin/usage  AI token 台账：按天×endpoint×模型聚合（默认近30天）+ 总计
+GET  /api/admin/stats  平台总览：PV/UV/来源分布 + 教学轮次/文档数 + token 消耗
+POST /api/admin/login  网页管理台口令登录（Phase 4）：口令 → 管理员 openid 长效 JWT
+                       （非用户登录层：网页端仍免登录，只是管理员开门锁）
 """
 from __future__ import annotations
 
+import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from pydantic import BaseModel
 from sqlalchemy import distinct, func
 
 from ..auth.deps import CurrentUser, require_admin
+from ..auth.jwt import sign_token
 from ..models import AiUsage, Document, PageView, SessionLocal, TeachingSession, Turn
+from ..rate_limit import limiter
+from ..settings import app_settings
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -22,6 +29,37 @@ _CST = timezone(timedelta(hours=8))
 def _day_start() -> datetime:
     now_cst = datetime.now(_CST)
     return now_cst.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+# ---- Phase 4：网页管理台口令登录（ADMIN-04）----
+
+_ADMIN_TOKEN_DAYS = 30
+
+
+class AdminLoginReq(BaseModel):
+    password: str = ""
+
+
+@router.post("/login")
+@limiter.limit("10/minute")  # 防口令爆破（限流档与 L_HEAVY 同级）
+def admin_login(request: Request, response: Response, body: AdminLoginReq):
+    """口令 → 管理员 JWT。
+
+    语义：口令 = 站长钥匙，不是用户账号体系。正确则给首个管理员 openid 签
+    30 天 token（role=admin 由 ADMIN_OPENIDS 判定，天然自洽）。
+    """
+    expected = (app_settings.admin_web_password or "").strip()
+    if not expected:
+        raise HTTPException(404, detail="管理台入口未开启（未配置管理口令）")
+    if not secrets.compare_digest((body.password or "").strip(), expected):
+        raise HTTPException(403, detail="口令错误")
+    openid = next(iter(sorted(app_settings.admin_set)), "")
+    if not openid:
+        raise HTTPException(
+            409, detail="已配置口令但未配置管理员清单（MOYAN_ADMIN_OPENIDS），无法签发身份")
+    token = sign_token(openid, exp_seconds=_ADMIN_TOKEN_DAYS * 24 * 3600)
+    return {"ok": True, "token": token, "role": "admin",
+            "expires_in_days": _ADMIN_TOKEN_DAYS}
 
 
 @router.get("/usage")

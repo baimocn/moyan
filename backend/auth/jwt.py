@@ -47,13 +47,14 @@ def _secret() -> str:
     return s
 
 
-def sign_token(openid: str, extra: dict[str, Any] | None = None) -> str:
-    """签发 token。"""
+def sign_token(openid: str, extra: dict[str, Any] | None = None,
+               exp_seconds: int = EXP_SECONDS) -> str:
+    """签发 token。exp_seconds 可自定义有效期（管理台口令登录用 30 天）。"""
     now = int(time.time())
     payload: dict[str, Any] = {
         "sub": openid,
         "iat": now,
-        "exp": now + EXP_SECONDS,
+        "exp": now + exp_seconds,
         "iss": ISS,
     }
     if extra:

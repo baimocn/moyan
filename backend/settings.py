@@ -42,6 +42,9 @@ class AppSettings(BaseSettings):
     # 逗号分隔的 openid 列表，命中的用户 role=admin。例：MOYAN_ADMIN_OPENIDS=oX123,oX456
     # 注意 env_prefix=MOYAN_：.env 里变量名必须带前缀（曾误写 ADMIN_OPENIDS 致 0 人，2026-09-04）
     admin_openids: str = ""
+    # 网页管理台口令（Phase 4 /admin 入口）：非空时 POST /api/admin/login 可用，
+    # 口令正确 → 签发管理员 openid 的长效 JWT。空串=入口关闭（404）。非用户登录层。
+    admin_web_password: str = ""
     # ---- 鉴权（部署前置：2026-09-02）----
     # 微信小程序登录 AppID / AppSecret（从 mp.weixin.qq.com 后台拿）
     wx_appid: str = ""
