@@ -63,8 +63,9 @@
       </view>
 
       <view class="empty" v-if="!docs.length">
-        <view class="e-t">{{ searchQ ? '没找到相关的书' : '书架还是空的' }}</view>
-        <view class="e-s">{{ searchQ ? '换个词试试，或从聊天记录把书传上来' : '搜索大家传过的书，或点右上角「＋ 上传」传你的第一本教材' }}</view>
+        <view class="e-t">{{ loadErr ? '书架加载失败' : (searchQ ? '没找到相关的书' : '书架还是空的') }}</view>
+        <view class="e-s">{{ loadErr ? loadErr : (searchQ ? '换个词试试，或从聊天记录把书传上来' : '搜索大家传过的书，或点右上角「＋ 上传」传你的第一本教材') }}</view>
+        <view class="e-retry" v-if="loadErr" @tap="retryShelf">重新加载</view>
       </view>
 
       <view class="doc-note">同桌已就位。规矩：先思路，后对答案。</view>
@@ -99,7 +100,7 @@ export default {
   data() {
     return {
       docs: [], docIdx: -1, chapIdx: -1, manifest: [], tip: '', polling: false, last: null,
-      searchQ: '', searching: false, uploading: false,
+      searchQ: '', searching: false, uploading: false, loadErr: '',
       dlg: { show: false, mode: '', title: '', ph: '', val: '' }, pending: null
     }
   },
@@ -126,7 +127,7 @@ export default {
   methods: {
     resumeLast() {
       if (!this.last) return
-      if (!this.docs.length) { this.tip = '书架还没准备好，请稍候'; return }
+      if (!this.docs.length) { this.tip = this.loadErr || '书架还没加载出来，下拉重试或检查网络'; return }
       const i = this.docs.findIndex(d => d.doc_id === this.last.doc_id)
       if (i < 0) { this.tip = '上次教材已下架'; this.last = null; try { uni.removeStorageSync('moyan:last') } catch (e) {}; return }
       this.docIdx = i
@@ -161,7 +162,15 @@ export default {
         const idx = curId ? done.findIndex(x => x.doc_id === curId) : -1
         this.docIdx = idx
         if (idx < 0) { this.manifest = []; this.chapIdx = -1 }
+        this.loadErr = ''
+      }, e => {
+        // 失败不再静默：显式区分「加载失败」与「书架空」（真机域名校验拦截时用户能看到原因）
+        if (this._lastQ === q) this.loadErr = '网络请求未成功：请检查网络；预览版若未配服务器域名，开「开发调试」可跳过校验'
       })
+    },
+    retryShelf() {
+      this.loadErr = ''
+      this.refresh()
     },
     searchNow() {
       const q = (this.searchQ || '').trim()
@@ -420,6 +429,7 @@ page { background: #f6f2e8; }
 .empty { background: #fffdf8; border: 2rpx dashed #ddd0b4; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center; margin-bottom: 20rpx; }
 .e-t { font-size: 30rpx; font-weight: 500; color: #3a3a3a; }
 .e-s { font-size: 23rpx; color: #a09474; margin-top: 14rpx; line-height: 1.6; }
+.e-retry { display: inline-block; margin-top: 26rpx; padding: 14rpx 48rpx; background: #163628; color: #f2e6c9; font-size: 26rpx; border-radius: 999rpx; }
 
 .doc-note { text-align: center; color: #b0a487; font-size: 22rpx; padding: 10rpx 0 30rpx; letter-spacing: 1rpx; }
 
