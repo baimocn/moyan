@@ -16,7 +16,8 @@
       <input
         class="s-input"
         v-model="searchQ"
-        placeholder="搜索共享书库，大家传过的书都能用"
+        placeholder="搜索共享书库"
+        placeholder-style="color:#a09474;font-size:28rpx"
         confirm-type="search"
         @confirm="searchNow"
       />
@@ -385,10 +386,11 @@ page { background: #f6f2e8; }
 .up-btn { flex-shrink: 0; background: #163628; color: #f2e6c9; border-radius: 999rpx; padding: 14rpx 26rpx; box-shadow: 0 6rpx 14rpx rgba(22, 54, 40, 0.2); }
 .up-btn-t { font-size: 26rpx; font-weight: 500; letter-spacing: 1rpx; }
 
-/* 共享书库搜索（D2：hero 下方通栏，网页 v2 同款观感） */
+/* 共享书库搜索（D2：hero 下方通栏，网页 v2 同款观感）
+   真机注意：input 不设显式 height 时默认行高偏小会裁字，必须 height+line-height 撑足 */
 .search { position: relative; margin-bottom: 18rpx; }
-.s-input { width: 100%; box-sizing: border-box; background: #fffdf8; border: 2rpx solid #eae2cf; border-radius: 999rpx; padding: 18rpx 64rpx 18rpx 30rpx; font-size: 27rpx; color: #2b2b2b; }
-.s-clear { position: absolute; right: 22rpx; top: 50%; transform: translateY(-50%); width: 40rpx; height: 40rpx; border-radius: 50%; background: #efe8d8; color: #8a7f66; font-size: 28rpx; display: flex; align-items: center; justify-content: center; }
+.s-input { width: 100%; height: 88rpx; box-sizing: border-box; background: #fffdf8; border: 2rpx solid #eae2cf; border-radius: 999rpx; padding: 0 72rpx 0 32rpx; font-size: 29rpx; line-height: 84rpx; color: #2b2b2b; }
+.s-clear { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); width: 44rpx; height: 44rpx; border-radius: 50%; background: #efe8d8; color: #8a7f66; font-size: 30rpx; display: flex; align-items: center; justify-content: center; }
 
 .sec { display: flex; align-items: baseline; justify-content: space-between; padding: 8rpx 6rpx 18rpx; }
 .sec-t { font-size: 30rpx; font-weight: 500; color: #2b2b2b; }
