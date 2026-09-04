@@ -95,6 +95,9 @@
 
 <script>
 import { getDocuments, getDocument, uploadFile, getTask, renameDocument } from '../../utils/api.js'
+// #ifdef MP-WEIXIN
+import GUIDE_MD from './guide_text.js'
+// #endif
 
 export default {
   data() {
@@ -199,6 +202,22 @@ export default {
     },
     choose() {
       // #ifdef MP-WEIXIN
+      // 审核修复：chooseMessageFile 只能选聊天文件，审核账号无聊天记录会"无响应"。
+      // 双入口：聊天文件（真实用户主路径）+ 包内示例教材（0 依赖走通全链路）
+      uni.showActionSheet({
+        itemList: ['从聊天记录选择文件', '体验示例教材（墨衍·新手指南）'],
+        success: r => {
+          if (r.tapIndex === 0) this.chooseChatFile()
+          else if (r.tapIndex === 1) this.useSampleDoc()
+        }
+      })
+      // #endif
+      // #ifdef H5
+      this.pickH5File()
+      // #endif
+    },
+    // #ifdef MP-WEIXIN
+    chooseChatFile() {
       wx.chooseMessageFile({
         count: 1,
         type: 'file',
@@ -208,11 +227,20 @@ export default {
         },
         fail: () => {}
       })
-      // #endif
-      // #ifdef H5
-      this.pickH5File()
-      // #endif
     },
+    // 内置示例教材（JS 字符串）→ 写用户目录 → 真实上传链路（复用 doUpload/pollTask/服务端去重）
+    // 不用 readFileSync 读代码包：部分环境 permission denied，写 USER_DATA_PATH 全环境有权限
+    useSampleDoc() {
+      try {
+        const fs = wx.getFileSystemManager()
+        const dst = `${wx.env.USER_DATA_PATH}/moyan_guide.md`
+        fs.writeFileSync(dst, GUIDE_MD, 'utf8')
+        this.doUpload(dst, '墨衍·新手指南')
+      } catch (e) {
+        this.tip = '示例教材加载失败：' + (e && e.message || e)
+      }
+    },
+    // #endif
     // #ifdef H5
     // uni-app 的 <input> 组件编译后是 uni-input，不支持 type=file 也不暴露原生
     // click()（旧实现 this.$refs.fileInput.click() 直接 TypeError，上传点不动）。
