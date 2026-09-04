@@ -95,7 +95,9 @@ async def wx_login(req: WxLoginReq):
 
 @router.post("/dev-login", response_model=LoginResp)
 def dev_login(req: DevLoginReq):
-    """开发模式免鉴权直登：仅当 MOYAN_AUTH_DISABLED=1 接受。"""
+    """开发模式免鉴权直登：仅当 MOYAN_AUTH_DISABLED=1 且非生产环境接受（ADMIN-03 双保险）。"""
+    if app_settings.is_production:
+        raise HTTPException(403, detail="dev-login 在生产环境不可用")
     if not app_settings.auth_disabled:
         raise HTTPException(403, detail="dev-login 仅在 MOYAN_AUTH_DISABLED=1 时可用")
 
@@ -187,6 +189,7 @@ def me(user: CurrentUser = Depends(get_current_user)):
             created_at=datetime.now(timezone.utc).isoformat(),
             sessions=0,
             last_active=None,
+            role=user.role,
         )
 
     def _iso(v) -> str | None:  # noqa: ANN001
@@ -201,4 +204,5 @@ def me(user: CurrentUser = Depends(get_current_user)):
         created_at=_iso(row[1]) or "",
         sessions=int(row[3] or 0),
         last_active=_iso(row[2]),
+        role=user.role,
     )

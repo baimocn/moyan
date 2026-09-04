@@ -27,10 +27,13 @@ async def lifespan(_app: FastAPI):
     tasks.start_worker()          # 拉起后台 OCR 单 worker
     from . import settings
     from .container import services
-    print(f"墨衍 API 已启动（数据库：{settings.db_settings.db_url.split('://')[0]}；"
+    from .settings import apply_production_safety
+    apply_production_safety()     # ADMIN-03：生产环境强制关闭免鉴权（fail-safe）
+    print(f"墨衍 API 已启动（环境：{app_settings.env}；数据库：{settings.db_settings.db_url.split('://')[0]}；"
           f"AI 引擎：{'READY' if settings.ai_settings.engine_ready else '未配置'}"
           f"{'（mock 演示）' if services.mock else ''}；"
           f"鉴权：{'关闭' if app_settings.auth_disabled else '开启'}；"
+          f"管理员：{len(app_settings.admin_set)} 人；"
           f"限流：user_id 主 / IP 兑底）")
     yield
 

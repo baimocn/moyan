@@ -24,17 +24,24 @@ _bearer = HTTPBearer(auto_error=False, description="Bearer JWT (Authorization: B
 
 @dataclass(frozen=True)
 class CurrentUser:
-    """鉴权后注入到请求的当前用户。"""
+    """鉴权后注入到请求的当前用户。role: admin | user | anon（Phase 1 权限分层）。"""
     openid: str
     user_id: str
     is_mock: bool = False
+    role: str = "anon"
 
     def __str__(self) -> str:  # noqa: Dunder
         return self.openid
 
 
 def _mock_user() -> CurrentUser:
-    return CurrentUser(openid="dev_user", user_id="dev_user", is_mock=True)
+    # dev 免鉴权模式给 admin：本地开发/测试可直接验证管理端行为
+    return CurrentUser(openid="dev_user", user_id="dev_user", is_mock=True, role="admin")
+
+
+def _role_for(openid: str) -> str:
+    """真实登录用户的角色：管理员清单命中 → admin，否则 user（ADMIN-01）。"""
+    return "admin" if openid in app_settings.admin_set else "user"
 
 
 def get_current_user(
@@ -68,7 +75,7 @@ def get_current_user(
     openid = str(payload.get("sub") or "")
     if not openid:
         raise HTTPException(401, detail="token 缺少 sub(openid)")
-    u = CurrentUser(openid=openid, user_id=openid, is_mock=False)
+    u = CurrentUser(openid=openid, user_id=openid, is_mock=False, role=_role_for(openid))
     request.state.user = u
     return u
 
@@ -91,7 +98,7 @@ def get_current_user_optional(
     openid = str(payload.get("sub") or "")
     if not openid:
         return None
-    u = CurrentUser(openid=openid, user_id=openid, is_mock=False)
+    u = CurrentUser(openid=openid, user_id=openid, is_mock=False, role=_role_for(openid))
     request.state.user = u
     return u
 
@@ -126,7 +133,7 @@ def get_requester(
             payload = verify_token(creds.credentials)
             openid = str(payload.get("sub") or "")
             if openid:
-                u = CurrentUser(openid=openid, user_id=openid, is_mock=False)
+                u = CurrentUser(openid=openid, user_id=openid, is_mock=False, role=_role_for(openid))
                 request.state.user = u
                 return u
         except Exception:  # noqa: BLE001 token 无效不拒客，落入匿名分支
@@ -136,6 +143,21 @@ def get_requester(
     did = (device_id or "").strip()
     if not _DEVICE_ID_RE.match(did):
         did = "anon"
-    u = CurrentUser(openid=f"web_{did}", user_id=f"web_{did}", is_mock=False)
+    u = CurrentUser(openid=f"web_{did}", user_id=f"web_{did}", is_mock=False, role="anon")
     request.state.user = u
     return u
+
+
+def require_admin(user: CurrentUser = Depends(get_requester)) -> CurrentUser:
+    """破坏性/管理端点的闸门（ADMIN-02）：非 admin 一律 403。
+
+    用法（Phase 2 DELETE 起逐个挂载）：
+        @router.delete("/documents/{doc_id}")
+        def delete_doc(doc_id: str, user: CurrentUser = Depends(require_admin)): ...
+    """
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="需要管理员权限",
+        )
+    return user

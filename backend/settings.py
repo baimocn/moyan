@@ -6,6 +6,8 @@
 """
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
 
 from pydantic import Field
@@ -30,6 +32,12 @@ class AppSettings(BaseSettings):
     ai_mock: bool = False              # 显式开启 mock 演示（无 key 且未开时拒绝 AI 服务）
     cors_origins: str = ""             # 跨源白名单（逗号分隔，如 https://moyan.example）；空=仅同源
     debug: bool = False
+    # ---- 运行环境（Phase 1 权限分层：2026-09-04）----
+    # dev（默认，本地开发）/ production（生产；启动时强制关闭免鉴权与 dev-login）
+    env: str = "dev"
+    # ---- 管理员清单（权限分层 ADMIN-01）----
+    # 逗号分隔的 openid 列表，命中的用户 role=admin。例：ADMIN_OPENIDS=oX123,oX456
+    admin_openids: str = ""
     # ---- 鉴权（部署前置：2026-09-02）----
     # 微信小程序登录 AppID / AppSecret（从 mp.weixin.qq.com 后台拿）
     wx_appid: str = ""
@@ -39,6 +47,31 @@ class AppSettings(BaseSettings):
     # 鉴权总开关：1=完全免登录（dev / 微信开发者工具游客模式），0=强制 Bearer token
     # 留 str 而非 bool 是为了容忍 "1"/"true"/"yes" 多种写法
     auth_disabled: bool = False
+
+    @property
+    def admin_set(self) -> frozenset:
+        """管理员 openid 集合（逗号/空白分隔，去空）。O(1) 成员判定。"""
+        raw = (self.admin_openids or "").replace("，", ",")
+        return frozenset(s.strip() for s in raw.replace(" ", ",").split(",") if s.strip())
+
+    @property
+    def is_production(self) -> bool:
+        return (self.env or "").strip().lower() == "production"
+
+
+def apply_production_safety() -> list[str]:
+    """生产环境安全硬校验（ADMIN-03）：MOYAN_ENV=production 时强制关闭免鉴权。
+
+    返回触发的动作列表（供启动日志与测试断言）。FAIL-SAFE：宁可生产要配 jwt_secret，
+    也绝不让人误开 AUTH_DISABLED 裸奔上线。
+    """
+    actions: list[str] = []
+    if app_settings.is_production and app_settings.auth_disabled:
+        object.__setattr__(app_settings, "auth_disabled", False)
+        actions.append("auth_disabled 已从 True 强制改为 False（生产环境禁止免鉴权）")
+    for a in actions:
+        logging.getLogger("moyan.security").warning("生产安全硬校验：%s", a)
+    return actions
 
 
 class DbSettings(BaseSettings):

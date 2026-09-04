@@ -69,3 +69,4 @@ class MeResp(BaseModel):
     created_at: str         # ISO8601
     sessions: int = 0
     last_active: str | None = None
+    role: str = "user"      # admin | user | anon（Phase 1 权限分层，管理后台判定用）
