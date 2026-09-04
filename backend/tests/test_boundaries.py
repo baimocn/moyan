@@ -145,6 +145,17 @@ def _patch_check_boom(monkeypatch):
     monkeypatch.setattr("backend.routers.documents.check_title_async", _boom)
 
 
+def test_r11_rename_rate_limited(client, monkeypatch):
+    """同名短路不烧 AI，但限流照计——防脚本刷改名烧 AI 账单（10/min）。"""
+    monkeypatch.setattr("backend.settings.app_settings.auth_disabled", False)
+    doc_id = _mk_doc("现名")
+    _patch_check_boom(monkeypatch)  # AI 被调即失败
+    codes = [client.patch(f"/api/documents/{doc_id}", json={"title": "现名"},
+                          headers=ANON).status_code for _ in range(11)]
+    assert codes[:10] == [200] * 10
+    assert codes[10] == 429
+
+
 # ---- LOGIN ----
 
 def _login(client, monkeypatch, password="pw-boundary-123"):

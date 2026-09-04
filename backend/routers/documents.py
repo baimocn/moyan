@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import func, or_, text
@@ -18,6 +18,7 @@ from ..models import Document, SessionLocal
 from ..models.study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
 from ..models.tasks import Task
 from ..models.vec import DocumentChunk
+from ..rate_limit import L_HEAVY, limiter
 
 router = APIRouter(prefix="/api", tags=["documents"])
 
@@ -110,7 +111,9 @@ class RenameIn(BaseModel):
 
 
 @router.patch("/documents/{doc_id}")
-async def rename_document(doc_id: str, body: RenameIn,
+@limiter.limit(L_HEAVY)  # 10/min：非 admin 改名触发 AI 审核，无限流=可被刷 AI 账单
+async def rename_document(request: Request, response: Response,
+                          doc_id: str, body: RenameIn,
                           user: CurrentUser = Depends(get_requester)):
     """书籍自定义命名（教学计划列表展示用，不动底层文件名）。
 
