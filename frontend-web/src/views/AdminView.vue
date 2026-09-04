@@ -111,7 +111,8 @@ async function loadAll() {
   err.value = ''
   try {
     const [s, u, d] = await Promise.all([getAdminStats(), getAdminUsage(30), getDocuments()])
-    stats.value = s; usage.value = u; docs.value = Array.isArray(d) ? d : (d.items || [])
+    stats.value = s; usage.value = u
+    docs.value = d.documents || d.items || []   // /api/documents 返回 {documents:[...]}
   } catch (e) {
     if (e.status === 401 || e.status === 403) { logout() }
     else err.value = '数据加载失败：' + (e.message || '未知错误')
