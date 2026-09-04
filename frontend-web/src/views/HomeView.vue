@@ -2,8 +2,10 @@
 // 书架首页（网页版 v2，2026-09-03）：免登录 · 书架为主体 · 上传收为左上角子功能 · 顶部共享书库搜索
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getDocuments, getDocument, renameDocument } from '../api/documents.js'
+import { getDocuments, getDocument, renameDocument, deleteDocument } from '../api/documents.js'
 import { uploadFile, getTask } from '../api/upload.js'
+import { me } from '../api/auth.js'
+import { getToken } from '../api/client.js'
 
 const router = useRouter()
 
@@ -26,14 +28,38 @@ const fileInput = ref(null)
 
 const ready = computed(() => docIdx.value >= 0 && chapIdx.value >= 0)
 const searching = computed(() => searchQ.value.trim().length > 0)
+const isAdmin = ref(false)
 
 onMounted(() => {
   refresh()
+  // 管理员判定（Phase 2 DOC-03）：登录态拉 /me 看 role；匿名/失败静默
+  if (getToken()) {
+    me().then(r => { isAdmin.value = (r.role === 'admin') }).catch(() => { isAdmin.value = false })
+  }
   try {
     const s = JSON.parse(localStorage.getItem('moyan:last') || 'null')
     last.value = s && s.doc_id && Number.isInteger(s.chapter_index) ? s : null
   } catch (e) { last.value = null }
 })
+
+async function confirmDocDelete(d) {
+  const name = displayName(d)
+  if (!window.confirm(`确定删除《${name}》？\n该书的教学会话与学习记录将一并删除，无法恢复。`)) return
+  try {
+    await deleteDocument(d.doc_id)
+    tip.value = `已删除《${name}》✓`
+    if (last.value && last.value.doc_id === d.doc_id) {
+      last.value = null
+      localStorage.removeItem('moyan:last')
+    }
+    if (docIdx.value >= 0 && docs.value[docIdx.value] && docs.value[docIdx.value].doc_id === d.doc_id) {
+      docIdx.value = -1; chapIdx.value = -1; manifest.value = []
+    }
+    await refresh()
+  } catch (e) {
+    tip.value = '删除失败：' + ((e && e.message) || '未知错误')
+  }
+}
 
 function displayName(d) {
   return d.display_title || d.title || cleanName(d.filename)
@@ -249,6 +275,7 @@ function go() {
         <div class="doc-top">
           <span class="doc-title">{{ displayName(d) }}</span>
           <span class="pill" v-if="i === docIdx">已选</span>
+          <button class="ren" v-if="isAdmin" @click.stop="confirmDocDelete(d)">删除</button>
           <button class="ren" @click.stop="openDlg('rename', d)">重命名</button>
         </div>
         <div class="doc-meta">

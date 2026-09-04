@@ -1,12 +1,21 @@
 """墨衍 · 文档查询路由（从 PostgreSQL 读取）"""
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+import logging
+import shutil
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func, or_
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import func, or_, text
 
 from .. import storage
+from ..auth.deps import require_admin
+from ..auth.deps import CurrentUser
+from ..config import CHAPTERS_DIR, MARKDOWN_DIR, UPLOAD_DIR
 from ..models import Document, SessionLocal
+from ..models.study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
+from ..models.tasks import Task
 
 router = APIRouter(prefix="/api", tags=["documents"])
 
@@ -112,6 +121,65 @@ def rename_document(doc_id: str, body: RenameIn):
         db.commit()
         data = _doc_to_dict(doc)
     return {"ok": True, "document": data}
+
+
+@router.delete("/documents/{doc_id}")
+def delete_document(doc_id: str, admin: CurrentUser = Depends(require_admin)):
+    """删除文档（ADMIN-02 首个真实挂载点，require_admin 403 闸门）。
+
+    级联清理（单事务，PG FK 安全顺序）：
+    turns / judgements（该书会话的子行）→ weaknesses / strategy_logs（按 doc_id）
+    → teaching_sessions → tasks → documents。
+    文件产物（markdown / chapters / uploads 残壳）在事务提交后尽力删，缺失不报错。
+    content_hash 行随文档消失 → 同书之后可重新完整上传，去重不受污染。
+    """
+    with SessionLocal() as db:
+        doc = db.get(Document, doc_id)
+        if doc is None:
+            raise HTTPException(404, detail="文档不存在")
+
+        session_ids = [
+            row[0]
+            for row in db.execute(
+                text("SELECT id FROM teaching_sessions WHERE doc_id=:d"),
+                {"d": doc_id},
+            ).fetchall()
+        ]
+        counts = {"sessions": len(session_ids)}
+        if session_ids:
+            counts["turns"] = db.execute(
+                sa_delete(Turn).where(Turn.session_id.in_(session_ids))
+            ).rowcount
+            counts["judgements"] = db.execute(
+                sa_delete(Judgement).where(Judgement.session_id.in_(session_ids))
+            ).rowcount
+        else:
+            counts["turns"] = counts["judgements"] = 0
+        counts["weaknesses"] = db.execute(
+            sa_delete(Weakness).where(Weakness.doc_id == doc_id)
+        ).rowcount
+        counts["strategy_logs"] = db.execute(
+            sa_delete(StrategyLog).where(StrategyLog.doc_id == doc_id)
+        ).rowcount
+        db.execute(sa_delete(TeachingSession).where(TeachingSession.doc_id == doc_id))
+        counts["tasks"] = db.execute(sa_delete(Task).where(Task.doc_id == doc_id)).rowcount
+        db.delete(doc)
+        db.commit()
+
+    # 文件清理：DB 已提交，尽力删（缺失/权限失败不影响响应，仅记日志）
+    for path in (MARKDOWN_DIR / f"{doc_id}.md",):
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:  # noqa: BLE001
+            logging.getLogger("moyan.documents").warning("删除文件失败 %s: %s", path, exc)
+    for dir_path in (CHAPTERS_DIR / doc_id, UPLOAD_DIR / doc_id):
+        try:
+            if dir_path.exists():
+                shutil.rmtree(dir_path)
+        except OSError as exc:  # noqa: BLE001
+            logging.getLogger("moyan.documents").warning("删除目录失败 %s: %s", dir_path, exc)
+
+    return {"ok": True, "deleted": counts}
 
 
 @router.get("/documents")

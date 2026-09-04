@@ -15,6 +15,11 @@ export function renameDocument(docId, title) {
   return request('PATCH', `/api/documents/${docId}`, { data: { title } })
 }
 
+// 删除文档（仅 admin；连带该书学习记录）
+export function deleteDocument(docId) {
+  return request('DELETE', `/api/documents/${docId}`)
+}
+
 export function getStats(docId) {
   return request('GET', `/api/study/${docId}/stats`)
 }
