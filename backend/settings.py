@@ -32,6 +32,9 @@ class AppSettings(BaseSettings):
     # ---- 上传内容安全审核（MOD-01，2026-09-04）----
     # 上架前 AI 审核（黄赌毒等违禁内容拒绝入库）；0 可关闭（本地自用环境）
     moderation: bool = True
+    # ---- 重命名 AI 审核（REN-01，2026-09-04）----
+    # 非 admin 改名需过「新名称-内容相符」审核，不符 422；审核异常 fail-open
+    rename_review: bool = True
     ai_mock: bool = False              # 显式开启 mock 演示（无 key 且未开时拒绝 AI 服务）
     cors_origins: str = ""             # 跨源白名单（逗号分隔，如 https://moyan.example）；空=仅同源
     debug: bool = False

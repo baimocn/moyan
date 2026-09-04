@@ -11,8 +11,9 @@ from sqlalchemy import func, or_, text
 
 from .. import storage
 from ..auth.deps import require_admin
-from ..auth.deps import CurrentUser
+from ..auth.deps import CurrentUser, get_requester
 from ..config import CHAPTERS_DIR, MARKDOWN_DIR, UPLOAD_DIR
+from ..engine.title_check import check_title_async
 from ..models import Document, SessionLocal
 from ..models.study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
 from ..models.tasks import Task
@@ -109,8 +110,14 @@ class RenameIn(BaseModel):
 
 
 @router.patch("/documents/{doc_id}")
-def rename_document(doc_id: str, body: RenameIn):
-    """书籍自定义命名（教学计划列表展示用，不动底层文件名）。"""
+async def rename_document(doc_id: str, body: RenameIn,
+                          user: CurrentUser = Depends(get_requester)):
+    """书籍自定义命名（教学计划列表展示用，不动底层文件名）。
+
+    权限策略（REN-01，2026-09-04）：删除收敛到管理台（ADMIN-02）；重命名保留给
+    用户层，但非 admin 改名需先过 AI「新名称-内容相符」审核，不符 422 拒绝。
+    fail-open：审核服务异常放行（见 engine/title_check.py）。
+    """
     title = body.title.strip()
     if not title:
         raise HTTPException(400, detail="名称不能为空")
@@ -118,6 +125,20 @@ def rename_document(doc_id: str, body: RenameIn):
         doc = db.get(Document, doc_id)
         if doc is None:
             raise HTTPException(404, detail="文档不存在")
+        if user.role != "admin":
+            md = ""
+            try:
+                md_path = MARKDOWN_DIR / f"{doc_id}.md"
+                if md_path.exists():
+                    md = md_path.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                md = ""
+            chapter_titles = [c.get("title", "")
+                              for c in (doc.manifest or []) if isinstance(c, dict)]
+            check = await check_title_async(title[:200], md, chapter_titles)
+            if not check["match"]:
+                raise HTTPException(
+                    422, detail=f"改名未通过审核：{check['reason'] or '新名称与文档内容不符'}")
         doc.title = title[:200]
         db.commit()
         data = _doc_to_dict(doc)
