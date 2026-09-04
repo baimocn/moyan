@@ -8,15 +8,19 @@
 
 ### ADMIN — 权限分层
 
-- [ ] **ADMIN-01**: `get_requester` 返回值携带 role（admin/user/anon），管理员由 env `ADMIN_OPENIDS` 清单（逗号分隔 openid）判定，用户可在文档中写明配置方法
-- [ ] **ADMIN-02**: 破坏性写操作（文档 DELETE 等）要求 role=admin，非 admin 返回 403（中文 detail）
-- [ ] **ADMIN-03**: 生产安全硬校验：AUTH_DISABLED=1 或 dev-login 在生产配置（AUTH_DISABLED=0 且配了真实域）时自动禁用并打日志，防误开
+- [x] **ADMIN-01**: `get_requester` 返回值携带 role（admin/user/anon），管理员由 env `MOYAN_ADMIN_OPENIDS` 清单（逗号分隔 openid）判定（2026-09-04 生产已配置）
+- [x] **ADMIN-02**: 破坏性写操作（文档 DELETE 等）要求 role=admin，非 admin 返回 403（中文 detail）
+- [x] **ADMIN-03**: 生产安全硬校验：AUTH_DISABLED=1 或 dev-login 在生产配置（AUTH_DISABLED=0 且配了真实域）时自动禁用并打日志，防误开
 
 ### DOC — 文档删除
 
-- [ ] **DOC-01**: `DELETE /api/documents/{doc_id}`（admin only）联级清理：documents 行、tasks 关联行、`data/markdown/{doc_id}.md`、`data/chapters/{doc_id}/` 整目录、`data/uploads/{doc_id}/` 残留
-- [ ] **DOC-02**: 删除不存在的 doc_id 返回 404；幂等重删返回 404（不做软删除，v2 再议）
-- [ ] **DOC-03**: 网页版书架对 admin 显示删除入口（确认弹层），删除后列表即时刷新
+- [x] **DOC-01**: `DELETE /api/documents/{doc_id}`（admin only）联级清理：documents 行、tasks 关联行、`data/markdown/{doc_id}.md`、`data/chapters/{doc_id}/` 整目录、`data/uploads/{doc_id}/` 残留（Phase 5 起含 document_chunks）
+- [x] **DOC-02**: 删除不存在的 doc_id 返回 404；幂等重删返回 404（不做软删除，v2 再议）
+- [x] **DOC-03**: ~~网页版书架对 admin 显示删除入口~~ **（REN-01 决策推翻：删除收敛到管理台，用户层书架不再显示删除按钮，管理员也统一去 /admin 删）**
+
+### REN — 重命名 AI 审核（2026-09-04 新增，本地已上线）
+
+- [x] **REN-01**: 用户层重命名保留，但非 admin 改名需先过「新名称-内容相符」AI 审核（头部2500字+章节清单→cheap 引擎 json_mode；相符标准宽泛：主题/别名/课程名/简称都算，只拒明显风马牛不相及）；不符 422 并给理由；admin 绕过；审核异常 fail-open；mock/未配引擎/MOYAN_RENAME_REVIEW=0 跳过；审核消耗入 ai_usage（scope=title_check）
 
 ### MOD — 上传内容安全审核（2026-09-04 新增，已上线）
 
@@ -66,9 +70,10 @@
 
 | Requirement | Phase | Status |
 |---|---|---|
-| ADMIN-01..03 | Phase 1 权限分层与生产安全硬校验 | pending |
-| DOC-01..03 + VEC-05（清理链挂点） | Phase 2 文档删除与联级清理 | pending |
-| COST-01, STATS-01..03 | Phase 3 用量观测 | pending |
+| ADMIN-01..03 | Phase 1 权限分层与生产安全硬校验 | done（2026-09-04，管理员 openid 已配置生产） |
+| DOC-01..03 + VEC-05（清理链挂点） | Phase 2 文档删除与联级清理 | done（2026-09-04 生产已上线；DOC-03 被 REN-01 推翻） |
+| MOD-01 + REN-01 | 内容安全 + 重命名 AI 审核 | done（2026-09-04；MOD 生产已上线，REN 本地） |
+| COST-01, STATS-01..03 | Phase 3 用量观测 | done（2026-09-04 生产已上线） |
 | ADMINUI-01..03 | Phase 4 管理后台页 | done（2026-09-04 本地，生产未部署） |
-| VEC-01..03 | Phase 5 向量知识库底座 | pending |
-| VEC-04 | Phase 6 检索注入教学引擎 | pending |
+| VEC-01..03 | Phase 5 向量知识库底座 | done（2026-09-04 本地，生产未部署） |
+| VEC-04 | Phase 6 检索注入教学引擎 | done（2026-09-04 本地，默认关） |
