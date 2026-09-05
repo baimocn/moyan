@@ -91,6 +91,7 @@ class TutorService:
         ses = TutorSession(session_id=session_id, doc_id=doc_id,
                            chapter_index=chapter_index, chapter_title=chapter_title,
                            plan=plan)
+        ses.user_id = user_id or None   # SEC-01：内存会话必须带 owner，否则归属校验误杀本人
         # 人物化开场白（D11）：回访接旧线 + 到期复习 + 连续天数（模板拼接，0 token）
         try:
             from ..persona import compose_greeting
@@ -138,6 +139,7 @@ class TutorService:
             weak=dict(rec.get("weak", {})),
             hint_level=int(rec.get("hint_level") or 0),
         )
+        ses.user_id = rec.get("user_id") or None   # SEC-01：恢复会话同样要带 owner
         q = rec.get("current_question")
         if q:
             from ..schemas import QuestionSpec

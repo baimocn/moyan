@@ -164,6 +164,36 @@ def test_turn_lock_api_409(monkeypatch):
     assert r2.status_code == 200                        # 释放后恢复
 
 
+# ================= SEC-01：内存会话必须携带 owner（生产冒烟抓到的缺口）=================
+
+def test_start_and_resume_carry_owner(monkeypatch):
+    """生产冒烟实弹抓到：start_chapter 把 user_id 落库但没挂到内存会话，
+    导致 owner 本人后续 turn 被自己的归属校验 404 误杀。resume 同理。"""
+    from backend import storage
+    monkeypatch.setattr(storage, "get_chapter_manifest",
+                        lambda d: [{"index": 0, "title": "T", "toc": [], "file": "ch0.md"}])
+    monkeypatch.setattr(storage, "get_chapter", lambda d, c: {"markdown": ""})
+    monkeypatch.setattr(storage, "load_learning_plan", lambda d, c: [
+        {"id": "k1", "name": "a", "summary": "s", "skill_id": "k1"},
+        {"id": "k2", "name": "b", "summary": "s", "skill_id": "k2"},
+        {"id": "k3", "name": "c", "summary": "s", "skill_id": "k3"}])
+    monkeypatch.setattr(storage, "save_learning_plan", lambda d, c, p: None)
+    monkeypatch.setattr(repo, "due_reviews", lambda d, limit=1: [])
+    monkeypatch.setattr(repo, "study_streak", lambda: set())
+
+    import asyncio
+    svc = TutorService()
+    loop = asyncio.new_event_loop()
+    try:
+        ses = loop.run_until_complete(
+            svc.start_chapter("doc-secx", 0, user_id=f"web_{A_DID}"))
+        assert ses.user_id == f"web_{A_DID}", "start 后内存会话必须带 owner"
+        ses2 = svc.resume_session(ses.session_id)
+        assert ses2.user_id == f"web_{A_DID}", "resume 恢复的会话必须带 owner"
+    finally:
+        loop.close()
+
+
 # ================= SEC-02：生成上限 =================
 
 def test_default_max_tokens_settings_and_cheap_halved(monkeypatch):
