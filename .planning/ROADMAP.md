@@ -1,8 +1,9 @@
-# ROADMAP — 墨衍 M2/M3 执行路线
+# ROADMAP — 墨衍执行路线（M2/M3 → M4）
 
-*Created: 2026-09-04 · 标准粒度 · PROJECT_MODE=mvp（每阶段交付端到端用户能力）*
+*Created: 2026-09-04 · M4 立项 2026-09-05 · 标准粒度 · PROJECT_MODE=mvp（每阶段交付端到端用户能力）*
 
-约束：小程序代码冻结期（审核中），Phase 1-4 不碰 `frontend/`。执行顺序即依赖顺序。
+约束：小程序代码冻结期（0.2.x 审核中），M2/M3 Phase 1-4 不碰 `frontend/`；
+M4 三阶段（7-9）全部为 backend/ops/docs，双前端零改动。执行顺序即依赖顺序。
 
 ### Phase 1: 权限分层与生产安全硬校验
 **Goal:** 系统有 admin/user/anon 三态角色，破坏性操作有闸门，生产误开风险关闭
@@ -70,3 +71,46 @@
 | VEC-04 | 6 |
 
 覆盖率：23/23 v1 需求全覆盖 ✓
+
+---
+
+# 里程碑 M4：加固与升级（2026-09-05 立项）
+
+*来源：魔鬼代言人审查 v2 + Schema 审计 + 产品定位确认（不收费、搜集用户-AI 对话数据）。*
+*调研：`.planning/phases/07-hardening/RESEARCH.md`。*
+*前置：Phase 1-6 已全量交付（docs/REQUIREMENTS）；挂起的限流改动需先 commit 收口基线。*
+
+### Phase 7: 教学链路安全与成本边界（SEC-01..04）
+**Goal:** 会话只能被主人驱动，AI 消耗有上限有熔断，状态机无双跑
+**Mode:** mvp
+**Success Criteria**:
+1. 非 owner 携他人 session_id 调 turn/resume/review-* 一律 404（测试覆盖 4 个端点）
+2. 所有真实 AI 调用带 max_tokens（env 可调，mock 断言 + 生产日志可见）
+3. 同会话并发第二个 turn 返 409，不产生双 AI 调用（测试覆盖）
+4. 日 token 预算超限自动降级 cheap，超硬限返 429（测试覆盖，默认关闭不影响现网）
+5. pytest 全绿（--basetemp）；frontend/ 与 frontend-web/ 零改动
+
+### Phase 8: Schema 健康化 + alembic 基线（SCHEMA-01..06）
+**Goal:** 模型声明与生产 schema 一致，迁移有工具，台账表寿命解除
+**Mode:** mvp
+**Success Criteria**:
+1. pg_indexes 与模型声明一致（补 content_hash 索引、email 唯一约束）
+2. ai_usage/page_views/document_chunks 主键 bigint；关键 JSON 列统一 jsonb
+3. 核心状态字段带 CHECK，weaknesses 业务唯一键就位
+4. 引入 alembic：`upgrade head` 可从零重建生产等价 schema，模型层 JSONB variant 公共化
+5. 生产执行并复核 pg_indexes，pytest 全绿
+
+### Phase 9: 可观测与合规（OBS-01/02，CMP-01/02，DOC-01）
+**Goal:** 故障五分钟内可见，合规底线落纸，文档与现实一致
+**Mode:** mvp
+**Success Criteria**:
+1. SSE 冒烟探针每 5 分钟一轮，失败留痕且管理台可见（探针消耗计入 ai_usage）
+2. 公开书库内容审核 fail-closed + 上传默认私有/显式分享 + 管理台一键下架（测试覆盖）
+3. 双端隐私告知 + 数据保留策略上线（CMP-01）
+4. 交接文档 v5.1：git 状态行、Python 3.12 实况、Caddy 弃用声明、后端归属规则、内容池风险声明
+5. pytest 全绿；frontend/ 零改动（告知页如需前端展示，延至 M5）
+
+## M5（后置立项，暂缓规划）
+
+双端功能升级：错题本深化（重练流）、学习报告、个人页、聊天气泡 markdown 渲染、
+上传进度流、管理台图表、向量检索 UI。——摘自交接文档 5A/5B，待 M4 收口后走 gsd-new-milestone。
