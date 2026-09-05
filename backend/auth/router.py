@@ -206,3 +206,11 @@ def me(user: CurrentUser = Depends(get_current_user)):
         last_active=_iso(row[2]),
         role=user.role,
     )
+
+
+@router.get("/me/stats")
+def me_stats(user: CurrentUser = Depends(get_current_user)):
+    """ME-01（M5 Phase 10）：个人页口径（复用 user_report）。需 Bearer（小程序直用）。"""
+    from ..models import repo
+    rep = repo.user_report(user.openid)
+    return {"ok": True, "report": rep}

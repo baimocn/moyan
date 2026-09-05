@@ -13,6 +13,7 @@ from .. import storage
 from ..auth.deps import require_admin
 from ..auth.deps import CurrentUser, get_requester
 from ..config import CHAPTERS_DIR, MARKDOWN_DIR, UPLOAD_DIR
+from ..models import repo
 from ..engine.title_check import check_title_async
 from ..models import Document, SessionLocal
 from ..models.study import Judgement, StrategyLog, TeachingSession, Turn, Weakness
@@ -88,7 +89,7 @@ def _clean_display_title(title: str, filename: str) -> str:
 
 def _doc_visible(doc: Document, user: CurrentUser) -> bool:
     """CMP-02 可见性：shared 或 本人上传 或 admin；不可见抛 404（不暴露存在性）。"""
-    if user.role == "admin" or doc.shared or doc.user_id == user.openid:
+    if repo.doc_visible(doc.shared, doc.user_id, user.openid, user.role):
         return True
     raise HTTPException(404, detail="文档不存在")
 

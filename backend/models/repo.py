@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 
 from fsrs import Card, Rating, Scheduler, State
 
+from sqlalchemy import func
+
 from .db import SessionLocal
 from .study import (Judgement, StrategyLog, TeachingSession, Turn, Weakness)
 
@@ -109,6 +111,15 @@ def load_session(session_id: str) -> dict | None:
         }
 
 
+def doc_visible(shared: bool, owner: str | None, openid: str, role: str = "anon") -> bool:
+    """CMP-02 文档可见性（纯函数）：shared 或 本人上传 或 admin。"""
+    if role == "admin":
+        return True
+    if shared:
+        return True
+    return bool(owner) and owner == openid
+
+
 def session_owned_by(owner: str | None, openid: str, role: str = "anon") -> bool:
     """SEC-01 归属判定（纯函数，2026-09-05）。
 
@@ -156,6 +167,58 @@ def study_streak() -> int:
     today = datetime.now().astimezone().date()
     return streak_from_dates(days, today)
 
+
+
+def user_report(openid: str, days: int = 30) -> dict:
+    """RPT-01/ME-01（2026-09-05）：按用户聚合学习报告。
+
+    口径：仅统计 user_id == openid 的行（NULL 老数据不计入）。
+    正确率趋势用 judgement.score（0~1）逐日均值；薄弱分布按 mastery 计数；
+    连续天数按用户 turns 的创建日期（复用 streak_from_dates）。
+    """
+    from datetime import datetime, timedelta, timezone
+
+    end = datetime.now(timezone.utc)
+    start = end - timedelta(days=days)
+    with SessionLocal() as db:
+        turns_n = (db.query(func.count(Turn.id))
+                   .filter(Turn.user_id == openid).scalar() or 0)
+        sessions_n = (db.query(func.count(TeachingSession.id))
+                      .filter(TeachingSession.user_id == openid).scalar() or 0)
+        j_rows = (db.query(Judgement.created_at, Judgement.score)
+                  .filter(Judgement.user_id == openid,
+                          Judgement.created_at >= start).all())
+        w_rows = (db.query(Weakness.mastery, func.count(Weakness.id))
+                  .filter(Weakness.user_id == openid)
+                  .group_by(Weakness.mastery).all())
+        t_dates = (db.query(Turn.created_at)
+                   .filter(Turn.user_id == openid)
+                   .order_by(Turn.created_at.desc()).limit(400).all())
+
+    # 逐日趋势（Python 侧聚合，方言中立）
+    buckets: dict[str, dict] = {}
+    for dt, score in j_rows:
+        if dt is None:
+            continue
+        d = (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).date().isoformat()
+        b = buckets.setdefault(d, {"count": 0, "sum": 0.0})
+        b["count"] += 1
+        b["sum"] += float(score or 0.0)
+    trend = [{"date": d, "count": b["count"], "avg_score": round(b["sum"] / b["count"], 3)}
+             for d, b in sorted(buckets.items())][-days:]
+
+    dates = {(r[0].date() if r[0] else None) for r in t_dates}
+    dates.discard(None)
+    streak = streak_from_dates(dates, end.date())
+
+    return {
+        "user_id": openid,
+        "days": days,
+        "teaching": {"turns": int(turns_n), "sessions": int(sessions_n)},
+        "trend": trend,
+        "weaknesses": {m: int(c) for m, c in w_rows},
+        "streak_days": streak,
+    }
 
 def list_sessions(doc_id: str, limit: int = 20) -> list[dict]:
     with SessionLocal() as db:
@@ -376,11 +439,15 @@ def chapter_overview(doc_id: str, scheduler: Scheduler | None = None) -> dict:
 
 # ---------- 查询 ----------
 
-def list_weaknesses(doc_id: str) -> list[dict]:
+def list_weaknesses(doc_id: str, user_id: str | None = None) -> list[dict]:
+    """PRAC-01（2026-09-05）：user_id 传入时按 owner 维度过滤（错题本口径）；
+    排序到期优先（NULL 最后）→ mastery → times_low。"""
     with SessionLocal() as db:
-        rows = (db.query(Weakness)
-                .filter(Weakness.doc_id == doc_id)
-                .order_by(Weakness.mastery, Weakness.times_low.desc()).all())
+        q = db.query(Weakness).filter(Weakness.doc_id == doc_id)
+        if user_id:
+            q = q.filter(Weakness.user_id == user_id)
+        rows = (q.order_by(Weakness.due_at.is_(None), Weakness.due_at,
+                           Weakness.mastery, Weakness.times_low.desc()).all())
     return [
         {"skill_id": r.skill_id, "name": r.name, "mastery": r.mastery,
          "user_id": r.user_id,

@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 from ..auth.deps import CurrentUser, get_requester
 from ..container import EngineNotReadyError, get_services
 from ..models import repo
+from ..models.documents import Document
+from ..models.db import SessionLocal
 
 router = APIRouter(prefix="/api/study", tags=["study"])
 
@@ -20,45 +22,62 @@ def _ensure_review_owner(srv, session_id: str, user: CurrentUser) -> None:
         raise HTTPException(404, detail="复习会话不存在（服务重启后需重新 start）")
 
 
+
+def _ensure_doc_visible(doc_id: str, user: CurrentUser) -> None:
+    """AUTH-04（M5 Phase 10）：doc 级读端点可见性——shared 或本人，否则 404。"""
+    with SessionLocal() as db:
+        doc = db.get(Document, doc_id)
+    if doc is None or not repo.doc_visible(doc.shared, doc.user_id, user.openid, user.role):
+        raise HTTPException(404, detail="文档不存在")
+
+
 class ResumeReq(BaseModel):
     session_id: str
 
 
 @router.get("/{doc_id}/sessions")
-def sessions(doc_id: str):
+def sessions(doc_id: str, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     return {"ok": True, "sessions": repo.list_sessions(doc_id)}
 
 
 @router.get("/{doc_id}/weaknesses")
-def weaknesses(doc_id: str):
-    return {"ok": True, "weaknesses": repo.list_weaknesses(doc_id)}
+def weaknesses(doc_id: str, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
+    owner = None if user.role == "admin" else user.openid   # admin 看全量
+    return {"ok": True, "weaknesses": repo.list_weaknesses(doc_id, user_id=owner)}
 
 
 @router.get("/{doc_id}/stats")
-def stats(doc_id: str):
+def stats(doc_id: str, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     return {"ok": True, "stats": repo.study_stats(doc_id)}
 
 
 @router.get("/{doc_id}/reviews")
-def due_reviews(doc_id: str, limit: int = 30):
+def due_reviews(doc_id: str, limit: int = 30, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     """到期待复习的薄弱点（复习调度 = due ∩ 薄弱，FSRS 排序）。"""
     return {"ok": True, "reviews": repo.due_reviews(doc_id, limit=min(limit, 100))}
 
 
 @router.get("/{doc_id}/chapters")
-def chapter_overview(doc_id: str):
+def chapter_overview(doc_id: str, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     """概念级 → 章节级聚合：每章到期/掌握度画像（复习/导航用）。"""
     return {"ok": True, "overview": repo.chapter_overview(doc_id)}
 
 
 @router.get("/{doc_id}/strategy-stats")
-def strategy_stats(doc_id: str, skill_id: str = ""):
+def strategy_stats(doc_id: str, skill_id: str = "", user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     """教学策略效果聚合（Groove）：skill × 讲法 → 样本/平均效果/裁判通过率。"""
     return {"ok": True, "stats": repo.strategy_stats(doc_id, skill_id)}
 
 
 @router.get("/{doc_id}/traces/{skill_id}")
-def traces(doc_id: str, skill_id: str):
+def traces(doc_id: str, skill_id: str, user: CurrentUser = Depends(get_requester)):
+    _ensure_doc_visible(doc_id, user)
     """学习轨迹（Tracer）：某知识点的判定/掌握度/策略反馈时间线。"""
     return {"ok": True, "trace": repo.traces(doc_id, skill_id)}
 
@@ -148,3 +167,15 @@ def resume(req: ResumeReq, user: CurrentUser = Depends(get_requester)):
         "weak": ses.weak,
         "plan": [{"id": k.id, "name": k.name, "summary": k.summary} for k in ses.plan.kps],
     }
+
+
+@router.get("/report")
+def study_report(user: CurrentUser = Depends(get_requester)):
+    """RPT-01（M5 Phase 10）：按请求者聚合学习报告。
+
+    web_anon 为共享匿名兜底身份，返回带 scope_note 显式标注（数据混同所有无身份请求）。
+    """
+    rep = repo.user_report(user.openid)
+    rep["scope_note"] = ("共享匿名口径：所有未携带设备标识的请求共用该身份"
+                         if user.openid == "web_anon" else "")
+    return {"ok": True, "report": rep}
