@@ -209,6 +209,9 @@ def upsert_weakness(doc_id: str, skill_id: str, name: str, mastery: str,
             Weakness.doc_id == doc_id, Weakness.skill_id == skill_id)
         if user_id:
             q = q.filter(Weakness.user_id == user_id)
+        else:
+            # SCHEMA-05：None 必须显式匹配 NULL，否则会跨用户抓行更新（2026-09-05 修复）
+            q = q.filter(Weakness.user_id.is_(None))
         row = q.first()
         now = _now()
         if row is None:
@@ -380,6 +383,7 @@ def list_weaknesses(doc_id: str) -> list[dict]:
                 .order_by(Weakness.mastery, Weakness.times_low.desc()).all())
     return [
         {"skill_id": r.skill_id, "name": r.name, "mastery": r.mastery,
+         "user_id": r.user_id,
          "times_low": r.times_low, "reps": r.reps, "interval_days": r.interval_days,
          "lapses": r.lapses,
          "chapter_index": r.chapter_index, "chapter_title": r.chapter_title or "",

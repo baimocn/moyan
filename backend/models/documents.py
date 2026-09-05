@@ -1,15 +1,20 @@
 """文档模型"""
 from __future__ import annotations
 
-from sqlalchemy import JSON, Integer, String
+from sqlalchemy import Integer, String
+from sqlalchemy import CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .db import Base, DateTime, _tznow
+from .db import Base, DateTime, JSONType, _tznow
 
 
 class Document(Base):
     """一份上传资料的解析结果索引。"""
     __tablename__ = "documents"
+    __table_args__ = (
+        CheckConstraint("status IN ('done','processing','failed','rejected')",
+                        name="ck_documents_status"),
+    )
 
     doc_id: Mapped[str] = mapped_column(String(40), primary_key=True)
     # 鉴权落档（2026-09-02 部署前置）：NULL = 鉴权前老数据 / 游客
@@ -25,9 +30,9 @@ class Document(Base):
     md_chars: Mapped[int] = mapped_column(Integer, default=0)
     chapter_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(16), default="processing")
-    headings: Mapped[list] = mapped_column(JSON, default=list)
-    warnings: Mapped[list] = mapped_column(JSON, default=list)
-    stats: Mapped[dict] = mapped_column(JSON, default=dict)
-    manifest: Mapped[list] = mapped_column(JSON, default=list)
+    headings: Mapped[list] = mapped_column(JSONType, default=list)
+    warnings: Mapped[list] = mapped_column(JSONType, default=list)
+    stats: Mapped[dict] = mapped_column(JSONType, default=dict)
+    manifest: Mapped[list] = mapped_column(JSONType, default=list)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)
     updated_at = mapped_column(DateTime(timezone=True), default=_tznow, onupdate=_tznow)

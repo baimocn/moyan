@@ -23,3 +23,5 @@ pymupdf>=1.24
 rapidocr_onnxruntime>=0.2
 onnxruntime>=1.17
 pillow
+# Schema 迁移工具（SCHEMA-06，2026-09-05 M4 Phase 8）
+alembic>=1.13

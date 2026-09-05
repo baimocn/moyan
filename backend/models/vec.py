@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
-from .db import Base, DateTime, _tznow
+from .db import Base, BigIntPK, DateTime, _tznow
 
 # SQLite 用 JSON，PG 用 JSONB（same shape；编译期按方言选择会引入 import 复杂度，
 # 这里用运行时探测：JSON 在 PG 上也完全可用，仅索引能力弱——检索不依赖该索引）
@@ -26,7 +26,7 @@ class DocumentChunk(Base):
     """
     __tablename__ = "document_chunks"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow, index=True)
     doc_id: Mapped[str] = mapped_column(String(40), index=True)
     chapter_index: Mapped[int] = mapped_column(Integer, default=0)

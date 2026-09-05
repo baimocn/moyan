@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .db import Base, DateTime, _tznow
+from .db import Base, BigIntPK, DateTime, _tznow
 
 
 class AiUsage(Base):
@@ -16,7 +16,7 @@ class AiUsage(Base):
     """
     __tablename__ = "ai_usage"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow, index=True)
     endpoint: Mapped[str] = mapped_column(String(32), default="misc", index=True)
     engine: Mapped[str] = mapped_column(String(32), default="")
@@ -34,7 +34,7 @@ class PageView(Base):
     """页面浏览明细（STATS-01，双前端共用，有人点进来就算）。"""
     __tablename__ = "page_views"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow, index=True)
     source: Mapped[str] = mapped_column(String(8), default="web")   # web | mp
     page: Mapped[str] = mapped_column(String(64), default="")

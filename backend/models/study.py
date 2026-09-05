@@ -7,10 +7,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .db import Base, DateTime, _tznow
+from sqlalchemy import text
+
+from .db import Base, DateTime, JSONType, _tznow
 
 
 def _nid(prefix: str) -> str:
@@ -20,6 +22,9 @@ def _nid(prefix: str) -> str:
 class TeachingSession(Base):
     """一次章节导航式教学会话（可恢复续学）。"""
     __tablename__ = "teaching_sessions"
+    __table_args__ = (
+        CheckConstraint("state IN ('init','explain','question','await_answer','evaluate','chapter_exam','done')", name="ck_sessions_state"),
+    )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)   # s_xxx
     # 鉴权落档（2026-09-02）：openid。NULL = 鉴权前老数据 / 游客模式
@@ -30,12 +35,12 @@ class TeachingSession(Base):
     state: Mapped[str] = mapped_column(String(16), default="explain")
     kp_idx: Mapped[int] = mapped_column(Integer, default=0)
     hint_level: Mapped[int] = mapped_column(Integer, default=0)   # 脚手架阶梯 0-3（2026-08-29）
-    plan: Mapped[list] = mapped_column(JSON, default=list)          # 知识点序列快照（续学用）
-    weak: Mapped[dict] = mapped_column(JSON, default=dict)          # skill_id -> mastery
-    current_question: Mapped[dict] = mapped_column(JSON, default=dict)  # 当前题目快照（续学恢复）
-    exam_questions: Mapped[list] = mapped_column(JSON, default=list)    # 章末考题快照（2026-08-29 续学缺口）
+    plan: Mapped[list] = mapped_column(JSONType, default=list)          # 知识点序列快照（续学用）
+    weak: Mapped[dict] = mapped_column(JSONType, default=dict)          # skill_id -> mastery
+    current_question: Mapped[dict] = mapped_column(JSONType, default=dict)  # 当前题目快照（续学恢复）
+    exam_questions: Mapped[list] = mapped_column(JSONType, default=list)    # 章末考题快照（2026-08-29 续学缺口）
     exam_idx: Mapped[int] = mapped_column(Integer, default=0)
-    exam_scores: Mapped[dict] = mapped_column(JSON, default=dict)
+    exam_scores: Mapped[dict] = mapped_column(JSONType, default=dict)
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)
     updated_at = mapped_column(DateTime(timezone=True), default=_tznow, onupdate=_tznow)
 
@@ -43,6 +48,9 @@ class TeachingSession(Base):
 class Turn(Base):
     """会话中的每一轮（讲解/提问/判定/学生回答），审计与回放用。"""
     __tablename__ = "turns"
+    __table_args__ = (
+        CheckConstraint("role IN ('user','assistant')", name="ck_turns_role"),
+    )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
     # 鉴权落档（2026-09-02）：冗余存 openid，列表/统计走 user_id 走索引不走 JOIN session
@@ -51,7 +59,7 @@ class Turn(Base):
     role: Mapped[str] = mapped_column(String(16), default="")       # user / assistant
     kind: Mapped[str] = mapped_column(String(16), default="")       # explain/question/answer/judge
     content: Mapped[str] = mapped_column(Text, default="")
-    usage: Mapped[dict] = mapped_column(JSON, default=dict)         # token 用量（成本核算，见 AI 用量）
+    usage: Mapped[dict] = mapped_column(JSONType, default=dict)         # token 用量（成本核算，见 AI 用量）
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)
 
 
@@ -68,7 +76,7 @@ class Judgement(Base):
     score: Mapped[float] = mapped_column(Float, default=0.0)
     decision: Mapped[str] = mapped_column(String(32), default="")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
-    payload: Mapped[dict] = mapped_column(JSON, default=dict)       # 判定 JSON 全量
+    payload: Mapped[dict] = mapped_column(JSONType, default=dict)       # 判定 JSON 全量
     created_at = mapped_column(DateTime(timezone=True), default=_tznow)
 
 
@@ -81,6 +89,12 @@ class Weakness(Base):
     chapter_index/chapter_title 支撑"概念级→章节级"聚合（复习任务 = due ∩ 章节）。
     """
     __tablename__ = "weaknesses"
+    __table_args__ = (
+        CheckConstraint("mastery IN ('low','mid','high')", name="ck_weaknesses_mastery"),
+        CheckConstraint("fsrs_state BETWEEN 1 AND 3", name="ck_weaknesses_fsrs_state"),
+        Index("uq_weaknesses_user_doc_skill", "user_id", "doc_id", "skill_id",
+              unique=True, postgresql_where=text("user_id IS NOT NULL")),
+    )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
     user_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
@@ -136,6 +150,9 @@ class UserProfile(Base):
     2026-09-03 网页版：auth_type 区分 wx | web；email/password_hash 仅网页用户有值。
     """
     __tablename__ = "user_profiles"
+    __table_args__ = (
+        CheckConstraint("auth_type IN ('wx','web')", name="ck_user_profiles_auth_type"),
+    )
 
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     # server_default 必须保留：裸 SQL upsert（不经过 ORM 默认值）依赖 DB 级默认；

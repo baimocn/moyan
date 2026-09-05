@@ -3,12 +3,20 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, create_engine, text
+from sqlalchemy import BigInteger, DateTime, Integer, create_engine, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.types import JSON
 
 
 def _tznow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+# SCHEMA-03（2026-09-05）：PG 用 JSONB（可 GIN/可查询），SQLite 用 JSON——统一出口
+JSONType = JSON().with_variant(JSONB(), "postgresql")
+# SCHEMA-02（2026-09-05）：PG 用 BIGINT，SQLite 必须回退 INTEGER 才有 rowid 自增
+BigIntPK = BigInteger().with_variant(Integer(), "sqlite")
 
 
 class Base(DeclarativeBase):
@@ -138,4 +146,4 @@ def get_db():
         db.close()
 
 
-__all__ = ["Base", "engine", "SessionLocal", "init_db", "get_db", "DateTime", "_tznow"]
+__all__ = ["Base", "engine", "SessionLocal", "init_db", "get_db", "DateTime", "_tznow", "JSONType", "BigIntPK"]
