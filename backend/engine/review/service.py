@@ -157,6 +157,19 @@ class ReviewService:
             "finished": ses.finished,
         }
 
+    def current(self, session_id: str) -> dict:
+        """M5 Phase 11：当前应重练项 + 进度（刷新页面后恢复现场用）。"""
+        ses = self.get(session_id)
+        if ses is None:
+            raise KeyError("复习会话不存在")
+        nxt = ses.queue[0] if ses.queue else None
+        return {
+            "session_id": ses.session_id,
+            "progress": {"done": len(ses.done), "remaining": len(ses.queue)},
+            "next": nxt.to_event(with_snippet=True) if nxt else None,
+            "finished": ses.finished,
+        }
+
     def summary(self, session_id: str) -> dict:
         ses = self.get(session_id)
         if ses is None:

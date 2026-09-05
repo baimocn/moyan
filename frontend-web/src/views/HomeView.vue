@@ -214,6 +214,11 @@ function go() {
 
 <template>
   <div class="page">
+  <div class="topnav">
+    <RouterLink to="/mistakes">错题本</RouterLink>
+    <RouterLink to="/report">学习报告</RouterLink>
+    <RouterLink to="/privacy">隐私</RouterLink>
+  </div>
     <!-- 顶栏：左=品牌+上传子功能 · 中=共享书库搜索 -->
     <div class="topbar">
       <div class="brand">

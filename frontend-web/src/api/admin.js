@@ -13,3 +13,20 @@ export function getAdminStats() {
 export function getAdminUsage(days = 30) {
   return request('GET', `/api/admin/usage?days=${days}`)
 }
+
+// ---- M5 Phase 11：向量管理 UI（VECUI-01）----
+export function getVecConfig() {
+  return request('GET', '/api/admin/vec/config')
+}
+export function setVecConfig(vecInject) {
+  return request('POST', '/api/admin/vec/config', { data: { vec_inject: vecInject } })
+}
+export function vecBuildIndex(docId) {
+  return request('POST', `/api/admin/vec/index/${docId}`)
+}
+export function vecIndexStatus(docId) {
+  return request('GET', `/api/admin/vec/status/${docId}`)
+}
+export function vecSearch(docId, q, topK = 4) {
+  return request('GET', `/api/admin/vec/search?doc_id=${encodeURIComponent(docId)}&q=${encodeURIComponent(q)}&top_k=${topK}`)
+}

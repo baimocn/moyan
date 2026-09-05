@@ -5,6 +5,9 @@ import HomeView from './views/HomeView.vue'
 import TutorView from './views/TutorView.vue'
 import AdminView from './views/AdminView.vue'
 import PrivacyView from './views/PrivacyView.vue'
+import MistakesView from './views/MistakesView.vue'
+import PracticeView from './views/PracticeView.vue'
+import ReportView from './views/ReportView.vue'
 import { getDeviceId } from './api/client'
 
 export const router = createRouter({
@@ -15,6 +18,9 @@ export const router = createRouter({
     { path: '/tutor', component: TutorView },
     { path: '/admin', component: AdminView },
     { path: '/privacy', component: PrivacyView },
+    { path: '/mistakes', component: MistakesView },
+    { path: '/practice', component: PracticeView },
+    { path: '/report', component: ReportView },
   ],
 })
 

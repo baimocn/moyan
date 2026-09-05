@@ -122,6 +122,17 @@ class ReviewAnswerReq(BaseModel):
     rating: str = Field(pattern="^(again|hard|good|easy)$")
 
 
+@router.get("/review-session/{session_id}/current")
+def review_session_current(session_id: str, user: CurrentUser = Depends(get_requester)):
+    """M5 Phase 11：当前应重练项（含教材微点片段）+ 进度。"""
+    srv = get_services()
+    _ensure_review_owner(srv, session_id, user)
+    try:
+        return {"ok": True, "current": srv.review.current(session_id)}
+    except KeyError as exc:
+        raise HTTPException(404, detail=str(exc)) from exc
+
+
 @router.post("/review-session/{session_id}/answer")
 def review_session_answer(session_id: str, req: ReviewAnswerReq,
                           user: CurrentUser = Depends(get_requester)):

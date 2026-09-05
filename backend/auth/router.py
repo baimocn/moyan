@@ -214,3 +214,26 @@ def me_stats(user: CurrentUser = Depends(get_current_user)):
     from ..models import repo
     rep = repo.user_report(user.openid)
     return {"ok": True, "report": rep}
+
+
+@router.get("/me/weaknesses")
+def me_weaknesses(user: CurrentUser = Depends(get_current_user)):
+    """PRAC-02（M5 Phase 11）：跨文档错题本（owner 维度，到期优先，带书名）。"""
+    from sqlalchemy import func
+
+    from ..models import Document
+    from ..models.db import SessionLocal as _SL
+    from ..models.study import Weakness
+    with _SL() as db:
+        rows = (db.query(Weakness, Document.title, Document.status)
+                .outerjoin(Document, Document.doc_id == Weakness.doc_id)
+                .filter(Weakness.user_id == user.openid)
+                .order_by(Weakness.due_at.is_(None), Weakness.due_at,
+                          Weakness.times_low.desc())
+                .limit(200).all())
+    return {"ok": True, "weaknesses": [{
+        "doc_id": w.doc_id, "doc_title": t or w.doc_id, "doc_status": st or "",
+        "skill_id": w.skill_id, "name": w.name, "mastery": w.mastery,
+        "times_low": w.times_low,
+        "due_at": w.due_at.isoformat() if w.due_at else None,
+    } for w, t, st in rows]}

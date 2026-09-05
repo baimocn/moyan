@@ -45,6 +45,41 @@
           </tbody>
         </table>
         <p v-else class="sub">近 {{ usage.days }} 天暂无 AI 调用。</p>
+        <template v-if="dailyAgg.length">
+          <h3>每日 token（聚合）</h3>
+          <svg :viewBox="`0 0 ${dailyAgg.length * 40 + 20} 150`" class="chart">
+            <g v-for="(r, i) in dailyAgg" :key="r.date">
+              <rect :x="i * 40 + 16" :y="130 - (r.tokens / dailyMax) * 100"
+                    width="24" :height="(r.tokens / dailyMax) * 100" rx="3" fill="#163628" />
+              <text :x="i * 40 + 28" y="144" text-anchor="middle" class="xl">{{ r.date.slice(5) }}</text>
+            </g>
+          </svg>
+        </template>
+      </section>
+
+      <section class="card tbl">
+        <h2>向量知识库（VEC）</h2>
+        <p class="sub">检索注入开关（VEC-04，运行时生效；持久化请改 .env 的 MOYAN_VEC_INJECT）</p>
+        <p>
+          <button :class="vec.vec_inject ? 'ok' : ''" :disabled="vecBusy"
+                  @click="toggleVec">{{ vec.vec_inject ? '检索注入：开' : '检索注入：关' }}</button>
+          <span v-if="vecMsg" class="sub"> {{ vecMsg }}</span>
+        </p>
+        <div class="vecops">
+          <select v-model="vecDoc">
+            <option value="" disabled>选择文档</option>
+            <option v-for="d in docs" :key="d.doc_id" :value="d.doc_id">{{ title(d) }}</option>
+          </select>
+          <button :disabled="!vecDoc || vecBusy" @click="buildIdx">建索引</button>
+          <input v-model="vecQ" placeholder="检索测试…" />
+          <button :disabled="!vecDoc || !vecQ || vecBusy" @click="doSearch">检索</button>
+        </div>
+        <p v-if="vecStatus" class="sub">索引状态：{{ vecStatus }}</p>
+        <div v-for="(h, i) in vecHits" :key="i" class="hit">
+          <span class="mono dim">{{ h.score_label || h.score || '' }}</span>
+          <span class="mono dim"> ch{{ h.chapter_index }}</span>
+          <p>{{ (h.chunk_text || h.text || '').slice(0, 160) }}…</p>
+        </div>
       </section>
 
       <section class="card tbl">
@@ -75,7 +110,7 @@
 // 墨衍 · /admin 管理台（Phase 4）：口令门 → 数据看板 + 用量台账 + 文档管理
 // 网页端免登录原则不变：口令只在本页使用，换到的 token 存本地供管理接口用
 import { ref, computed, onMounted } from 'vue'
-import { adminLogin, getAdminStats, getAdminUsage } from '../api/admin.js'
+import { adminLogin, getAdminStats, getAdminUsage, getVecConfig, setVecConfig, vecBuildIndex, vecIndexStatus, vecSearch } from '../api/admin.js'
 import { getDocuments, deleteDocument, setDocumentShared } from '../api/documents.js'
 import { me } from '../api/auth.js'
 import { getToken, setAuth, clearAuth } from '../api/client.js'
@@ -90,6 +125,7 @@ const usage = ref(null)
 const docs = ref([])
 
 onMounted(async () => {
+  loadVec()
   if (!getToken()) { phase.value = 'gate'; return }
   try {
     const r = await me()
@@ -130,6 +166,55 @@ async function toggleShare(d) {
     d.shared = toShared
     tip.value = toShared ? `已恢复《${title(d)}》✓` : `已下架《${title(d)}》✓`
   } catch (e) { tip.value = ''; err.value = '操作失败：' + (e.message || '未知错误') }
+}
+
+// ---- CHART-01 每日聚合 ----
+const dailyAgg = computed(() => {
+  const m = {}
+  for (const r of (usage.value?.daily || [])) {
+    m[r.date] = m[r.date] || { date: r.date, tokens: 0, calls: 0 }
+    m[r.date].tokens += r.total_tokens || 0
+    m[r.date].calls += r.calls || 0
+  }
+  return Object.values(m).sort((a, b) => a.date < b.date ? -1 : 1)
+})
+const dailyMax = computed(() => Math.max(1, ...dailyAgg.value.map(r => r.tokens)))
+
+// ---- VECUI-01 向量管理 ----
+const vec = ref({ vec_inject: false })
+const vecBusy = ref(false)
+const vecMsg = ref('')
+const vecDoc = ref('')
+const vecQ = ref('')
+const vecHits = ref([])
+const vecStatus = ref('')
+
+async function loadVec() {
+  try { vec.value = await getVecConfig() } catch (e) { /* 静默 */ }
+}
+async function toggleVec() {
+  vecBusy.value = true
+  try {
+    const d = await setVecConfig(!vec.value.vec_inject)
+    vec.value.vec_inject = d.vec_inject
+    vecMsg.value = '已切换（运行时）'
+  } catch (e) { vecMsg.value = e.message || '失败' } finally { vecBusy.value = false }
+}
+async function buildIdx() {
+  vecBusy.value = true
+  vecMsg.value = '建索引中（可能数十秒）…'
+  try {
+    const d = await vecBuildIndex(vecDoc.value)
+    vecStatus.value = d.status || d.message || JSON.stringify(d).slice(0, 120)
+    vecMsg.value = '完成'
+  } catch (e) { vecMsg.value = e.message || '失败' } finally { vecBusy.value = false }
+}
+async function doSearch() {
+  vecBusy.value = true
+  try {
+    const d = await vecSearch(vecDoc.value, vecQ.value)
+    vecHits.value = d.hits || d.results || []
+  } catch (e) { vecMsg.value = e.message || '检索失败' } finally { vecBusy.value = false }
 }
 
 async function removeDoc(d) {
@@ -197,4 +282,10 @@ th { color: #8a836f; font-weight: 500; font-size: 12px; }
   border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
 .del:hover { background: #b03a2e; color: #fff; }
 @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+.chart { width: 100%; }
+.xl { font-size: 10px; fill: #8a8477; }
+h3 { font-size: 14px; margin: 10px 0 6px; }
+.vecops { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.vecops input, .vecops select { padding: 4px 8px; }
+.hit { border-bottom: 1px dashed #eee4d2; padding: 6px 0; font-size: 13px; }
 </style>

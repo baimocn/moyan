@@ -207,3 +207,23 @@ def smoke_status(admin: CurrentUser = Depends(require_admin)):
             continue
     out.reverse()
     return {"ok": True, "lines": out}
+
+
+class VecConfigReq(BaseModel):
+    vec_inject: bool
+
+
+@router.get("/vec/config")
+def vec_get_config(admin: CurrentUser = Depends(require_admin)):
+    """VECUI-01：VEC-04 检索注入运行时开关读取。"""
+    from ..settings import app_settings
+    return {"ok": True, "vec_inject": app_settings.vec_inject}
+
+
+@router.post("/vec/config")
+def vec_set_config(body: VecConfigReq, admin: CurrentUser = Depends(require_admin)):
+    """VECUI-01：VEC-04 检索注入运行时开关（非持久化——重启回读 .env）。"""
+    from ..settings import app_settings
+    object.__setattr__(app_settings, "vec_inject", bool(body.vec_inject))
+    return {"ok": True, "vec_inject": app_settings.vec_inject,
+            "note": "运行时开关；持久化请在 /opt/moyan/.env 设 MOYAN_VEC_INJECT"}
