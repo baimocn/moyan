@@ -73,6 +73,7 @@ class ReviewSession:
     answered: dict[str, str] = field(default_factory=dict)  # skill_id -> 最后评分
     tally: dict[str, int] = field(default_factory=dict)     # 累计评分次数（again/hard/good/easy）
     created_at: float = field(default_factory=time.time)
+    owner: str = ""                                    # SEC-01：创建者 openid（web_anon 兜底）
 
     @property
     def finished(self) -> bool:
@@ -92,7 +93,7 @@ class ReviewService:
             oldest = min(self.sessions, key=lambda k: self.sessions[k].created_at)
             self.sessions.pop(oldest, None)
 
-    def start(self, doc_id: str, limit: int = 20) -> ReviewSession:
+    def start(self, doc_id: str, limit: int = 20, owner: str = "") -> ReviewSession:
         self._evict_if_full()
         due = repo.due_reviews(doc_id, limit=limit)
         queue = [
@@ -107,7 +108,7 @@ class ReviewService:
             for d in due
         ]
         ses = ReviewSession(session_id="rv_" + uuid.uuid4().hex[:10], doc_id=doc_id,
-                            queue=queue)
+                            queue=queue, owner=owner or "web_anon")
         self.sessions[ses.session_id] = ses
         return ses
 

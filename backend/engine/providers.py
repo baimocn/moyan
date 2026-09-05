@@ -38,6 +38,21 @@ class ProviderError(Exception):
         self.engine = engine
 
 
+class BudgetExceeded(ProviderError):
+    """SEC-04 日预算硬顶触发（retriable=False，端点层映射 429）。"""
+    def __init__(self, message: str = "今日 AI 预算已用尽"):
+        super().__init__(message, retriable=False, engine="budget")
+
+
+def _default_max_tokens(engine_name: str) -> int:
+    """SEC-02 生成上限：settings 注入，cheap 档减半，杜绝无上界生成。"""
+    from ..settings import app_settings
+    limit = app_settings.gen_max_tokens
+    if engine_name == "cheap":
+        limit = min(limit, 1500)
+    return max(1, int(limit))
+
+
 class Provider:
     """单个引擎的客户端封装。"""
 
@@ -66,13 +81,14 @@ class Provider:
     ) -> dict:
         """非流式调用，返回 {content, usage, model}。"""
         client = self._get_client()
+        if max_tokens is None:
+            max_tokens = _default_max_tokens(self.cfg.name)
         kwargs: dict = {
             "model": self.cfg.model,
             "messages": messages,
             "temperature": temperature,
+            "max_tokens": max_tokens,
         }
-        if max_tokens:
-            kwargs["max_tokens"] = max_tokens
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
         try:
@@ -92,7 +108,8 @@ class Provider:
             "finish_reason": resp.choices[0].finish_reason,
         }
 
-    async def chat_stream(self, messages: list[dict], *, temperature: float = 0.7) -> AsyncIterator[dict]:
+    async def chat_stream(self, messages: list[dict], *, temperature: float = 0.7,
+                          max_tokens: Optional[int] = None) -> AsyncIterator[dict]:
         """流式调用：yield 事件 dict（type=start/text-delta/meta/finish）。"""
         client = self._get_client()
         yield {"type": EV_START, "model": self.cfg.model, "engine": self.cfg.name,
@@ -102,10 +119,13 @@ class Provider:
         finish_reason = None
         usage = {}
         try:
+            if max_tokens is None:
+                max_tokens = _default_max_tokens(self.cfg.name)
             stream = await client.chat.completions.create(
                 model=self.cfg.model,
                 messages=messages,
                 temperature=temperature,
+                max_tokens=max_tokens,
                 stream=True,
                 stream_options={"include_usage": True},  # 中断时可能丢失，见兜底
             )
@@ -156,7 +176,7 @@ class MockProvider(Provider):
     def __init__(self, cfg: EngineConfig | None = None):
         super().__init__(cfg or EngineConfig(name="mock", model="mock", enabled=True))
 
-    async def chat_stream(self, messages, *, temperature=0.7):
+    async def chat_stream(self, messages, *, temperature=0.7, max_tokens=None):
         last = (messages or [{}])[-1].get("content", "")
         text = f"[模拟老师] 我收到了你的问题：「{last[:40]}」。等配置好 MOYAN_AI_MAIN_* 环境变量后，我会在这里真正讲课。"
         yield {"type": EV_START, "model": "mock", "engine": "mock", "ts": time.time()}

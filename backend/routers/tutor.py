@@ -14,11 +14,28 @@ from pydantic import BaseModel, Field
 
 from ..auth.deps import CurrentUser, get_requester
 from ..container import EngineNotReadyError, get_services
-from ..ledger import ai_scope
+from ..ledger import ai_scope, budget_state
 from ..models import repo
 from ..rate_limit import L_TUTOR, limiter
 
 router = APIRouter(prefix="/api/tutor", tags=["tutor"])
+
+
+def _ensure_session_owner(srv, session_id: str, user: CurrentUser) -> None:
+    """SEC-01：会话存在且属于请求者，否则一律 404（不暴露存在性）。
+
+    在飞内存会话优先取 user_id；否则查档案（load_session 已带 user_id）。
+    """
+    ses = srv.tutor.sessions.get(session_id)
+    if ses is not None:
+        owner = ses.user_id or None
+    else:
+        rec = repo.load_session(session_id)
+        if rec is None:
+            raise HTTPException(404, detail="会话不存在（请先 POST /api/tutor/start 或 /api/study/resume）")
+        owner = rec.get("user_id")
+    if not repo.session_owned_by(owner, user.openid, user.role):
+        raise HTTPException(404, detail="会话不存在（请先 POST /api/tutor/start 或 /api/study/resume）")
 
 
 class StartReq(BaseModel):
@@ -40,6 +57,8 @@ async def tutor_start(request: Request, response: Response, req: StartReq,
         srv.require_real()
     except EngineNotReadyError as exc:
         raise HTTPException(503, detail=str(exc)) from exc
+    if budget_state() == "hard":
+        raise HTTPException(429, detail="今日 AI 预算已用尽")
     try:
         ses = await srv.tutor.start_chapter(req.doc_id, req.chapter_index,
                                              user_id=user.openid)
@@ -67,8 +86,11 @@ async def tutor_turn(request: Request, response: Response, req: TurnReq,
         srv.require_real()
     except EngineNotReadyError as exc:
         raise HTTPException(503, detail=str(exc)) from exc
-    if req.session_id not in srv.tutor.sessions and not repo.load_session(req.session_id):
-        raise HTTPException(404, detail="会话不存在（请先 POST /api/tutor/start 或 /api/study/resume）")
+    if budget_state() == "hard":
+        raise HTTPException(429, detail="今日 AI 预算已用尽")
+    _ensure_session_owner(srv, req.session_id, user)
+    if not srv.tutor.try_begin_turn(req.session_id):
+        raise HTTPException(409, detail="上一轮仍在进行中，请稍候")
 
     async def gen():
         try:
@@ -81,6 +103,7 @@ async def tutor_turn(request: Request, response: Response, req: TurnReq,
         except Exception as exc:  # noqa: BLE001 流中兜底，前端可感知而非挂死
             yield f"data: {json.dumps({'type': 'error', 'error': str(exc)}, ensure_ascii=False)}\n\n"
         finally:
+            srv.tutor.end_turn(req.session_id)   # SEC-03：异常/断连路径必然释放
             yield "data: [DONE]\n\n"
 
     return StreamingResponse(

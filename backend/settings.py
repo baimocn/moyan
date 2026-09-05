@@ -34,6 +34,13 @@ class AppSettings(BaseSettings):
     solicit_loose_threshold: int = 3   # 学生连续索要答案 N 次后降级给思路（宽松苏格拉底）
     reteach_switch_threshold: int = 2  # 同一知识点连续重讲 N 次后自动换一种讲法
     reviewer_sample_every: int = 5     # 输出后裁判采样：每 N 次判定审 1 次（sample 档）
+    # ---- 生成上限（SEC-02，2026-09-05）：真实 AI 调用注入 max_tokens，杜绝无上界生成 ----
+    gen_max_tokens: int = 4000         # 主/备引擎默认上限；cheap 档自动减半（min(值,1500)）
+    # ---- 日预算熔断（SEC-04，2026-09-05）：ai_usage 台账按日累计，0=关闭 ----
+    # 软顶：tokens_today > daily_token_budget → 主/备强制降级 cheap
+    # 硬顶：tokens_today > daily_token_hard → 教学端点直接 429
+    daily_token_budget: int = 0
+    daily_token_hard: int = 0
     # ---- 上传内容安全审核（MOD-01，2026-09-04）----
     # 上架前 AI 审核（黄赌毒等违禁内容拒绝入库）；0 可关闭（本地自用环境）
     moderation: bool = True

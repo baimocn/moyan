@@ -34,6 +34,20 @@ class TutorService:
                                     container=container)
         self._quiz: QuizService = container.quiz
         self.sessions: dict[str, TutorSession] = {}
+        # SEC-03（2026-09-05）：同会话在飞集合——单事件循环内 check-and-add 原子，
+        # 并发第二个 turn 在端点层拿 409。多 worker 演进时需换 PG advisory lock。
+        self._inflight: set[str] = set()
+
+    def try_begin_turn(self, session_id: str) -> bool:
+        """进入 turn 前抢占；已有在飞轮次返回 False（端点映射 409）。"""
+        if session_id in self._inflight:
+            return False
+        self._inflight.add(session_id)
+        return True
+
+    def end_turn(self, session_id: str) -> None:
+        """turn 结束（含异常路径）释放；幂等。"""
+        self._inflight.discard(session_id)
 
     # ---------- 启动 / 恢复 ----------
 

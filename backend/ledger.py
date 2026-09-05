@@ -11,7 +11,11 @@ from __future__ import annotations
 
 import contextvars
 import logging
+import time
 from contextlib import contextmanager
+from datetime import datetime, timezone
+
+from sqlalchemy import func
 
 from .models import AiUsage, PageView, SessionLocal
 
@@ -78,3 +82,40 @@ def record_pv(source: str, page: str, device_id: str,
             db.commit()
     except Exception as exc:  # noqa: BLE001
         log.warning("PV 记账失败（忽略）：%s", exc)
+
+
+# ---- SEC-04 日预算熔断（2026-09-05）：按 ai_usage 台账当日累计判定 ----
+
+_BUDGET_CACHE_TTL = 60.0
+_budget_cache: dict = {"ts": 0.0, "tokens": 0}
+
+
+def tokens_today() -> int:
+    """今日（UTC 自然日）已消耗 token 总量；进程内缓存 60s 摊薄查询。"""
+    now = time.time()
+    if now - _budget_cache["ts"] < _BUDGET_CACHE_TTL:
+        return int(_budget_cache["tokens"])
+    try:
+        day_start = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        with SessionLocal() as db:
+            val = db.query(func.coalesce(func.sum(AiUsage.total_tokens), 0)).filter(
+                AiUsage.created_at >= day_start).scalar()
+        _budget_cache["ts"] = now
+        _budget_cache["tokens"] = int(val or 0)
+    except Exception as exc:  # noqa: BLE001 台账读失败按 0 处理（不熔断主流程）
+        log.warning("日预算查询失败（按 0 处理）：%s", exc)
+        _budget_cache["ts"] = now
+        _budget_cache["tokens"] = 0
+    return int(_budget_cache["tokens"])
+
+
+def budget_state() -> str:
+    """'ok' | 'soft'（超软顶，降 cheap）| 'hard'（超硬顶，429）。budget=0 时恒 ok。"""
+    from .settings import app_settings
+    n = tokens_today()
+    if app_settings.daily_token_hard and n > app_settings.daily_token_hard:
+        return "hard"
+    if app_settings.daily_token_budget and n > app_settings.daily_token_budget:
+        return "soft"
+    return "ok"

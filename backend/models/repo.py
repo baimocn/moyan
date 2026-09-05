@@ -99,6 +99,7 @@ def load_session(session_id: str) -> dict | None:
         return {
             "id": row.id, "doc_id": row.doc_id, "chapter_index": row.chapter_index,
             "chapter_title": row.chapter_title, "state": row.state, "kp_idx": row.kp_idx,
+            "user_id": row.user_id,
             "plan": row.plan or [], "weak": row.weak or {},
             "current_question": row.current_question or {},
             "hint_level": row.hint_level or 0,
@@ -106,6 +107,21 @@ def load_session(session_id: str) -> dict | None:
             "exam_idx": row.exam_idx or 0,
             "exam_scores": row.exam_scores or {},
         }
+
+
+def session_owned_by(owner: str | None, openid: str, role: str = "anon") -> bool:
+    """SEC-01 归属判定（纯函数，2026-09-05）。
+
+    - admin 豁免（管理台审计场景）
+    - owner 为空（鉴权前老数据 / 游客会话）：仅 web_anon 兜底身份与 admin 可续，
+      实名用户不可见——防止游客资源被任意实名身份认领
+    - 其余：精确等于 owner
+    """
+    if role == "admin":
+        return True
+    if not owner:
+        return openid == "web_anon"
+    return openid == owner
 
 
 def streak_from_dates(dates: set, today) -> int:

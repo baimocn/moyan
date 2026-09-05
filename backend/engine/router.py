@@ -14,11 +14,33 @@ from typing import AsyncIterator
 
 from . import EngineConfig, load_engines
 from .providers import (EV_ERROR, EV_META, EV_START, Provider, ProviderError,
-                        MockProvider)
+                        BudgetExceeded, MockProvider)
 
 COOLDOWN_SECONDS = 60
 MAX_STOPPED_FAILURES = 4  # 连续失败 N 次开始冷却
 MAX_TOTAL_ATTEMPTS = 4
+
+
+def _budget_state() -> str:
+    """SEC-04 预算状态（懒导入防循环依赖）；查询失败按 ok 处理。"""
+    try:
+        from ..ledger import budget_state
+        return budget_state()
+    except Exception:  # noqa: BLE001
+        return "ok"
+
+
+def _cheap_provider() -> Provider | None:
+    """SEC-04 软顶降级目标：cheap 引擎（未配置返回 None，走原列表）。"""
+    try:
+        from ..settings import ai_settings
+        c = ai_settings.cheap()
+        if not c:
+            return None
+        return Provider(EngineConfig(name="cheap", base_url=c[0], api_key=c[1],
+                                     model=c[2]))
+    except Exception:  # noqa: BLE001
+        return None
 
 
 class Router:
@@ -71,9 +93,17 @@ class Router:
             r = await self._mock().chat(messages, **kwargs)
             r["fallbackUsed"] = True
             return r
+        if _budget_state() == "hard":
+            raise BudgetExceeded()
         now = time.time()
+        # SEC-04 软顶：主/备强制降级 cheap（cheap 失败再回原列表兜底）
+        chain = self._cooled_providers(now)
+        if _budget_state() == "soft":
+            cp = _cheap_provider()
+            if cp is not None:
+                chain = [cp] + chain
         last_err: ProviderError | None = None
-        for provider in self._cooled_providers(now):
+        for provider in chain:
             try:
                 t0 = time.time()
                 r = await provider.chat(messages, **kwargs)
@@ -108,11 +138,21 @@ class Router:
             async for ev in self._mock().chat_stream(messages, **kwargs):
                 yield ev
             return
+        if _budget_state() == "hard":
+            yield {"type": EV_ERROR,
+                   "error": "今日 AI 预算已用尽", "retriable": False, "engine": "budget"}
+            return
         now = time.time()
+        # SEC-04 软顶：流式同样强制 cheap 优先
+        chain = self._cooled_providers(now)
+        if _budget_state() == "soft":
+            cp = _cheap_provider()
+            if cp is not None:
+                chain = [cp] + chain
         total_attempts = 0
         last_err: ProviderError | None = None
         started = False
-        for provider in self._cooled_providers(now) + self._engines:
+        for provider in chain + self._engines:
             if total_attempts >= MAX_TOTAL_ATTEMPTS:
                 break
             total_attempts += 1
