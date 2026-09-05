@@ -121,11 +121,12 @@ async def test_skip_emits_bridge_text_and_next_meta():
     assert next_metas[0]["next"] == "知识点二"
 
 
-# === 缺陷 4: P3 讲解态输入无回执 — 显式收束一句 ===
+# === 缺陷 4: P3 讲解态输入无回执 — 2026-09-05 演进为"插话进 prompt 由模型接住" ===
 
 @pytest.mark.asyncio
-async def test_lecture_state_user_input_yields_receipt_text():
-    """P3 讲解态:收到非空 user_text 时,首条 event 必须是'记下了'收束句,不再静默吞输入。"""
+async def test_lecture_state_user_input_enters_prompt():
+    """P3 演进：讲解态收到非空 user_text 时，插话必须进入讲解上下文（不再静默吞输入），
+    固定收束句已退役——由模型用同桌口吻接住。"""
     from backend.tests.test_tutor_fsm import make_service
 
     svc = make_service([])  # 不需要 judge 结果,只验 explain 自身
@@ -139,27 +140,26 @@ async def test_lecture_state_user_input_yields_receipt_text():
         if len(events) >= 2:
             break  # 收够前两条即可
 
-    # 首条必须是显式收束（事件 type = "text-delta"）
-    first_text = next((e for e in events if e.get("type") == "text-delta"), None)
-    assert first_text is not None, "回归:讲解态收不到收束 text-delta 事件"
-    assert "记下" in first_text["delta"], \
-        f"回归:收束句文本变更,失去'我记下了'语义: {first_text['delta']!r}"
+    prompt = svc._router_for_test.last_content
+    assert "等等,这个词啥意思?" in prompt, \
+        f"回归:插话未进讲解上下文(静默吞输入): {prompt[:120]!r}"
+    assert "学生插话" in prompt, "回归:插话段丢失"
+    # 固定收束句退役：流里不应再出现"记下了"复读
+    assert all("记下了" not in (e.get("delta") or "") for e in events), \
+        "回归:固定桥句复辟"
 
 
 @pytest.mark.asyncio
-async def test_lecture_state_empty_input_skips_receipt():
-    """P3 边界:user_text 为空时(初次讲解),不应 yield 收束句,直接进入讲解流。"""
+async def test_lecture_state_empty_input_no_note():
+    """P3 边界:user_text 为空时(初次讲解),prompt 不含【学生插话】段,直接进入讲解流。"""
     from backend.tests.test_tutor_fsm import make_service
 
     svc = make_service([])
     ses = await svc.start_chapter("doc-x", 0)
     events = []
-    async for ev in svc.actions.explain(ses, user_text=""):  # 空 → 不收束
+    async for ev in svc.actions.explain(ses, user_text=""):  # 空 → 无插话段
         events.append(ev)
         if len(events) >= 1:
             break
-    first_text = next((e for e in events if e.get("type") == "text-delta"), None)
-    if first_text is not None:
-        # 第一次讲解(空 user_text)不应有"记下"
-        assert "记下" not in first_text["delta"], \
-            f"回归:空 user_text 仍 yield 了收束句: {first_text['delta']!r}"
+    assert "学生插话" not in svc._router_for_test.last_content, \
+        "回归:空 user_text 仍注入了插话段"

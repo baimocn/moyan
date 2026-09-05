@@ -117,22 +117,28 @@ class TutorActions:
             return True
         if mode == "off":
             return False
-        return ((self._review_count > 1 and (self._review_count - 1) % 5 == 0)
-                or ses.reteach_count >= 2 or solicit_was >= 3)
+        return ((self._review_count > 1
+                 and (self._review_count - 1) % max(1, app_settings.reviewer_sample_every) == 0)
+                or ses.reteach_count >= app_settings.reteach_switch_threshold
+                or solicit_was >= app_settings.solicit_loose_threshold)
 
     # ---------- 讲解 ----------
 
     async def explain(self, ses: TutorSession, user_text: str = "") -> AsyncIterator[dict]:
-        # 讲解态收到用户插话：显式收束一句（此前被静默忽略，用户困惑"怎么不判分"）
+        # 讲解态收到学生插话：注入讲解上下文由模型同桌口吻接住（2026-09-05 放松，
+        # 替代此前固定收束句"你插的那句我记下了"——不再静默吞输入，也不再机械复读）
+        note = ""
         if user_text.strip():
-            yield {"type": EV_TEXT, "delta": "（你插的那句我记下了——先讲完这段就回你。）\n\n"}
+            note = ("\n【学生插话】" + user_text.strip()
+                    + "\n请先用同桌口吻简短回应这句（与教材相关就答，无关就一句带过），"
+                      "然后继续把当前知识点讲完。\n")
         kp = ses.plan.kps[ses.kp_idx] if ses.plan and ses.kp_idx < len(ses.plan.kps) else None
         if kp is None:
             yield {"type": EV_TEXT, "delta": "知识点已讲完，进入章节考核。"}
             async for ev in self._start_exam(ses):
                 yield ev
             return
-        mode = "换一种讲法" if ses.reteach_count >= 2 else \
+        mode = "换一种讲法" if ses.reteach_count >= app_settings.reteach_switch_threshold else \
             ("再讲一遍" if ses.last_decision == Decision.reteach else "讲解")
         # 数据驱动（synapse Groove/Tracer）：历史效果更偏好"换讲法"则跳级
         if ses.reteach_count < 2 and kp is not None:
@@ -143,6 +149,7 @@ class TutorActions:
         profile = student_profile(weaknesses=list(ses.weak.values()))
         hint = TEACHER_TURN_HINT.format(
             context=ses.last_context or "（教材该处扫描不清晰，尽量结合前后文）",
+            user_note=note,
             kp_name=kp.name,
             student_profile=profile,
         )
@@ -192,9 +199,10 @@ class TutorActions:
             yield {"type": EV_FINISH, "finish_reason": "reset"}
             return
 
-        # 施压计数：命中即 +1，连续 ≥3 次强制 hint_level=3（D3 宽松策略）
+        # 施压计数：命中即 +1，连续达阈值强制给到阶梯顶格（D3 宽松策略，阈值可配）
         ses.solicit_count = ses.solicit_count + 1 if _bump_solicit(user_text) else 0
-        effective_level = 3 if ses.solicit_count >= 3 else ses.hint_level
+        effective_level = app_settings.scaffold_max_level \
+            if ses.solicit_count >= app_settings.solicit_loose_threshold else ses.hint_level
 
         # VEC-04 跨章注入（默认关：settings.vec_inject）：回答像提问且疑似超章时，
         # 检索全书其他章节作参考上下文（附进 judge 的 context，不改判定语义）
@@ -219,7 +227,7 @@ class TutorActions:
         if j.correctness_level == Correctness.correct:
             ses.hint_level = max(ses.hint_level - 1, 0)
         elif j.correctness_level in (Correctness.incorrect, Correctness.partial_correct):
-            ses.hint_level = min(ses.hint_level + 1, 3)
+            ses.hint_level = min(ses.hint_level + 1, app_settings.scaffold_max_level)
         for wp in j.weak_points:
             ses.weak[wp.skill_id] = wp.mastery
         ses.turn_history.append({"role": "user", "kind": "answer", "content": user_text})

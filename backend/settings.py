@@ -29,6 +29,11 @@ class AppSettings(BaseSettings):
     ocr_intra_threads: int = 2
     parser_engine: str = "docling"     # docling（主引擎，需 .docling-venv）| legacy（RapidOCR/文本层快路径）
     teaching_reviewer: str = "sample"  # 输出后裁判：off | sample（默认） | on
+    # ---- 教学引擎柔性参数（2026-09-05 放松：阈值可调不再改码）----
+    scaffold_max_level: int = 3        # 脚手架阶梯上限（有效范围 0-3，判定提示词按 0-3 描述）
+    solicit_loose_threshold: int = 3   # 学生连续索要答案 N 次后降级给思路（宽松苏格拉底）
+    reteach_switch_threshold: int = 2  # 同一知识点连续重讲 N 次后自动换一种讲法
+    reviewer_sample_every: int = 5     # 输出后裁判采样：每 N 次判定审 1 次（sample 档）
     # ---- 上传内容安全审核（MOD-01，2026-09-04）----
     # 上架前 AI 审核（黄赌毒等违禁内容拒绝入库）；0 可关闭（本地自用环境）
     moderation: bool = True

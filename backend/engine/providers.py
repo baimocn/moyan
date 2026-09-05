@@ -92,17 +92,7 @@ class Provider:
             "finish_reason": resp.choices[0].finish_reason,
         }
 
-
-def _ledger_record(engine: str, model: str, usage: dict) -> None:
-    """台账记账（懒导入防循环依赖；失败内部已兜底）。"""
-    try:
-        from ..ledger import record
-        record(engine, model, usage)
-    except Exception:  # noqa: BLE001
-        pass
-
-
-async def chat_stream(self, messages: list[dict], *, temperature: float = 0.7) -> AsyncIterator[dict]:
+    async def chat_stream(self, messages: list[dict], *, temperature: float = 0.7) -> AsyncIterator[dict]:
         """流式调用：yield 事件 dict（type=start/text-delta/meta/finish）。"""
         client = self._get_client()
         yield {"type": EV_START, "model": self.cfg.model, "engine": self.cfg.name,
@@ -149,6 +139,15 @@ async def chat_stream(self, messages: list[dict], *, temperature: float = 0.7) -
                "finish_reason": finish_reason,
                "usage": usage or {"estimated_tokens": _estimate_tokens(text_parts, reason_parts)},
                "engine": self.cfg.name}
+
+
+def _ledger_record(engine: str, model: str, usage: dict) -> None:
+    """台账记账（懒导入防循环依赖；失败内部已兜底）。"""
+    try:
+        from ..ledger import record
+        record(engine, model, usage)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 class MockProvider(Provider):

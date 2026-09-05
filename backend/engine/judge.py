@@ -12,6 +12,7 @@ from .prompts import JUDGE_INSTRUCTION
 from .schemas import (AnswerJudgement, Correctness, Decision, Feedback,
                       Misconception, QuestionSpec, WeakPoint)
 from .structured import chat_json
+from ..settings import app_settings
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,8 @@ class JudgeService:
                 question_stem=question.stem,
                 options_text=options_text,
                 knowledge_tags="、".join(question.knowledge_points) or "（无标签）",
-                hint_level=max(0, min(int(hint_level), 3)),
+                hint_level=max(0, min(int(hint_level), app_settings.scaffold_max_level)),
+                solicit_threshold=app_settings.solicit_loose_threshold,
                 correct_answer="；".join(question.correct_answer),
                 student_answer=student_answer or "（无回答）")},
             {"role": "user", "content": f"学生累计索要答案次数：{solicit_count}；请按 schema 判定。"},
