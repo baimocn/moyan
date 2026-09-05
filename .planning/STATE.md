@@ -1,6 +1,6 @@
 # STATE — 项目记忆
 
-*Last updated: 2026-09-05（M4 收口）*
+*Last updated: 2026-09-05（M5 立项）*
 
 ## Current Position
 
@@ -12,6 +12,7 @@
 
 ## LOG
 
+- 2026-09-05: **M5 立项**——PROJECT Active 区重写（M2/M3/M4 归档已交付）；REQUIREMENTS M5 增补 13 项需求（AUTH-04/PRAC-01..03/RPT-01..02/ME-01..02/MD-01/CHART-01/VECUI-01/UP-01..02/PP-01）；ROADMAP M5 三阶段（10 后端底座+遗留收口 / 11 网页端升级 / 12 小程序升级·门禁=冻结解除）；M6 候选挂起（知识图谱/邮箱绑定/多管理员）
 - 2026-09-05: **M4 收口**——Phase 7 部署实弹（B 访问 A 会话 404/A 本人 200，生产冒烟抓到 start/resume 未挂 owner 缺口已修）；Phase 8 生产 stamp/upgrade （3 索引+3 bigint+10 jsonb+6 CHECK，from-zero 临时库 12表/6CHECK/3bigint 验证；createdb 须 -O moyan）；Phase 9 探针 SMOKE_OK + fail-closed + shared 下架 + /api/privacy + v5.1 文档。全量 185/185。教训：改模型后必须删 test_dev.db 重建；CHECK 取值域先 SELECT DISTINCT（漏了 rejected）；alembic.ini 只能 ASCII
 - 2026-09-05: **会话级修复（已上线/已落盘）**——限流 key 匿名回落 IP（rate_limit.py + 回归锁，已部署生产并实弹验证 35×429；**代码未 commit，= Phase 7 T0**）；生产 requirements.txt 补 slowapi/PyJWT（md5 验证）；git 基线推送（远端=本地=生产 4f72eea）；删除本地明文凭据 _env_prod.txt/_pg_pass.txt（**AI key/root 密码轮换待用户控制台操作**；out/_ssh_run2.py 仍硬编码 root 密码）
 - 2026-09-05: **审计沉淀**——魔鬼代言人审查 v2（docs 未存档，结论见会话）：schema 审计发现迁移路径丢索引实锤（content_hash 索引缺失、email unique 缺失）、Integer 台账到期炸弹、json/jsonb 混用；边界缺口实证（turn 无归属校验/max_tokens 无上限/同会话无锁/无预算熔断）；服务器实况（Python 3.12、nginx 反代、caddy failed）
