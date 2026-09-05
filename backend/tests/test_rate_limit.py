@@ -54,6 +54,24 @@ def test_key_func_prefers_user_id():
     assert _key_func(_Req2()).startswith("ip:")
 
 
+def test_key_func_anon_device_falls_back_to_ip():
+    """回归锁（R11 同类）：匿名 web_* 身份来自客户端自报 X-Device-Id，
+    可任意伪造/旋转。若作为限流 key，换 header 即新额度 → 刷 AI 账单。
+    匿名必须回落 IP；仅真实 openid 按 user: 记账。"""
+    from backend.rate_limit import _key_func
+    from starlette.datastructures import Headers
+
+    class _Anon:
+        openid = "web_rotated001"
+
+    class _Req:
+        state = type("S", (), {"user": _Anon()})()
+        headers = Headers()
+        client = type("C", (), {"host": "203.0.113.7"})()
+
+    assert _key_func(_Req()) == "ip:203.0.113.7"
+
+
 # ---- B) 限流真档（拿真 app 跑 /api/auth/me 30/min）----
 
 def test_rate_limit_30_per_minute(monkeypatch):

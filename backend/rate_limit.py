@@ -30,10 +30,18 @@ limiter = Limiter(
 
 
 def _key_func(request: Request) -> str:
-    """user_id 优先（鉴权时已注入 request.state.user），否则 IP。"""
+    """user_id 优先（鉴权时已注入 request.state.user），否则 IP。
+
+    匿名 web_* 身份来自客户端自报的 X-Device-Id，可任意伪造/旋转：
+    一旦作为限流 key，换 header 即新额度（R11 刷账单同类风险）。
+    故匿名一律回落 IP 维度（nginx 已传真实 IP，uvicorn --proxy-headers 已开）；
+    仅真实登录用户（openid 非 web_ 前缀）按 user: 记账。
+    """
     u = getattr(request.state, "user", None)
-    if u is not None and getattr(u, "openid", ""):
-        return f"user:{u.openid}"
+    if u is not None:
+        openid = getattr(u, "openid", "")
+        if openid and not openid.startswith("web_"):
+            return f"user:{openid}"
     return f"ip:{get_remote_address(request)}"
 
 
