@@ -1,17 +1,18 @@
 # STATE — 项目记忆
 
-*Last updated: 2026-09-05（M5 立项）*
+*Last updated: 2026-09-05（M5 收口）*
 
 ## Current Position
 
 - **Project**: 墨衍（双前端 · 一后端 · 共享书库）
 - **Milestone**: M2/M3/M4 全部交付 → **M5 功能升级（2026-09-05 立项）**
-- **Phase**: Phase 10（学习数据底座与遗留收口）为下一执行阶段，PLAN 待 /gsd:plan-phase 10
+- **Phase**: **M5 三阶段全部交付**（10 学习数据底座 / 11 网页端升级 / 12 小程序升级，各见 0X-01-SUMMARY）。下一步候选：M6 或按用户反馈迭代
 - **Mode**: mvp（每阶段端到端交付）
 - **Blocked**: 无（M4 三阶段全为 backend/ops/docs，与小程序冻结无冲突）
 
 ## LOG
 
+- 2026-09-05: **M5 收口**——Phase 10 部署实弹（report 结构/me-stats 401）；Phase 11 三页上线（发现 MD-01 md.js 已存在未重做；补 review-session current 恢复现场端点）；Phase 12 小程序 4 页 build:mp-weixin 通过（提审包 0.2.3=埋点+本阶段，待用户操作）。全量 193/193。教训：改测试清理 fixture 的 LIKE 模式要覆盖全部播种键；HomeView 多行根标签被单行正则截断
 - 2026-09-05: **M5 立项**——PROJECT Active 区重写（M2/M3/M4 归档已交付）；REQUIREMENTS M5 增补 13 项需求（AUTH-04/PRAC-01..03/RPT-01..02/ME-01..02/MD-01/CHART-01/VECUI-01/UP-01..02/PP-01）；ROADMAP M5 三阶段（10 后端底座+遗留收口 / 11 网页端升级 / 12 小程序升级·门禁=冻结解除）；M6 候选挂起（知识图谱/邮箱绑定/多管理员）
 - 2026-09-05: **M4 收口**——Phase 7 部署实弹（B 访问 A 会话 404/A 本人 200，生产冒烟抓到 start/resume 未挂 owner 缺口已修）；Phase 8 生产 stamp/upgrade （3 索引+3 bigint+10 jsonb+6 CHECK，from-zero 临时库 12表/6CHECK/3bigint 验证；createdb 须 -O moyan）；Phase 9 探针 SMOKE_OK + fail-closed + shared 下架 + /api/privacy + v5.1 文档。全量 185/185。教训：改模型后必须删 test_dev.db 重建；CHECK 取值域先 SELECT DISTINCT（漏了 rejected）；alembic.ini 只能 ASCII
 - 2026-09-05: **会话级修复（已上线/已落盘）**——限流 key 匿名回落 IP（rate_limit.py + 回归锁，已部署生产并实弹验证 35×429；**代码未 commit，= Phase 7 T0**）；生产 requirements.txt 补 slowapi/PyJWT（md5 验证）；git 基线推送（远端=本地=生产 4f72eea）；删除本地明文凭据 _env_prod.txt/_pg_pass.txt（**AI key/root 密码轮换待用户控制台操作**；out/_ssh_run2.py 仍硬编码 root 密码）
