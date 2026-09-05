@@ -23,6 +23,8 @@ logger = logging.getLogger("moyan.tutor")
 class TutorService:
     """会话注册表（内存缓存）+ 状态分发 + 档案落库。"""
 
+    MAX_SESSIONS = 200   # W2（M4-REVIEW）：内存注册表上限；淘汰会话仍可 resume_session 从 DB 恢复
+
     def __init__(self, container=None):
         if container is None:
             from ..judge import JudgeService
@@ -48,6 +50,16 @@ class TutorService:
     def end_turn(self, session_id: str) -> None:
         """turn 结束（含异常路径）释放；幂等。"""
         self._inflight.discard(session_id)
+
+    def _evict_if_full(self) -> None:
+        """注册表满员按插入序（=创建序）淘汰；在飞标记一并清理。
+
+        被淘汰会话不丢数据——handle_turn 下次访问会经 resume_session 从 DB 自动恢复。
+        """
+        while len(self.sessions) >= self.MAX_SESSIONS:
+            oldest = next(iter(self.sessions))
+            self.sessions.pop(oldest, None)
+            self._inflight.discard(oldest)
 
     # ---------- 启动 / 恢复 ----------
 
@@ -115,6 +127,7 @@ class TutorService:
             dict(ses.weak), hint_level=ses.hint_level,
             user_id=user_id or None,
         )
+        self._evict_if_full()
         self.sessions[session_id] = ses
         return ses
 
@@ -156,6 +169,7 @@ class TutorService:
                 pass
         ses.exam_idx = int(rec.get("exam_idx") or 0)
         ses.exam_scores = dict(rec.get("exam_scores") or {})
+        self._evict_if_full()
         self.sessions[session_id] = ses
         return ses
 

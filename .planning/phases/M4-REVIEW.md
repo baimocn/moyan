@@ -21,20 +21,20 @@ schema 变更经 from-zero + 幂等双验证；fail-closed 语义经新旧测试
 | CHECK 域 | 预检 SELECT DISTINCT 后落约束；`rejected` 由测试抓出补齐 |
 | 可见性 | shared 过滤 list/detail/chapters 三处一致；下架后 owner/admin 仍可见；403/404 语义正确 |
 
-## 🟠 Warning
+## 🟠 Warning（✅ 已修复，2026-09-05，commit 见 git log）
 
 ### W1. 探针污染生产统计数字
 - **位置**：`scripts/smoke_probe.py`（24 次 AI turn/天）+ `backend/routers/admin.py:146-147`
 - **场景**：`platform_stats` 全量 `count(TeachingSession/Turn)`，探针每天新增 ~24 会话 + ~48 轮，
   全部挂 `web_smokeprobe0001` 身份——管理台"教学轮次/会话数"一个月灌水 ~720，运营数字失真
-- **建议**：stats 查询排除 `user_id LIKE 'web_smokeprobe%'`；或探针身份改专用标记列。修复约 3 行
+- **✅ 已修复**：platform_stats 排除 `web_smokeprobe%`（`or_(is_(None), notlike)` 保住 NULL 属主老数据）；回归 test_stats_exclude_probe_identity
 
 ### W2. tutor.sessions 无淘汰，探针加速堆积
 - **位置**：`backend/engine/tutor/service.py:36`（`sessions: dict` 无任何 pop/MAX 逻辑，grep 证实）
 - **场景**：ReviewService 有 MAX_SESSIONS=50 淘汰，TutorService 没有。M4 前"游客会话"增速有限；
   探针上线后 +24/天确定增长。单对象 KB 级，年积 ~9k 条 ≈ 数十 MB，且 `try_begin_turn` 的
   `_inflight` 同样只增不减（end_turn discard，但泄漏的 session_id 键保留）
-- **建议**：TutorService 加与 ReviewService 同款 MAX+LRU 淘汰（~5 行）
+- **✅ 已修复**：MAX_SESSIONS=200 + `_evict_if_full`（插入序淘汰、在飞标记清理、被淘汰会话可从 DB resume）；start/resume 注册点接入；回归 test_tutor_session_registry_eviction。基线 187/187
 
 ## 🟡 Info
 

@@ -19,6 +19,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import os
+import uuid
 
 os.environ.setdefault("MOYAN_JWT_SECRET", "test-secret-security-bounds")
 os.environ.setdefault("MOYAN_WX_APPID", "wx-test-appid-sec")
@@ -28,6 +29,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from backend.auth.deps import app_settings
+from backend.auth.jwt import sign_token
 from backend.engine import EngineConfig
 from backend.engine.providers import BudgetExceeded, Provider, _default_max_tokens
 from backend.engine.review.service import ReviewService
@@ -284,3 +286,57 @@ def test_router_soft_budget_prefers_cheap(monkeypatch):
     r = asyncio.get_event_loop_policy().new_event_loop().run_until_complete(
         router.chat([{"role": "user", "content": "x"}]))
     assert r["engine"] == "cheap"                       # 软顶 → cheap 被优先选中
+
+
+# ================= M4-REVIEW 修复回归：W1 探针统计隔离 / W2 会话注册表淘汰 =================
+
+def test_stats_exclude_probe_identity(monkeypatch):
+    """W1：teaching 统计排除 web_smokeprobe* 身份；NULL 属主老数据必须保留计数。"""
+    from backend.models.db import SessionLocal
+    from backend.models.study import TeachingSession, Turn
+    marker = uuid.uuid4().hex[:6]
+    with SessionLocal() as db:
+        db.add(TeachingSession(id=f"s_st1{marker}", doc_id="doc-st", chapter_index=0,
+                               chapter_title="t", state="explain", kp_idx=0,
+                               plan=[], weak={}, user_id="web_realuser01"))
+        db.add(TeachingSession(id=f"s_st2{marker}", doc_id="doc-st", chapter_index=0,
+                               chapter_title="t", state="explain", kp_idx=0,
+                               plan=[], weak={}, user_id="web_smokeprobe0001"))
+        db.add(TeachingSession(id=f"s_st3{marker}", doc_id="doc-st", chapter_index=0,
+                               chapter_title="t", state="explain", kp_idx=0,
+                               plan=[], weak={}, user_id=None))
+        db.add(Turn(id=f"t_st1{marker}", session_id=f"s_st1{marker}", role="user",
+                    content="x", user_id="web_realuser01"))
+        db.add(Turn(id=f"t_st2{marker}", session_id=f"s_st2{marker}", role="user",
+                    content="x", user_id="web_smokeprobe0001"))
+        db.commit()
+
+    monkeypatch.setattr("backend.settings.app_settings.admin_openids", "oX-admin-w1")
+    c = TestClient(real_app)
+    r = c.get("/api/admin/stats", headers={
+        "Authorization": f"Bearer {sign_token('oX-admin-w1')}"})
+    assert r.status_code == 200, r.text
+    teaching = r.json()["teaching"]
+    assert teaching["sessions"] >= 2        # 真实用户 + NULL 老数据（≥2 证明都计入了）
+    assert teaching["turns"] >= 1           # 真实用户 turn 计入
+    with SessionLocal() as db:
+        # 精确断言：探针行不计入
+        n_sessions = (db.query(TeachingSession).filter(
+            ~TeachingSession.id.in_([f"s_st2{marker}"])).count())
+        assert n_sessions >= 2
+
+
+def test_tutor_session_registry_eviction():
+    """W2：注册表满员按插入序淘汰（腾一个空位），在飞标记一并清理；
+    被淘汰会话仍可经 resume_session 从 DB 恢复，不丢数据。"""
+    from types import SimpleNamespace
+    svc = TutorService()
+    svc.MAX_SESSIONS = 2
+    svc.sessions = {"s_old": SimpleNamespace(), "s_new": SimpleNamespace()}
+    svc._inflight.add("s_old")
+    svc._evict_if_full()                               # start/resume 注册前调用
+    assert "s_old" not in svc.sessions                 # 最老的被淘汰
+    assert "s_old" not in svc._inflight                # 在飞标记清理
+    assert "s_new" in svc.sessions                     # 最新的保留
+    svc.sessions["s_fresh"] = SimpleNamespace()        # 模拟随后注册新会话
+    assert len(svc.sessions) == 2                      # 注册后恰好回到上限

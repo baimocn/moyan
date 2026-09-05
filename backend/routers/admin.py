@@ -12,7 +12,11 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
+
+# OBS-01 探针身份前缀（scripts/smoke_probe.py）： teaching 统计口径排除探针灌水，
+# token 台账保留（探针消耗是真实成本，必须可见）
+_PROBE_LIKE = "web_smokeprobe%"
 
 from ..auth.deps import CurrentUser, require_admin
 from ..auth.jwt import sign_token
@@ -143,8 +147,13 @@ def platform_stats(admin: CurrentUser = Depends(require_admin)):
                     .group_by(PageView.source).all())
         sources = {r[0] or "unknown": int(r[1]) for r in src_rows}
 
-        turns = db.query(func.count(Turn.id)).scalar() or 0
-        sessions = db.query(func.count(TeachingSession.id)).scalar() or 0
+        # W1（M4-REVIEW）：排除探针身份；or_(is_(None)) 保住 NULL 属主老数据不被误排
+        turns = (db.query(func.count(Turn.id))
+                 .filter(or_(Turn.user_id.is_(None),
+                             Turn.user_id.notlike(_PROBE_LIKE))).scalar() or 0)
+        sessions = (db.query(func.count(TeachingSession.id))
+                    .filter(or_(TeachingSession.user_id.is_(None),
+                                TeachingSession.user_id.notlike(_PROBE_LIKE))).scalar() or 0)
         docs_done = (db.query(func.count(Document.doc_id))
                      .filter(Document.status == "done").scalar() or 0)
 
