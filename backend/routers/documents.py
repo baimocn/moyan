@@ -86,6 +86,13 @@ def _clean_display_title(title: str, filename: str) -> str:
     return name or "未命名教材"
 
 
+def _doc_visible(doc: Document, user: CurrentUser) -> bool:
+    """CMP-02 可见性：shared 或 本人上传 或 admin；不可见抛 404（不暴露存在性）。"""
+    if user.role == "admin" or doc.shared or doc.user_id == user.openid:
+        return True
+    raise HTTPException(404, detail="文档不存在")
+
+
 def _doc_to_dict(doc: Document, db=None) -> dict:
     title = _display_name(doc, db)
     return {
@@ -99,6 +106,7 @@ def _doc_to_dict(doc: Document, db=None) -> dict:
         "md_chars": doc.md_chars,
         "chapter_count": doc.chapter_count,
         "status": doc.status,
+        "shared": doc.shared,
         "warnings": doc.warnings or [],
         "stats": doc.stats or {},
         "manifest": doc.manifest or [],
@@ -215,16 +223,21 @@ def delete_document(doc_id: str, admin: CurrentUser = Depends(require_admin)):
 
 
 @router.get("/documents")
-def list_documents(q: str = ""):
-    """共享书架（全用户 done 文档可见）。q 非空时按 title/filename 过滤（共享书库搜索）。
+def list_documents(q: str = "", user: CurrentUser = Depends(get_requester)):
+    """共享书架。CMP-02（2026-09-05）：可见 = shared=true 或 本人上传（admin 全见）。
 
-    多词 AND：按空白拆词，每个词都须命中（大小写不敏感子串）——"python 快速"
+    q 非空时按 title/filename 过滤（多词 AND，大小写不敏感子串）——"python 快速"
     能命中《Python 快速上手》，整段 LIKE 匹配不到。
     """
     raw = (q or "").strip().lower()
     keywords = [w for w in raw.split() if w]
     with SessionLocal() as db:
         query = db.query(Document)
+        if user.role != "admin":
+            query = query.filter(or_(
+                Document.shared.is_(True),
+                Document.user_id == user.openid,
+            ))
         for w in keywords:
             like = f"%{w}%"
             query = query.filter(or_(
@@ -241,17 +254,21 @@ def list_documents(q: str = ""):
 
 
 @router.get("/documents/{doc_id}")
-def document_detail(doc_id: str):
+def document_detail(doc_id: str, user: CurrentUser = Depends(get_requester)):
     with SessionLocal() as db:
         doc = db.get(Document, doc_id)
-        if doc is None:
+        if doc is None or not _doc_visible(doc, user):
             raise HTTPException(404, detail="文档不存在")
         data = _doc_to_dict(doc, db)
     return {"ok": True, "document": data}
 
 
 @router.get("/documents/{doc_id}/chapters/{index}")
-def chapter_detail(doc_id: str, index: int):
+def chapter_detail(doc_id: str, index: int, user: CurrentUser = Depends(get_requester)):
+    with SessionLocal() as db:
+        doc = db.get(Document, doc_id)
+        if doc is not None:
+            _doc_visible(doc, user)   # 不可见 → 404
     item = storage.get_chapter(doc_id, index)
     if item is None:
         raise HTTPException(404, detail="章节不存在")

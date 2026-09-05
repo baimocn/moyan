@@ -19,7 +19,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Resp
 
 from .. import config, storage, tasks
 from ..auth.deps import CurrentUser, get_requester
-from ..engine.moderation import moderate_markdown_async, stats_entry as mod_stats
+from ..engine.moderation import (ModerationUnavailable,
+                                moderate_markdown_async, stats_entry as mod_stats)
 from ..engine.proofread import cleanup_original
 from ..models import Document, SessionLocal
 from ..rate_limit import L_UPLOAD, limiter
@@ -113,7 +114,12 @@ async def _finalize_docling_sync(doc_id: str, filename: str, ext: str,
     markdown = (meta.get("markdown") or "").strip()
     if not markdown:
         raise HTTPException(422, detail=meta.get("error") or "Docling 未产出内容")
-    mod = await moderate_markdown_async(markdown)
+    try:
+        mod = await moderate_markdown_async(markdown)
+    except ModerationUnavailable as exc:
+        # CMP-02 fail-closed：审核挂掉拒收并清理残壳，未审内容绝不入库
+        shutil.rmtree(config.UPLOAD_DIR / doc_id, ignore_errors=True)
+        raise HTTPException(503, detail=str(exc) or "审核服务暂不可用，请稍后重试") from exc
     if mod["verdict"] == "reject":
         _raise_rejected(doc_id, mod)
     split = split_markdown(markdown)
@@ -136,7 +142,12 @@ async def _legacy_pdf_upload(doc_id: str, filename: str, upload_path, title: str
     markdown = result.markdown or ""
     with SessionLocal() as db:
         if markdown:
-            mod = await moderate_markdown_async(markdown)
+            try:
+                mod = await moderate_markdown_async(markdown)
+            except ModerationUnavailable as exc:
+                # CMP-02 fail-closed：审核挂掉拒收并清理残壳，未审内容绝不入库
+                shutil.rmtree(config.UPLOAD_DIR / doc_id, ignore_errors=True)
+                raise HTTPException(503, detail=str(exc) or "审核服务暂不可用，请稍后重试") from exc
             if mod["verdict"] == "reject":
                 _raise_rejected(doc_id, mod)
             split = split_markdown(markdown)
@@ -254,7 +265,12 @@ async def upload(request: Request, response: Response, file: UploadFile = File(.
     # md/txt：直读
     if kind["kind"] == "md":
         markdown = upload_path.read_text(encoding="utf-8")
-        mod = await moderate_markdown_async(markdown)
+        try:
+            mod = await moderate_markdown_async(markdown)
+        except ModerationUnavailable as exc:
+            # CMP-02 fail-closed：审核挂掉拒收并清理残壳，未审内容绝不入库
+            shutil.rmtree(config.UPLOAD_DIR / doc_id, ignore_errors=True)
+            raise HTTPException(503, detail=str(exc) or "审核服务暂不可用，请稍后重试") from exc
         if mod["verdict"] == "reject":
             _raise_rejected(doc_id, mod)
         warnings = ["Markdown 直读"]

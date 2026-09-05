@@ -62,6 +62,31 @@ if _origins:
                        allow_methods=["*"], allow_headers=["*"])
 
 
+PRIVACY_POLICY = {
+    "version": "2026-09-05",
+    "collect": [
+        "上传的教材文件与其解析内容（章节/切片）",
+        "与 AI 同桌的完整对话（讲解/提问/判定/复习记录）",
+        "学习档案：薄弱点、掌握度、复习排程",
+        "用量台账（token 消耗）与页面浏览统计（设备标识）",
+    ],
+    "purpose": "提供教学服务、改进教学质量、（产品目标）构建教学对话语料",
+    "retention": {
+        "teaching_data_months": 24,
+        "usage_ledger_months": 24,
+        "note": "到期滚动清理；删除请求经管理员通道即时处理",
+    },
+    "your_rights": "可联系管理员查询/导出/删除与本人设备标识关联的数据",
+    "anon_note": "网页免登录身份基于浏览器本地设备标识，无保密性——请勿在对话中提交敏感个人信息",
+}
+
+
+@app.get("/api/privacy")
+def privacy():
+    """CMP-01：隐私与数据保留策略（免鉴权，双端共用）。"""
+    return {"ok": True, "policy": PRIVACY_POLICY}
+
+
 @app.get("/api/health")
 def health():
     from . import settings

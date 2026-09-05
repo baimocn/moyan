@@ -162,3 +162,39 @@ def platform_stats(admin: CurrentUser = Depends(require_admin)):
         "teaching": {"turns": int(turns), "sessions": int(sessions), "docs_done": int(docs_done)},
         "tokens": {"today": int(tok_today), "total": int(tok_total), "calls": int(calls_total)},
     }
+
+
+class DocShareReq(BaseModel):
+    shared: bool
+
+
+@router.post("/documents/{doc_id}/share")
+def set_document_shared(doc_id: str, body: DocShareReq,
+                        admin: CurrentUser = Depends(require_admin)):
+    """CMP-02 一键下架/恢复：shared=false 时该书从公共书架消失（owner/admin 仍可见）。"""
+    with SessionLocal() as db:
+        doc = db.get(Document, doc_id)
+        if doc is None:
+            raise HTTPException(404, detail="文档不存在")
+        doc.shared = body.shared
+        db.commit()
+    return {"ok": True, "doc_id": doc_id, "shared": body.shared}
+
+
+@router.get("/smoke")
+def smoke_status(admin: CurrentUser = Depends(require_admin)):
+    """OBS-01 冒烟探针结果（data/smoke_probe.jsonl 尾 50 行，新在前）。"""
+    import json as _json
+    from pathlib import Path
+
+    f = Path("data/smoke_probe.jsonl")
+    if not f.exists():
+        return {"ok": True, "lines": [], "note": "探针尚未产出记录"}
+    out = []
+    for line in f.read_text(encoding="utf-8").splitlines()[-50:]:
+        try:
+            out.append(_json.loads(line))
+        except Exception:  # noqa: BLE001
+            continue
+    out.reverse()
+    return {"ok": True, "lines": out}

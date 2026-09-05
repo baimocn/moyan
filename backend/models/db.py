@@ -90,7 +90,8 @@ _TABLE_ADDITIONS: dict[str, dict[str, str]] = {
     # 共享书库去重（2026-09-03）：文件 sha256
     "documents": {"title": "VARCHAR(255) DEFAULT ''",
                   "user_id": "VARCHAR(64)",
-                  "content_hash": "VARCHAR(64)"},
+                  "content_hash": "VARCHAR(64)",
+                  "shared": "BOOLEAN DEFAULT 1"},
     "judgements": {"user_id": "VARCHAR(64)"},
     "weaknesses": {"user_id": "VARCHAR(64)"},
     "strategy_logs": {"user_id": "VARCHAR(64)"},

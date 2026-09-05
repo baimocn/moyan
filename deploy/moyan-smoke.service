@@ -1,0 +1,8 @@
+[Unit]
+Description=Moyan smoke probe (health + AI turn canary)
+After=moyan.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/moyan
+ExecStart=/opt/moyan/venv/bin/python /opt/moyan/scripts/smoke_probe.py

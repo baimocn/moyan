@@ -99,6 +99,10 @@ async def _moderate_via_engine(sample: str) -> dict:
     return out
 
 
+class ModerationUnavailable(RuntimeError):
+    """CMP-02 fail-closed：审核服务不可用（端点层映射 503，拒收新内容）。"""
+
+
 async def moderate_markdown_async(markdown: str) -> dict:
     """事件循环内可用。返回 {verdict, category, reason, ...}；异常一律 fail-open。"""
     skip = {"verdict": "pass", "category": "none", "reason": "", "skipped": ""}
@@ -113,10 +117,13 @@ async def moderate_markdown_async(markdown: str) -> dict:
         return skip
     try:
         return await _moderate_via_engine(sample_text(markdown))
-    except Exception as exc:  # noqa: BLE001 ProviderError/EngineNotReady/解析失败统一放行
-        log.warning("内容审核服务异常，fail-open 放行：%s", exc)
-        return {**skip, "skipped": "error",
-                "reason": f"审核服务异常已放行：{exc}"[:200]}
+    except Exception as exc:
+        # CMP-02（2026-09-05）：默认 fail-closed——审核挂掉就拒收，不让未审内容进公开书库
+        if app_settings.moderation_fail_open:
+            log.warning("内容审核服务异常，fail-open 放行：%s", exc)
+            return {**skip, "skipped": "error",
+                    "reason": f"审核服务异常已放行：{exc}"[:200]}
+        raise ModerationUnavailable("审核服务暂不可用，请稍后重试") from exc
 
 
 def moderate_markdown_sync(markdown: str) -> dict:

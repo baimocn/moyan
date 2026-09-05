@@ -44,6 +44,12 @@ class AppSettings(BaseSettings):
     # ---- 上传内容安全审核（MOD-01，2026-09-04）----
     # 上架前 AI 审核（黄赌毒等违禁内容拒绝入库）；0 可关闭（本地自用环境）
     moderation: bool = True
+    # CMP-02（2026-09-05 M4 Phase 9）：公开书库审核 fail-closed——审核服务异常时拒收新上传
+    # （503），杜绝未审内容入库。置 1 可回退旧 fail-open 行为（仅建议本地自用环境）
+    moderation_fail_open: bool = False
+    # 新上传默认是否进入共享书库（CMP-02 机制开关：默认 true 维持现网获客行为，
+    # 管理台可对单本下架；产品决策调整为默认私有时置 0）
+    upload_default_shared: bool = True
     # ---- 重命名 AI 审核（REN-01，2026-09-04）----
     # 非 admin 改名需过「新名称-内容相符」审核，不符 422；审核异常 fail-open
     rename_review: bool = True

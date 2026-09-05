@@ -1,7 +1,7 @@
 """文档模型"""
 from __future__ import annotations
 
-from sqlalchemy import Integer, String
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy import CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -30,6 +30,8 @@ class Document(Base):
     md_chars: Mapped[int] = mapped_column(Integer, default=0)
     chapter_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(16), default="processing")
+    # CMP-02（2026-09-05）：是否进入公共书架；管理台可下架。存量默认 true 维持现网
+    shared: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     headings: Mapped[list] = mapped_column(JSONType, default=list)
     warnings: Mapped[list] = mapped_column(JSONType, default=list)
     stats: Mapped[dict] = mapped_column(JSONType, default=dict)

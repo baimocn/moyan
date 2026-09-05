@@ -4,6 +4,7 @@ import LoginView from './views/LoginView.vue'
 import HomeView from './views/HomeView.vue'
 import TutorView from './views/TutorView.vue'
 import AdminView from './views/AdminView.vue'
+import PrivacyView from './views/PrivacyView.vue'
 import { getDeviceId } from './api/client'
 
 export const router = createRouter({
@@ -13,6 +14,7 @@ export const router = createRouter({
     { path: '/', component: HomeView },
     { path: '/tutor', component: TutorView },
     { path: '/admin', component: AdminView },
+    { path: '/privacy', component: PrivacyView },
   ],
 })
 

@@ -109,7 +109,10 @@ def test_moderation_disabled_skips(client, monkeypatch):
 
 # ---- 4) 审核异常 fail-open ----
 
-def test_moderation_error_fails_open(client, monkeypatch):
+def test_moderation_error_fail_closed(client, monkeypatch):
+    """CMP-02（2026-09-05 M4 Phase 9）：审核服务异常默认 fail-closed——503 拒收，
+    未审内容不入库。fail-open 回退行为见 test_observability_compliance.py
+    （MOYAN_MODERATION_FAIL_OPEN=1 兼容旧模式）。"""
     async def _boom(sample: str) -> dict:
         raise RuntimeError("engine down")
 
@@ -117,10 +120,10 @@ def test_moderation_error_fails_open(client, monkeypatch):
     marker = uuid.uuid4().hex[:8]
     title = f"审挂书{marker}"
     r = _upload_md(client, title, f"# {title}\n\n" + "正文。" * 100)
-    assert r.status_code == 200, r.text  # 放行
+    assert r.status_code == 503, r.text  # 拒收
+    assert "审核服务暂不可用" in r.json()["detail"]
     doc = _doc_by_title(title)
-    assert doc is not None and doc.status == "done"
-    assert any("审核" in w for w in (doc.warnings or []))
+    assert doc is None or doc.status != "done"
 
 
 # ---- 5) docling 异步任务拒绝 ----

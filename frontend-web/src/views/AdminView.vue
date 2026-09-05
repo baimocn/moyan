@@ -56,7 +56,10 @@
             <tr v-for="d in docs" :key="d.doc_id">
               <td>{{ title(d) }} <span class="mono dim">{{ d.doc_id }}</span></td>
               <td><span class="badge" :class="d.status">{{ d.status }}</span></td>
-              <td class="right"><button class="del" @click="removeDoc(d)">删除</button></td>
+              <td class="right">
+                <button :class="d.shared === false ? 'ok' : ''" @click="toggleShare(d)">{{ d.shared === false ? '恢复上架' : '下架' }}</button>
+                <button class="del" @click="removeDoc(d)">删除</button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -73,7 +76,7 @@
 // 网页端免登录原则不变：口令只在本页使用，换到的 token 存本地供管理接口用
 import { ref, computed, onMounted } from 'vue'
 import { adminLogin, getAdminStats, getAdminUsage } from '../api/admin.js'
-import { getDocuments, deleteDocument } from '../api/documents.js'
+import { getDocuments, deleteDocument, setDocumentShared } from '../api/documents.js'
 import { me } from '../api/auth.js'
 import { getToken, setAuth, clearAuth } from '../api/client.js'
 
@@ -117,6 +120,16 @@ async function loadAll() {
     if (e.status === 401 || e.status === 403) { logout() }
     else err.value = '数据加载失败：' + (e.message || '未知错误')
   }
+}
+
+async function toggleShare(d) {
+  const toShared = d.shared === false
+  if (!window.confirm(toShared ? `恢复《${title(d)}》到公共书架？` : `下架《${title(d)}》？该书将从公共书架消失（本人仍可见）。`)) return
+  try {
+    await setDocumentShared(d.doc_id, toShared)
+    d.shared = toShared
+    tip.value = toShared ? `已恢复《${title(d)}》✓` : `已下架《${title(d)}》✓`
+  } catch (e) { tip.value = ''; err.value = '操作失败：' + (e.message || '未知错误') }
 }
 
 async function removeDoc(d) {

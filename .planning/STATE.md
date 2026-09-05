@@ -1,17 +1,18 @@
 # STATE — 项目记忆
 
-*Last updated: 2026-09-05*
+*Last updated: 2026-09-05（M4 收口）*
 
 ## Current Position
 
 - **Project**: 墨衍（双前端 · 一后端 · 共享书库）
 - **Milestone**: M2/M3 六阶段全量交付（docs/REQUIREMENTS Phase1-6 全 done）→ **M4 加固与升级（2026-09-05 立项）**
-- **Phase**: Phase 7 已规划（07-01-PLAN 就绪），待 T0 收口基线后执行
+- **Phase**: **M4 全部交付**（Phase 7 SEC-01..04 / Phase 8 SCHEMA-01..06 / Phase 9 OBS-CMP-DOC，各见 0X-01-SUMMARY）。下一步：M5 功能升级立项（gsd-new-milestone）
 - **Mode**: mvp（每阶段端到端交付）
 - **Blocked**: 无（M4 三阶段全为 backend/ops/docs，与小程序冻结无冲突）
 
 ## LOG
 
+- 2026-09-05: **M4 收口**——Phase 7 部署实弹（B 访问 A 会话 404/A 本人 200，生产冒烟抓到 start/resume 未挂 owner 缺口已修）；Phase 8 生产 stamp/upgrade （3 索引+3 bigint+10 jsonb+6 CHECK，from-zero 临时库 12表/6CHECK/3bigint 验证；createdb 须 -O moyan）；Phase 9 探针 SMOKE_OK + fail-closed + shared 下架 + /api/privacy + v5.1 文档。全量 185/185。教训：改模型后必须删 test_dev.db 重建；CHECK 取值域先 SELECT DISTINCT（漏了 rejected）；alembic.ini 只能 ASCII
 - 2026-09-05: **会话级修复（已上线/已落盘）**——限流 key 匿名回落 IP（rate_limit.py + 回归锁，已部署生产并实弹验证 35×429；**代码未 commit，= Phase 7 T0**）；生产 requirements.txt 补 slowapi/PyJWT（md5 验证）；git 基线推送（远端=本地=生产 4f72eea）；删除本地明文凭据 _env_prod.txt/_pg_pass.txt（**AI key/root 密码轮换待用户控制台操作**；out/_ssh_run2.py 仍硬编码 root 密码）
 - 2026-09-05: **审计沉淀**——魔鬼代言人审查 v2（docs 未存档，结论见会话）：schema 审计发现迁移路径丢索引实锤（content_hash 索引缺失、email unique 缺失）、Integer 台账到期炸弹、json/jsonb 混用；边界缺口实证（turn 无归属校验/max_tokens 无上限/同会话无锁/无预算熔断）；服务器实况（Python 3.12、nginx 反代、caddy failed）
 - 2026-09-05: **M4 立项并规划**——ROADMAP 追加 Phase 7/8/9（安全与成本边界 / Schema 健康化+alembic / 可观测与合规）+ M5 功能升级后置立项；07-hardening/RESEARCH.md + 07-01-PLAN.md 就绪，plan-check 通过
