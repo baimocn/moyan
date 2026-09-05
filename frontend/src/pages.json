@@ -1,7 +1,59 @@
 {
   "pages": [
-    { "path": "pages/index/index", "style": { "navigationBarTitleText": "墨衍 · 选课", "navigationBarBackgroundColor": "#f6f2e8", "navigationBarTextStyle": "black", "backgroundColor": "#f6f2e8" } },
-    { "path": "pages/tutor/tutor", "style": { "navigationBarTitleText": "墨衍 · 同桌", "navigationBarBackgroundColor": "#f6f2e8", "navigationBarTextStyle": "black", "backgroundColor": "#f6f2e8" } }
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "墨衍 · 选课",
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8"
+      }
+    },
+    {
+      "path": "pages/mistakes/mistakes",
+      "style": {
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8",
+        "navigationBarTitleText": "墨衍 · 错题本"
+      }
+    },
+    {
+      "path": "pages/review/review",
+      "style": {
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8",
+        "navigationBarTitleText": "墨衍 · 重练"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8",
+        "navigationBarTitleText": "墨衍 · 我的"
+      }
+    },
+    {
+      "path": "pages/privacy/privacy",
+      "style": {
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8",
+        "navigationBarTitleText": "墨衍 · 隐私与数据说明"
+      }
+    },
+    {
+      "path": "pages/tutor/tutor",
+      "style": {
+        "navigationBarTitleText": "墨衍 · 同桌",
+        "navigationBarBackgroundColor": "#f6f2e8",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#f6f2e8"
+      }
+    }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

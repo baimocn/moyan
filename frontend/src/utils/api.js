@@ -232,3 +232,22 @@ function _streamTurnMP(payload, onEvent) {
     doReq()
   })
 }
+
+// ---- M5 Phase 12：错题重练 / 个人页 / 隐私 ----
+export function getMyWeaknesses() {
+  return _uniReq('GET', '/api/auth/me/weaknesses').then(_extract)
+}
+export function startReview(docId, limit = 20) {
+  return _uniReq('POST', '/api/study/review-session/start',
+                 { data: { doc_id: docId, limit } }).then(_extract)
+}
+export function reviewCurrent(sessionId) {
+  return _uniReq('GET', `/api/study/review-session/${sessionId}/current`).then(_extract)
+}
+export function reviewAnswer(sessionId, skillId, rating) {
+  return _uniReq('POST', `/api/study/review-session/${sessionId}/answer`,
+                 { data: { skill_id: skillId, rating } }).then(_extract)
+}
+export function getMeStats() {
+  return _uniReq('GET', '/api/auth/me/stats').then(_extract)
+}

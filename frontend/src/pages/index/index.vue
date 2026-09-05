@@ -10,6 +10,11 @@
         <text class="up-btn-t">{{ uploading ? '上传中…' : '＋ 上传' }}</text>
       </view>
     </view>
+    <view class="mynav">
+      <text class="mynav-l" @tap="goMistakes">错题本</text>
+      <text class="mynav-l" @tap="goProfile">我的</text>
+      <text class="mynav-l" @tap="goPrivacy">隐私</text>
+    </view>
 
     <!-- 共享书库搜索（v2 同步）：hero 下方通栏，300ms 防抖 -->
     <view class="search">
@@ -120,6 +125,7 @@ export default {
     ready() { return this.docIdx >= 0 && this.chapIdx >= 0 }
   },
   onShow() {
+    this.maybePrivacy()
     this.refresh()
     try {
       const s = uni.getStorageSync('moyan:last')
@@ -128,6 +134,26 @@ export default {
     } catch (e) { this.last = null }
   },
   methods: {
+    maybePrivacy() {
+      if (this._privacyAsked) return
+      this._privacyAsked = true
+      try {
+        if (uni.getStorageSync('moyan:privacy_ack')) return
+      } catch (e) { return }
+      uni.showModal({
+        title: '隐私与数据说明',
+        content: '学习对话将用于提供教学并构建语料，保留 24 个月。详情见「隐私」页。',
+        confirmText: '同意并继续',
+        cancelText: '查看详情',
+        success: (r) => {
+          if (r.confirm) { try { uni.setStorageSync('moyan:privacy_ack', 1) } catch (e) {} }
+          else uni.navigateTo({ url: '/pages/privacy/privacy' })
+        },
+      })
+    },
+    goMistakes() { uni.navigateTo({ url: '/pages/mistakes/mistakes' }) },
+    goProfile() { uni.navigateTo({ url: '/pages/profile/profile' }) },
+    goPrivacy() { uni.navigateTo({ url: '/pages/privacy/privacy' }) },
     resumeLast() {
       if (!this.last) return
       if (!this.docs.length) { this.tip = this.loadErr || '书架还没加载出来，下拉重试或检查网络'; return }
