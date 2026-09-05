@@ -1,6 +1,6 @@
 # 墨衍 · 项目上下文（PROJECT.md）
 
-*Last updated: 2026-09-04 after initialization*
+*Last updated: 2026-09-05（M5 立项）*
 
 ## What This Is
 
@@ -33,14 +33,17 @@
 - ✓ 注册/登录（网页 scrypt；小程序 wx.login→JWT）+ slowapi 限流
 - ✓ 弱点记录 + FSRS 复习调度；内置示例教材（审核合规）
 
-### Active（M2 管理底座 + M3 向量知识库，均为假设待验证）
+### Validated 补记（M2/M3/M4 全部交付，2026-09-05）
 
-- [ ] 权限分层：admin/user/anon 三角色，写操作鉴权（ADMIN-01..03）
-- [ ] 文档 DELETE + 联级清理（DOC-01..03）
-- [ ] 成本可见：AI token 用量记录与估算（COST-01）
-- [ ] 浏览量统计：双前端"有人点进来就算"（STATS-01..03）
-- [ ] 管理后台页 /admin：文档管理 + 统计面板（ADMINUI-01..03）
-- [ ] 向量知识库：pgvector + 云端 embedding + 检索注入教学（VEC-01..04，场景先行）
+- ✓ M2+M3：权限分层/文档删除/用量观测/管理台/向量库（ADMIN/DOC/COST/STATS/ADMINUI/VEC）
+- ✓ M4 加固与升级：会话归属 404、并发锁 409、生成上限、日预算熔断、限流 IP 兜底、
+  Schema 健康化 + alembic、冒烟探针、书库 fail-closed + shared 下架、隐私策略（SEC/SCHEMA/OBS/CMP/DOC）
+
+### Active（M5 功能升级，2026-09-05 立项）
+
+- [ ] 学习数据底座：doc 级读端点鉴权收口、错题重练口径、学习报告/个人页聚合 API、上传进度契约（AUTH-04/PRAC-01/RPT-01/ME-01/UP-01）
+- [ ] 网页端体验：markdown 渲染、错题本页、学习报告页、管理台图表、向量管理 UI（MD-01/PRAC-02/RPT-02/CHART-01/VECUI-01）
+- [ ] 小程序升级：隐私告知展示、错题重练页、个人页、上传进度（PP-01/PRAC-03/ME-02/UP-02）——**门禁：frontend/ 冻结解除**
 
 ### Out of Scope
 
@@ -59,6 +62,8 @@
 | 权限模型用 env 管理员清单 | 单管理员现实，YAGNI | Pending（M2） |
 | 向量库选 pgvector + 云端 embedding | 零新组件、成本可忽略、2C2G 不跑本地模型 | Pending（M3） |
 | GSD 门禁全开 + 标准粒度 | 用户 2026-09-04 选定 | ✓ config.json |
+| M5 顺序：后端底座→网页→小程序 | 小程序冻结未解；沿用 2026-09-03「网页优先」决策 | Pending（M5） |
+| 产品定位：不收费，搜集用户-AI 对话数据 | 用户 2026-09-05 确认；限流=成本+数据质量双防线 | ✓ M4 交付 |
 
 ## Evolution
 

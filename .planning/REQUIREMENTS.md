@@ -81,3 +81,31 @@
 ## M4 增补（2026-09-05）
 
 SEC-01..04 / SCHEMA-01..06 / OBS-01..02 / CMP-01..02 / DOC-01 定义于 `ROADMAP.md` M4 节，全部交付（见 .planning/phases/07~09 的 SUMMARY）。v1 23 项需求 + M4 15 项 = 38 项全覆盖。
+
+## M5 增补（2026-09-05 立项，来源：交接文档 5A/5B 待办 + M4 遗留收口；全部 [-] 待做）
+
+### AUTH — 遗留收口
+
+- [ ] **AUTH-04**: `/api/study/{doc_id}/*` 六个 doc 级读端点补身份与可见性（owner 或 doc.shared，与 CMP-02 语义一致；404 不暴露存在性）——Phase 7 遗留
+
+### PRAC — 错题重练
+
+- [ ] **PRAC-01**: 后端重练口径：错题本列表（weaknesses 按 due/mastery/times_low 排序，owner 维度）+ 复用 review-session 重练流（owner 语义已在 M4 落地）
+- [ ] **PRAC-02**: 网页错题本页（列表 + 到期标记 + 重练入口接 PRAC-01）
+- [ ] **PRAC-03**: 小程序错题重练页（同口径）
+
+### RPT / ME — 报告与个人页
+
+- [ ] **RPT-01**: 学习报告聚合 API `GET /api/study/report`：turns 统计、判定正确率趋势（judgements 按日）、薄弱点分布、连续天数（复用 study_streak）
+- [ ] **RPT-02**: 网页学习报告页（接 RPT-01；趋势用轻量 SVG，不引重图表库）
+- [ ] **ME-01**: `GET /api/me/stats` 个人页口径（按 user_id 聚合；web_anon 口径显式标注）
+- [ ] **ME-02**: 小程序个人页（接 ME-01）
+
+### MD / CHART / VECUI / UP / PP — 体验与合规
+
+- [ ] **MD-01**: 网页教学气泡 markdown 渲染（markdown-it + sanitize 防 XSS；代码块/列表/加粗）
+- [ ] **CHART-01**: 管理台图表（/api/admin/usage 按天聚合柱状 + token 趋势，轻量 SVG）
+- [ ] **VECUI-01**: 管理台向量 UI（VEC-04 开关 + 建索引入口 + 检索命中展示，接既有 /api/admin/vec/*）
+- [ ] **UP-01**: 上传进度契约确认（tasks.progress/done_pages 已有，补契约与轮询间隔建议）
+- [ ] **UP-02**: 小程序上传进度展示
+- [ ] **PP-01**: 小程序隐私告知展示（CMP-01 补完：首次启动 + 设置页）

@@ -110,7 +110,40 @@ M4 三阶段（7-9）全部为 backend/ops/docs，双前端零改动。执行顺
 4. 交接文档 v5.1：git 状态行、Python 3.12 实况、Caddy 弃用声明、后端归属规则、内容池风险声明
 5. pytest 全绿；frontend/ 零改动（告知页如需前端展示，延至 M5）
 
-## M5（后置立项，暂缓规划）
+# 里程碑 M5：功能升级（2026-09-05 立项）
 
-双端功能升级：错题本深化（重练流）、学习报告、个人页、聊天气泡 markdown 渲染、
-上传进度流、管理台图表、向量检索 UI。——摘自交接文档 5A/5B，待 M4 收口后走 gsd-new-milestone。
+*目标：把学习闭环从「能用」升级为「闭环好用」——错题→重练→报告→个人档案双端落地。*
+*需求定义：`.planning/REQUIREMENTS.md` M5 增补节。约束：Phase 10/11 不碰 `frontend/`（冻结延续）；Phase 12 门禁=用户宣布解冻。*
+
+### Phase 10: 学习数据底座与遗留收口（AUTH-04/PRAC-01/RPT-01/ME-01/UP-01）
+**Goal:** 错题、报告、个人页的数据口径全部就位，历史遗留鉴权缺口关闭
+**Mode:** mvp
+**Success Criteria**:
+1. doc 级 study 读端点：非 owner 且非 shared 一律 404（测试覆盖全部六端点）
+2. 错题本列表 API 按 owner 维度返回（due/mastery/times_low 排序）+ review-session 重练贯通
+3. report/me-stats 聚合 API 上线（owner 维度，含正确率趋势/薄弱分布/连续天数），web_anon 口径显式标注
+4. 上传进度契约写入 API 契约文档第七节
+5. pytest 全绿；frontend/ 与 frontend-web/ 零改动
+
+### Phase 11: 网页端功能升级（MD-01/PRAC-02/RPT-02/CHART-01/VECUI-01）
+**Goal:** 网页端补齐学习闭环 UI 与管理可视化
+**Mode:** mvp
+**Success Criteria**:
+1. 教学气泡 markdown 渲染（sanitize 防 XSS），代码块/列表/加粗可见
+2. 错题本页：列表 + 到期标记 + 重练流贯通（真实走完一轮 review-session）
+3. 学习报告页：四类数据可视化（轻量 SVG，无重图表依赖）
+4. 管理台：用量柱状图 + 向量管理 UI（开关/建索引/命中展示）
+5. npm build + 生产部署 + 人工冒烟；frontend/ 零改动
+
+### Phase 12: 小程序升级（PP-01/PRAC-03/ME-02/UP-02）【门禁：冻结解除】
+**Goal:** 小程序补齐学习闭环与合规展示
+**Mode:** mvp
+**Success Criteria**:
+1. 隐私告知展示（首次启动 + 设置页入口）
+2. 错题重练页 + 个人页接 Phase 10 API（真机冒烟通过）
+3. 上传进度展示
+4. 提审包就绪（含 CMP-01 合规展示）；pytest 不回归
+
+## M6（未立项）
+
+候选：知识图谱报告、邮箱绑定跨设备合并、多管理员。无场景压力，不规划。

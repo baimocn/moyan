@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Project**: 墨衍（双前端 · 一后端 · 共享书库）
-- **Milestone**: M2/M3 六阶段全量交付（docs/REQUIREMENTS Phase1-6 全 done）→ **M4 加固与升级（2026-09-05 立项）**
-- **Phase**: **M4 全部交付**（Phase 7 SEC-01..04 / Phase 8 SCHEMA-01..06 / Phase 9 OBS-CMP-DOC，各见 0X-01-SUMMARY）。下一步：M5 功能升级立项（gsd-new-milestone）
+- **Milestone**: M2/M3/M4 全部交付 → **M5 功能升级（2026-09-05 立项）**
+- **Phase**: Phase 10（学习数据底座与遗留收口）为下一执行阶段，PLAN 待 /gsd:plan-phase 10
 - **Mode**: mvp（每阶段端到端交付）
 - **Blocked**: 无（M4 三阶段全为 backend/ops/docs，与小程序冻结无冲突）
 
