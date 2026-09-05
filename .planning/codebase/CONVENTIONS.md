@@ -13,8 +13,11 @@
 - **slowapi 铁律**：限流装饰器修饰的函数第一个参数必须是 `request: Request`（slowapi 内部读 self），否则运行时炸
 - 身份获取：一律通过 `Depends(get_requester)`（`backend/auth/deps.py`），返回 `CurrentUser(openid, role)`；**不要**在路由里自己解析 token
 - 配置读取：从 `backend/settings.py` 的 `app_settings` 取；新 env 键用 `MOYAN_` 前缀 + `setdefault`（注意跨模块 setdefault 顺序坑，测试里必须 monkeypatch 显式控制）
-- DB 访问：`backend/models/repo.py` 集中数据访问；模型加列走 `models/db.py` 的 `_TABLE_ADDITIONS`（仅加列语义）
+- DB 访问：`backend/models/repo.py` 集中数据访问；**schema 变更一律走 alembic**（`migrations/versions/`，必须幂等，生产 `stamp`+`upgrade`；SQLite 开发库走 create_all+stamp）——`_TABLE_ADDITIONS` 仅剩老开发库补列兼容语义
 - 错误处理：HTTPException 带中文 detail；SSE 错误以 `event: error` 下发而非 HTTP 错误码
+- **会话端点红线（SEC-01）**：凡接受 session_id 的新端点必须做归属校验（`repo.session_owned_by`），非 owner 一律 404；同会话并发走 `try_begin_turn` 409
+- **上传审核 fail-closed（CMP-02）**：moderation 异常拒收（503），`MOYAN_MODERATION_FAIL_OPEN=1` 才回退放行
+- 测试必须 `--basetemp`（系统 Temp 拒绝访问）：`python -m pytest backend/tests/ -q --basetemp=out/_pytest_tmp`；改模型后必须删除 `backend/tests/test_dev.db` 重建（陈旧 schema 会假绿/假红）
 - 子进程（docling）：必须经 `docling_adapter._run_worker` 启动（剥代理 env + 离线 HF 变量），不要直接 subprocess
 
 ## 前端（uni-app 小程序）

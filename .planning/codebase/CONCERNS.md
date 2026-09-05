@@ -1,6 +1,6 @@
 # CONCERNS — 技术债与风险
 
-*Last updated: 2026-09-04*
+*Last updated: 2026-09-05（M4 收口复核）*
 
 ## 安全
 
@@ -21,6 +21,20 @@
 | 老数据 NULL | documents/5 表 user_id、content_hash 列 | 匿名/迁移旧行 NULL，查询条件须兼容 `IS NULL` | 保持现有兼容写法 |
 | plan 缓存无失效 | `backend/storage.py` plan_{n}.json | prompts 改版后旧缓存仍被用，教学行为不更新 | 加版本号或清除机制 |
 | 单 worker + 2C2G | 生产 systemd | docling 解析 PDF 内存峰值 + SSE 长连接并发，内存 1.2G/1.6G 紧张 | 加 swap 兜底；观察真实用户量后升配 |
+
+
+## 已解决（M4，2026-09-05，留档防复发）
+
+| 原风险 | 解决方式 |
+|---|---|
+| AUTH_DISABLED 生产误开 | Phase 1：MOYAN_ENV=production 硬校验 + dev-login 403 |
+| dev-login 生产后门 | 同上，生产 403 |
+| JWT secret 兜底可伪造 | 同上（auth_disabled 生产强制关） |
+| 生产密钥副本 out/*.txt | 已删除（2026-09-05）；root 密码仍在 out/_ssh_run2.py（用户决定不轮换） |
+| 迁移只支持加列 | Phase 8：alembic 全量接管（0001-0003） |
+| 匿名限流可旋转（刷账单根因） | Phase 7 前置：限流 key 匿名回落 IP |
+| 未审内容入公开书库 | Phase 9：审核 fail-closed + shared 下架 |
+| 故障发现靠用户 | Phase 9：moyan-smoke.timer 探针 |
 
 ## 死代码 / 债
 

@@ -11,7 +11,9 @@
 | ORM/DB | SQLAlchemy >=2.0（DeclarativeBase），开发 SQLite `data/moyan_dev.db`，生产 PostgreSQL16 | `backend/models/db.py` |
 | DB 驱动 | psycopg2-binary >=2.9 | `requirements.txt` |
 | 鉴权 | PyJWT >=2.8（HS256，sub=openid，7d）；小程序侧 jscode2session；网页版 scrypt 密码 | `backend/auth/jwt.py`, `backend/auth/wx.py`, `backend/auth/passwords.py` |
-| 限流 | slowapi >=0.1.9（key_func 按 openid/设备维度，5 档） | `backend/rate_limit.py` |
+| 限流 | slowapi >=0.1.9（key_func：真实 openid 按 user:，匿名 web_* 一律回落 ip:——自报设备头可旋转，2026-09-05） | `backend/rate_limit.py` |
+| 迁移 | alembic >=1.13（0001 baseline / 0002 schema_health / 0003 documents.shared；0002 起仅 PG） | `migrations/`, `alembic.ini` |
+| 生成上限 | 所有真实 AI 调用注入 max_tokens（MOYAN_GEN_MAX_TOKENS=4000，cheap 1500） | `backend/engine/providers.py` |
 | AI 引擎 | openai >=2.0 SDK（OpenAI 兼容协议，DeepSeek）+ instructor >=1.15 结构化输出 + pydantic >=2.10 | `backend/engine/providers.py` |
 | 记忆调度 | fsrs >=6.3（间隔重复） | `backend/engine/review/service.py` |
 | 解析 | docling（主引擎，独立 venv `.docling-venv/` + `tools/docling_worker.py` 子进程）；pymupdf、rapidocr_onnxruntime、onnxruntime、pillow | `backend/services/docling_adapter.py`, `backend/config.py` |
@@ -33,10 +35,10 @@
 
 - 唯一事实源：`backend/settings.py` 的 `app_settings`（pydantic-settings），`MOYAN_*` 环境变量 / `.env` 覆盖
 - `backend/config.py` 只保留路径常量与从 settings 复读的值（UPLOAD/MARKDOWN/CHAPTERS/WORK 目录、OCR 参数、SUPPORTED_FORMATS）
-- 关键 env：`MOYAN_DB_URL`、`MOYAN_AI_*`（模型/key/并发）、`AUTH_DISABLED`、`ADMIN_*`（M2 计划新增）
+- 关键 env：`MOYAN_DB_URL`、`MOYAN_AI_*`（模型/key）、`MOYAN_AUTH_DISABLED`、`MOYAN_ADMIN_OPENIDS`、`MOYAN_ADMIN_WEB_PASSWORD`、`MOYAN_GEN_MAX_TOKENS`、`MOYAN_DAILY_TOKEN_BUDGET/HARD`（预算熔断，0=关）、`MOYAN_MODERATION_FAIL_OPEN`（默认 0=fail-closed）、`MOYAN_UPLOAD_DEFAULT_SHARED`、`MOYAN_VEC_INJECT`
 - 生产 env 在服务器 `/opt/moyan/.env`（CRLF 行尾，勿 bash source）
 
 ## 运行方式
 
 - 开发：`uvicorn backend.main:app --port 5001` + 前端各自 dev server
-- 生产：systemd `moyan.service`（uvicorn @127.0.0.1:5001）+ nginx 443→5001（`/etc/nginx/sites-enabled/moyan`）；`deploy/` 是 Caddy 备选方案（未启用）
+- 生产：systemd `moyan.service`（uvicorn @127.0.0.1:5001，`--proxy-headers`）+ nginx 443→5001（`/etc/nginx/sites-enabled/moyan`）；Caddy 已弃用（deploy/README 仅历史参考）；systemd `moyan-smoke.timer` 每 5min 冒烟探针（`scripts/smoke_probe.py`）

@@ -28,7 +28,8 @@
 | ORM/DB | SQLAlchemy >=2.0（DeclarativeBase），开发 SQLite `data/moyan_dev.db`，生产 PostgreSQL16 | `backend/models/db.py` |
 | DB 驱动 | psycopg2-binary >=2.9 | `requirements.txt` |
 | 鉴权 | PyJWT >=2.8（HS256，sub=openid，7d）；小程序侧 jscode2session；网页版 scrypt 密码 | `backend/auth/jwt.py`, `backend/auth/wx.py`, `backend/auth/passwords.py` |
-| 限流 | slowapi >=0.1.9（key_func 按 openid/设备维度，5 档） | `backend/rate_limit.py` |
+| 限流 | slowapi >=0.1.9（真实 openid 按 user:，匿名 web_* 回落 ip:） | `backend/rate_limit.py` |
+| 迁移 | alembic >=1.13（schema 变更唯一通道，0001-0003） | `migrations/` |
 | AI 引擎 | openai >=2.0 SDK（OpenAI 兼容协议，DeepSeek）+ instructor >=1.15 结构化输出 + pydantic >=2.10 | `backend/engine/providers.py` |
 | 记忆调度 | fsrs >=6.3（间隔重复） | `backend/engine/review/service.py` |
 | 解析 | docling（主引擎，独立 venv `.docling-venv/` + `tools/docling_worker.py` 子进程）；pymupdf、rapidocr_onnxruntime、onnxruntime、pillow | `backend/services/docling_adapter.py`, `backend/config.py` |
@@ -50,13 +51,13 @@
 
 - 唯一事实源：`backend/settings.py` 的 `app_settings`（pydantic-settings），`MOYAN_*` 环境变量 / `.env` 覆盖
 - `backend/config.py` 只保留路径常量与从 settings 复读的值（UPLOAD/MARKDOWN/CHAPTERS/WORK 目录、OCR 参数、SUPPORTED_FORMATS）
-- 关键 env：`MOYAN_DB_URL`、`MOYAN_AI_*`（模型/key/并发）、`AUTH_DISABLED`、`ADMIN_*`（M2 计划新增）
+- 关键 env：`MOYAN_DB_URL`、`MOYAN_AI_*`、`MOYAN_AUTH_DISABLED`、`MOYAN_ADMIN_OPENIDS`、`MOYAN_GEN_MAX_TOKENS`、`MOYAN_DAILY_TOKEN_BUDGET/HARD`、`MOYAN_MODERATION_FAIL_OPEN`、`MOYAN_UPLOAD_DEFAULT_SHARED`
 - 生产 env 在服务器 `/opt/moyan/.env`（CRLF 行尾，勿 bash source）
 
 ## 运行方式
 
 - 开发：`uvicorn backend.main:app --port 5001` + 前端各自 dev server
-- 生产：systemd `moyan.service`（uvicorn @127.0.0.1:5001）+ nginx 443→5001（`/etc/nginx/sites-enabled/moyan`）；`deploy/` 是 Caddy 备选方案（未启用）
+- 生产：systemd `moyan.service` + nginx 443→5001；Caddy 已弃用；`moyan-smoke.timer` 冒烟探针（scripts/smoke_probe.py）
 
 <!-- GSD:stack-end -->
 
@@ -75,7 +76,9 @@
 - **slowapi 铁律**：限流装饰器修饰的函数第一个参数必须是 `request: Request`（slowapi 内部读 self），否则运行时炸
 - 身份获取：一律通过 `Depends(get_requester)`（`backend/auth/deps.py`），返回 `CurrentUser(openid, role)`；**不要**在路由里自己解析 token
 - 配置读取：从 `backend/settings.py` 的 `app_settings` 取；新 env 键用 `MOYAN_` 前缀 + `setdefault`（注意跨模块 setdefault 顺序坑，测试里必须 monkeypatch 显式控制）
-- DB 访问：`backend/models/repo.py` 集中数据访问；模型加列走 `models/db.py` 的 `_TABLE_ADDITIONS`（仅加列语义）
+- DB 访问：`backend/models/repo.py` 集中数据访问；**schema 变更一律走 alembic**（幂等迁移，生产 stamp/upgrade）
+- **会话端点红线**：接受 session_id 的新端点必须做归属校验（`repo.session_owned_by`），非 owner 404；并发走 `try_begin_turn` 409
+- **上传审核 fail-closed**：moderation 异常拒收 503；测试必须 `--basetemp=out/_pytest_tmp`，改模型后删 test_dev.db 重建
 - 错误处理：HTTPException 带中文 detail；SSE 错误以 `event: error` 下发而非 HTTP 错误码
 - 子进程（docling）：必须经 `docling_adapter._run_worker` 启动（剥代理 env + 离线 HF 变量），不要直接 subprocess
 

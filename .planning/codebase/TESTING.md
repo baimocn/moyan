@@ -4,8 +4,9 @@
 
 ## 后端：pytest（唯一正式测试层）
 
-- 位置：`backend/tests/`，17 个文件 ~1900 行，pytest 套件全绿（2026-09-04 基线 93/93）
-- 运行：项目根 `python -m pytest backend/tests/`（本地用受管 Python 3.13 venv；CI 无）
+- 位置：`backend/tests/`，21 个文件，pytest 套件全绿（2026-09-05 基线 185/185）
+- 运行：项目根 `python -m pytest backend/tests/ -q --basetemp=out/_pytest_tmp`（系统 Temp 被沙箱拒，必须 basetemp）
+- **改模型后必须删除 `backend/tests/test_dev.db` 重建**——陈旧 schema 会假绿/假红（2026-09-05 两次踩中）
 - `conftest.py`：共享 fixture（测试 app、临时 DB）；测试 DB 用 `test_dev.db`
 
 ## 文件地图
@@ -22,6 +23,10 @@
 | `test_pipeline.py` / `test_docling_adapter.py` / `test_chapter_splitter.py` | 解析管线（docling mock、切章） |
 | `test_review.py` / `test_reviewer.py` / `test_persona.py` | FSRS 复习、复习引擎、人设 |
 | `test_cors.py` | 跨域配置 |
+| `test_security_bounds.py` | SEC-01..04：归属 404/生成上限/并发锁 409/预算熔断 |
+| `test_schema_health.py` | SCHEMA：bigint/JSONB/CHECK/部分唯一索引/upsert 隔离 |
+| `test_observability_compliance.py` | OBS/CMP：privacy/fail-closed/shared 可见性/admin smoke |
+| `test_boundaries.py` / `test_admin_roles.py` / `test_doc_delete.py` 等 | R11 边界矩阵 / admin 三态 / 联级删除 |
 
 ## Mock 约定（重要坑）
 

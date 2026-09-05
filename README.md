@@ -1,4 +1,6 @@
-# 墨衍 · AI 导师（本地骨架 · 第 1 阶段）
+# 墨衍 · AI 同桌式自考辅导平台
+
+> **当前状态（2026-09-05）**：双前端（微信小程序 0.2.x 审核中 + 网页版已上线）+ 单后端，M4「加固与升级」已交付。接手/协作请先读 `墨衍-交接文档-v5-20260905.md`（现行交接文档）；下文为项目早期骨架说明，结构仍准确，功能以交接文档为准。
 
 > 品牌名**墨衍**：从"白墨"衍生——深、静、有生机、藏锋于内。
 > 规划文档：`墨衍-项目规划.md`（开新对话时把本文件路径发给 AI 即可无缝继续）。
@@ -32,8 +34,9 @@ backend/
 │   ├── judge/quiz/proofread  # 判定/出题/教材校对（client 由容器注入）
 │   └── tutor/         #   教学状态机（session 数据 / actions 行为 / service 编排，依赖注入）
 ├── services/          # 资料解析层（pdf/ocr/切章/版式）
-├── routers/           # API 路由层（upload/documents/tasks/tutor）
-├── tasks.py           # 后台 OCR worker（线程队列）
+├── routers/           # API 路由层（auth/upload/documents/tasks/tutor/study/admin/metrics）
+├── tasks.py           # 后台解析 worker（线程队列）
+├── migrations/        # alembic schema 迁移（M4）
 └── storage.py         # 文件存储
 ```
 
